@@ -12,4 +12,9 @@ export function createDb(connectionString = process.env.DATABASE_URL) {
 
 export * from './schema/index';
 export * from './rls/policies';
+export * from './storage/provider';
 export * from './storage/local';
+export * from './storage/supabase';
+export * from './storage/factory';
+export * from './services/properties';
+export * from './services/users';

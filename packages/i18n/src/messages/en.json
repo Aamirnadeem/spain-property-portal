@@ -4,13 +4,14 @@
   "nav": {
     "home": "Home",
     "search": "Search",
+    "favourites": "Favourites",
     "account": "Account",
     "signIn": "Sign in"
   },
   "home": {
-    "title": "Platform foundation",
-    "body": "Phase 1 vertical slice: locales, health, OTP fakes, guest sessions, and database foundations.",
-    "cta": "Check health"
+    "title": "Spain property search",
+    "body": "Browse Catalonia snapshot listings with provenance and freshness labelling. These records are historical snapshots — not live inventory.",
+    "cta": "Search properties"
   },
   "auth": {
     "emailOtp": "Email OTP",
@@ -23,5 +24,61 @@
   "health": {
     "ok": "Healthy",
     "degraded": "Degraded"
+  },
+  "search": {
+    "title": "Property search",
+    "filters": "Filters",
+    "query": "Search text",
+    "minPrice": "Min price",
+    "maxPrice": "Max price",
+    "bedrooms": "Bedrooms",
+    "minSize": "Min size m²",
+    "maxSize": "Max size m²",
+    "area": "Location",
+    "environment": "Environment",
+    "allEnvironments": "All",
+    "cityCenter": "City center",
+    "coastal": "Coastal",
+    "hillside": "Hillside",
+    "apply": "Apply filters",
+    "clear": "Clear",
+    "cards": "Cards",
+    "table": "Table",
+    "sort": "Sort",
+    "sortNewest": "Newest import",
+    "sortPriceAsc": "Price ↑",
+    "sortPriceDesc": "Price ↓",
+    "sortSize": "Size ↓",
+    "empty": "No properties match these filters.",
+    "error": "Search is temporarily unavailable.",
+    "results": "results",
+    "snapshotBadge": "Legacy snapshot",
+    "page": "Page",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "property": {
+    "back": "Back to search",
+    "bedrooms": "Bedrooms",
+    "bathrooms": "Bathrooms",
+    "size": "Built area",
+    "pricePerSqm": "Price / m²",
+    "location": "Location",
+    "features": "Features",
+    "transport": "Transport",
+    "proximity": "Proximity",
+    "source": "Source",
+    "openSource": "Open original source",
+    "freshness": "Freshness",
+    "noImage": "No authorized photograph available",
+    "addFavourite": "Save favourite",
+    "removeFavourite": "Remove favourite",
+    "unavailableBaths": "Not provided in source"
+  },
+  "favourites": {
+    "title": "Favourites",
+    "empty": "No favourites yet.",
+    "guestHint": "Guest favourites are stored in this browser until you sign in.",
+    "signedInHint": "Signed-in favourites are stored in your account."
   }
 }

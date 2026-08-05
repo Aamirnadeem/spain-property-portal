@@ -1,7 +1,7 @@
 # Spain Property Buyer Portal — Architecture
 
-Version: 1.1  
-Status: Phase 0 deliverable (updated after legacy assessment)  
+Version: 1.2  
+Status: Phase 1.1 production architecture locked  
 Authoritative source: [`spain_property_portal_build_plan_and_master_prompt_v2.md`](spain_property_portal_build_plan_and_master_prompt_v2.md)  
 Companion: [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md), [`DATABASE_DESIGN.md`](DATABASE_DESIGN.md), [`LEGACY_CODE_ASSESSMENT.md`](LEGACY_CODE_ASSESSMENT.md)
 
@@ -20,6 +20,16 @@ Companion: [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md), [`DATABASE_DESIGN
 9. Prefer deterministic rules and geospatial calculations over AI guesses.
 10. Do not activate a channel until operational support, consent and monitoring exist.
 11. Treat [`legacy/`](../legacy/) as a **frozen UX/data reference** — rebuild the production UI on Next.js; do not adopt the Vite/Express/SQLite stack.
+12. Production identity, database, and authorized media use Supabase Auth, Supabase PostgreSQL, and Supabase Storage respectively. Drizzle owns schema migrations and typed application queries.
+13. Fake auth and local storage providers are non-persistent development/test implementations and are rejected in production.
+
+### 1.1 Phase 1.1 provider boundaries
+
+- `AuthProvider` is the sole authentication boundary. `SupabaseAuthProvider` supplies persistent Supabase user UUIDs; `FakeAuthProvider` owns its process-local OTP/user maps internally.
+- UI and domain code never access an in-memory user map. Future favourites, shortlists, and conversations receive the provider-issued persistent user ID.
+- `StorageProvider` isolates authorized-media storage. `SupabaseStorageProvider` is the production server adapter; `LocalStorageProvider` is local/test only.
+- Provider SDKs remain adapters and do not own guest merge, consent, workspace, or media-rights rules.
+- Production configuration fails closed before serving when auth is fake/missing or Supabase Auth configuration is incomplete.
 
 ---
 
@@ -74,10 +84,14 @@ flowchart LR
 | `apps/ai-service`    | Orchestration, RAG over approved sources, tool calling, evaluations      | TypeScript + OpenAPI                                     |
 | `apps/worker`        | Ingestion, media processing, enrichment, alerts, freshness, privacy jobs | Same monorepo TS; one job framework                      |
 | PostgreSQL + PostGIS | Canonical data, FTS, geospatial, pgvector knowledge                      | Supabase-managed                                         |
-| Object storage       | Rights-cleared media variants                                            | Supabase Storage / S3-compatible + CDN                   |
+| Object storage       | Rights-cleared media variants                                            | Supabase Storage + CDN                                   |
 | Channel adapters     | Email, SMS, WhatsApp, STT, TTS, telephony                                | `packages/communications` interfaces + provider adapters |
 
 Provider SDKs must not own domain logic. Adapters translate provider payloads into internal events and map internal `Message` records to channel-specific formats.
+
+### 3.1 Database deployment
+
+Committed Drizzle migrations in `packages/database/drizzle` are the only production schema deployment path. `db:generate` creates reviewable SQL, `db:migrate` applies the migration journal, and `db:seed` adds idempotent reference data. `drizzle-kit push` is not a production strategy.
 
 ---
 

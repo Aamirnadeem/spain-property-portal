@@ -1,7 +1,7 @@
 # Spain Property Buyer Portal — Security and Privacy
 
-Version: 1.0  
-Status: Phase 0 deliverable (includes threat model)  
+Version: 1.1  
+Status: Phase 1.1 controls implemented for auth configuration and identity RLS  
 Companion: [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md), [`EXTERNAL_SERVICES.md`](EXTERNAL_SERVICES.md), [`DATABASE_DESIGN.md`](DATABASE_DESIGN.md)
 
 ---
@@ -147,6 +147,10 @@ flowchart TB
 
 ## 4. Authentication and session security
 
+- Production authentication is Supabase Auth through `AuthProvider`; email and mobile OTP are enabled only with complete Supabase configuration.
+- `FakeAuthProvider` is process-local, non-persistent, and allowed only in development/test. Production rejects missing or fake `OTP_PROVIDER`.
+- OTP `devCode` values are never returned or logged outside development/test.
+- The Supabase Auth UUID is the canonical `users.id`; application code must not create a second production identity.
 - Email OTP and mobile SMS OTP only for MVP auth
 - Secure linking of verified email and mobile
 - Guest-session migration after successful verification
@@ -178,7 +182,11 @@ flowchart TB
 | Leads                         | Creator buyer; assigned org; admin   |
 | Raw snapshots                 | Service role + limited admin         |
 | Privacy requests              | Subject user + privacy admin         |
-| Consents                      | Subject user + audit access          |
+
+Phase 1.1 implementation status and test coverage are tracked in [`RLS_IMPLEMENTATION_STATUS.md`](RLS_IMPLEMENTATION_STATUS.md). Identity, guest-session, consent, notification-preference, and privacy-request policies are committed in a versioned migration. Sensitive future tables are RLS-enabled with no permissive policy until their owning phase implements and tests access.
+
+Guest tokens are opaque client secrets. Only SHA-256 hashes are stored. Guest database access is mediated by the application, which sets the hash in transaction-local database context; plaintext guest tokens must not be logged or persisted.
+| Consents | Subject user + audit access |
 
 ---
 

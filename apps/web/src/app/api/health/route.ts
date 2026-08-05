@@ -9,7 +9,7 @@ export async function GET() {
     checks: {
       app: true,
       databaseUrlConfigured: databaseConfigured,
-      otpProvider: process.env.OTP_PROVIDER ?? 'fake',
+      otpProvider: process.env.OTP_PROVIDER ?? 'missing',
       jobsProvider: process.env.JOBS_PROVIDER ?? 'inline',
       featureWhatsapp: process.env.FEATURE_WHATSAPP === 'true',
       featurePhoneVoice: process.env.FEATURE_PHONE_VOICE === 'true',

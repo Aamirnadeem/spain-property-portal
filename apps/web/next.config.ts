@@ -7,6 +7,8 @@ const nextConfig: NextConfig = {
     '@spain/domain',
     '@spain/observability',
     '@spain/ui',
+    '@spain/search',
+    '@spain/database',
   ],
 };
 

@@ -1,27 +1,84 @@
 {
-  "appName": "Portal Immobiliari Espanya",
+  "appName": "Spain Property Portal",
   "tagline": "Troba la teva llar a Espanya",
   "nav": {
     "home": "Inici",
     "search": "Cerca",
+    "favourites": "Preferits",
     "account": "Compte",
-    "signIn": "Inicia sessió"
+    "signIn": "Entrar"
   },
   "home": {
-    "title": "Fonaments de la plataforma",
-    "body": "Fase 1: idiomes, salut, OTP de prova, sessions d'invitat i base de dades.",
-    "cta": "Comprovar salut"
+    "title": "Cerca de propietats",
+    "body": "Consulta llistats de snapshot de Catalunya amb etiquetes de procedència i frescor. Són registres històrics, no inventari en viu.",
+    "cta": "Cercar propietats"
   },
   "auth": {
     "emailOtp": "OTP per correu",
-    "mobileOtp": "OTP per SMS",
+    "mobileOtp": "OTP per mòbil",
     "sendCode": "Enviar codi",
     "verifyCode": "Verificar",
-    "codeSent": "Codi enviat (reviseu els logs en mode fake)",
-    "guestMerged": "Les preferències d'invitat s'han fusionat amb el compte"
+    "codeSent": "Codi enviat (mode fake)",
+    "guestMerged": "Preferències d'invitat fusionades"
   },
   "health": {
     "ok": "Correcte",
     "degraded": "Degradat"
+  },
+  "search": {
+    "title": "Cerca de propietats",
+    "filters": "Filtres",
+    "query": "Text",
+    "minPrice": "Preu mín.",
+    "maxPrice": "Preu màx.",
+    "bedrooms": "Dormitoris",
+    "minSize": "Mida mín. m²",
+    "maxSize": "Mida màx. m²",
+    "area": "Ubicació",
+    "environment": "Entorn",
+    "allEnvironments": "Tots",
+    "cityCenter": "Centre",
+    "coastal": "Costa",
+    "hillside": "Turó",
+    "apply": "Aplicar",
+    "clear": "Netejar",
+    "cards": "Targetes",
+    "table": "Taula",
+    "sort": "Ordre",
+    "sortNewest": "Importació recent",
+    "sortPriceAsc": "Preu ↑",
+    "sortPriceDesc": "Preu ↓",
+    "sortSize": "Mida ↓",
+    "empty": "Cap propietat coincideix.",
+    "error": "La cerca no està disponible.",
+    "results": "resultats",
+    "snapshotBadge": "Snapshot llegat",
+    "page": "Pàgina",
+    "previous": "Anterior",
+    "next": "Següent"
+  },
+  "property": {
+    "back": "Tornar a la cerca",
+    "bedrooms": "Dormitoris",
+    "bathrooms": "Banys",
+    "size": "Superfície",
+    "pricePerSqm": "Preu / m²",
+    "location": "Ubicació",
+    "features": "Característiques",
+    "transport": "Transport",
+    "proximity": "Proximitat",
+    "source": "Font",
+    "openSource": "Obrir font original",
+    "freshness": "Frescor",
+    "noImage": "Sense fotografia autoritzada",
+    "addFavourite": "Desar preferit",
+    "removeFavourite": "Treure preferit",
+    "unavailableBaths": "No indicat a la font"
+  },
+  "favourites": {
+    "title": "Preferits",
+    "empty": "Encara no hi ha preferits.",
+    "guestHint": "Els preferits d'invitat es guarden en aquest navegador fins que iniciïs sessió.",
+    "signedInHint": "Els preferits amb sessió es guarden al teu compte."
   }
 }

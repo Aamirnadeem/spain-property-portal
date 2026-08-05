@@ -2,6 +2,7 @@ import {
   boolean,
   integer,
   jsonb,
+  numeric,
   pgEnum,
   pgTable,
   text,
@@ -36,7 +37,8 @@ const timestamps = {
 };
 
 export const users = pgTable('users', {
-  id: uuid('id').defaultRandom().primaryKey(),
+  /** Supabase Auth user UUID; never generate a second application identity. */
+  id: uuid('id').primaryKey(),
   displayName: varchar('display_name', { length: 200 }),
   primaryLocale: varchar('primary_locale', { length: 8 }).default('en').notNull(),
   preferredCurrency: varchar('preferred_currency', { length: 3 }).default('EUR').notNull(),
@@ -70,7 +72,8 @@ export const authIdentities = pgTable(
 
 export const guestSessions = pgTable('guest_sessions', {
   id: uuid('id').defaultRandom().primaryKey(),
-  anonymousKey: varchar('anonymous_key', { length: 128 }).notNull().unique(),
+  /** SHA-256 hash of the opaque guest token; plaintext tokens are never stored. */
+  anonymousKeyHash: varchar('anonymous_key_hash', { length: 64 }).notNull().unique(),
   locale: varchar('locale', { length: 8 }).default('en'),
   payload: jsonb('payload')
     .$type<{
@@ -353,3 +356,304 @@ export const mediaRights = pgTable('media_rights', {
   status: varchar('status', { length: 32 }).default('pending').notNull(),
   ...timestamps,
 });
+
+/* Phase 2 inventory */
+export const listingOperationalStatusEnum = pgEnum('listing_operational_status', [
+  'draft',
+  'pending_review',
+  'published',
+  'available',
+  'reserved',
+  'under_offer',
+  'sold',
+  'temporarily_unverified',
+  'stale',
+  'withdrawn',
+  'rejected',
+  'legacy_snapshot',
+]);
+
+export const freshnessMethodEnum = pgEnum('freshness_method', [
+  'legacy_snapshot',
+  'partner_feed',
+  'manual',
+  'authorized_crawl',
+  'unknown',
+]);
+
+export const sourceTypeEnum = pgEnum('data_source_type', [
+  'api',
+  'webhook',
+  'xml',
+  'json',
+  'csv',
+  'manual',
+  'authorized_crawl',
+  'legacy_snapshot',
+]);
+
+export const sourcePermissionStatusEnum = pgEnum('source_permission_status', [
+  'pending',
+  'approved',
+  'restricted',
+  'suspended',
+  'expired',
+]);
+
+export const imageRightsEnum = pgEnum('image_rights', [
+  'none',
+  'hotlink_only',
+  'display',
+  'download_and_transform',
+]);
+
+export const importRunStatusEnum = pgEnum('import_run_status', [
+  'running',
+  'completed',
+  'completed_with_errors',
+  'failed',
+]);
+
+export const dataSources = pgTable('data_sources', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  sourceKey: varchar('source_key', { length: 120 }).notNull().unique(),
+  name: varchar('name', { length: 200 }).notNull(),
+  sourceType: sourceTypeEnum('source_type').notNull(),
+  permissionStatus: sourcePermissionStatusEnum('permission_status').notNull(),
+  imageRights: imageRightsEnum('image_rights').default('none').notNull(),
+  organizationId: uuid('organization_id').references(() => organizations.id),
+  notes: text('notes'),
+  ...timestamps,
+});
+
+export const propertyTypes = pgTable('property_types', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  key: varchar('key', { length: 64 }).notNull().unique(),
+  labelEn: varchar('label_en', { length: 120 }).notNull(),
+  ...timestamps,
+});
+
+export const features = pgTable('features', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  key: varchar('key', { length: 64 }).notNull().unique(),
+  labelEn: varchar('label_en', { length: 120 }).notNull(),
+  category: varchar('category', { length: 64 }),
+  ...timestamps,
+});
+
+export const physicalProperties = pgTable('physical_properties', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  propertyTypeId: uuid('property_type_id').references(() => propertyTypes.id),
+  bedrooms: integer('bedrooms'),
+  bathrooms: integer('bathrooms'),
+  builtAreaSqm: numeric('built_area_sqm', { precision: 12, scale: 2 }),
+  usableAreaSqm: numeric('usable_area_sqm', { precision: 12, scale: 2 }),
+  confidence: varchar('confidence', { length: 32 }).default('provisional').notNull(),
+  ...timestamps,
+});
+
+export const propertyAddresses = pgTable('property_addresses', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  physicalPropertyId: uuid('physical_property_id')
+    .notNull()
+    .references(() => physicalProperties.id, { onDelete: 'cascade' }),
+  freeText: text('free_text'),
+  street: varchar('street', { length: 200 }),
+  locality: varchar('locality', { length: 120 }),
+  postalCode: varchar('postal_code', { length: 16 }),
+  countryCode: varchar('country_code', { length: 2 }).default('ES'),
+  accuracy: varchar('accuracy', { length: 32 }).default('approximate').notNull(),
+  ...timestamps,
+});
+
+export const propertyLocations = pgTable('property_locations', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  physicalPropertyId: uuid('physical_property_id')
+    .notNull()
+    .references(() => physicalProperties.id, { onDelete: 'cascade' }),
+  municipalityId: uuid('municipality_id').references(() => municipalities.id),
+  neighborhoodId: uuid('neighborhood_id').references(() => neighborhoods.id),
+  areaLabel: varchar('area_label', { length: 120 }),
+  latitude: numeric('latitude', { precision: 10, scale: 7 }),
+  longitude: numeric('longitude', { precision: 10, scale: 7 }),
+  accuracy: varchar('accuracy', { length: 32 }).default('unknown').notNull(),
+  displayPolicy: varchar('display_policy', { length: 32 }).default('approximate').notNull(),
+  ...timestamps,
+});
+
+export const propertyListings = pgTable(
+  'property_listings',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    dataSourceId: uuid('data_source_id')
+      .notNull()
+      .references(() => dataSources.id),
+    externalListingId: varchar('external_listing_id', { length: 120 }).notNull(),
+    physicalPropertyId: uuid('physical_property_id').references(() => physicalProperties.id),
+    organizationId: uuid('organization_id').references(() => organizations.id),
+    title: varchar('title', { length: 500 }).notNull(),
+    description: text('description'),
+    sourceUrl: text('source_url'),
+    portalName: varchar('portal_name', { length: 120 }),
+    currency: varchar('currency', { length: 3 }).default('EUR').notNull(),
+    priceAmount: numeric('price_amount', { precision: 14, scale: 2 }),
+    bedrooms: integer('bedrooms'),
+    bathrooms: integer('bathrooms'),
+    builtAreaSqm: numeric('built_area_sqm', { precision: 12, scale: 2 }),
+    pricePerSqm: numeric('price_per_sqm', { precision: 14, scale: 2 }),
+    propertyTypeRaw: varchar('property_type_raw', { length: 120 }),
+    propertyTypeKey: varchar('property_type_key', { length: 64 }),
+    environmentType: varchar('environment_type', { length: 64 }),
+    areaLabel: varchar('area_label', { length: 120 }),
+    addressText: text('address_text'),
+    nearestTransit: text('nearest_transit'),
+    commuteMin: integer('commute_min'),
+    beachProximity: varchar('beach_proximity', { length: 200 }),
+    parkProximity: varchar('park_proximity', { length: 200 }),
+    operationalStatus: listingOperationalStatusEnum('operational_status')
+      .default('legacy_snapshot')
+      .notNull(),
+    freshnessMethod: freshnessMethodEnum('freshness_method').default('legacy_snapshot').notNull(),
+    isLegacySnapshot: boolean('is_legacy_snapshot').default(false).notNull(),
+    isPublicBrowseable: boolean('is_public_browseable').default(false).notNull(),
+    sourceCreatedAt: timestamp('source_created_at', { withTimezone: true }),
+    sourceUpdatedAt: timestamp('source_updated_at', { withTimezone: true }),
+    firstSeenAt: timestamp('first_seen_at', { withTimezone: true }),
+    lastSeenAt: timestamp('last_seen_at', { withTimezone: true }),
+    lastContentChangeAt: timestamp('last_content_change_at', { withTimezone: true }),
+    lastCheckedAt: timestamp('last_checked_at', { withTimezone: true }),
+    lastConfirmedAvailableAt: timestamp('last_confirmed_available_at', {
+      withTimezone: true,
+    }),
+    importedAt: timestamp('imported_at', { withTimezone: true }),
+    searchDocument: text('search_document'),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex('property_listings_source_external_uidx').on(t.dataSourceId, t.externalListingId),
+  ],
+);
+
+export const listingPriceHistory = pgTable('listing_price_history', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  listingId: uuid('listing_id')
+    .notNull()
+    .references(() => propertyListings.id, { onDelete: 'cascade' }),
+  currency: varchar('currency', { length: 3 }).default('EUR').notNull(),
+  priceAmount: numeric('price_amount', { precision: 14, scale: 2 }).notNull(),
+  recordedAt: timestamp('recorded_at', { withTimezone: true }).defaultNow().notNull(),
+  source: varchar('source', { length: 64 }).default('import').notNull(),
+});
+
+export const listingStatusHistory = pgTable('listing_status_history', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  listingId: uuid('listing_id')
+    .notNull()
+    .references(() => propertyListings.id, { onDelete: 'cascade' }),
+  status: listingOperationalStatusEnum('status').notNull(),
+  recordedAt: timestamp('recorded_at', { withTimezone: true }).defaultNow().notNull(),
+  note: text('note'),
+});
+
+export const propertyFeatures = pgTable(
+  'property_features',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    listingId: uuid('listing_id')
+      .notNull()
+      .references(() => propertyListings.id, { onDelete: 'cascade' }),
+    featureId: uuid('feature_id')
+      .notNull()
+      .references(() => features.id, { onDelete: 'cascade' }),
+    valueText: varchar('value_text', { length: 200 }),
+    provenance: varchar('provenance', { length: 64 }).default('source_claim').notNull(),
+  },
+  (t) => [uniqueIndex('property_features_listing_feature_uidx').on(t.listingId, t.featureId)],
+);
+
+export const sourceClaims = pgTable('source_claims', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  listingId: uuid('listing_id')
+    .notNull()
+    .references(() => propertyListings.id, { onDelete: 'cascade' }),
+  fieldName: varchar('field_name', { length: 120 }).notNull(),
+  rawValue: text('raw_value'),
+  normalizedValue: text('normalized_value'),
+  claimSource: varchar('claim_source', { length: 64 }).default('legacy_json').notNull(),
+  ...timestamps,
+});
+
+export const propertyProvenance = pgTable('property_provenance', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  listingId: uuid('listing_id')
+    .notNull()
+    .references(() => propertyListings.id, { onDelete: 'cascade' })
+    .unique(),
+  dataSourceId: uuid('data_source_id')
+    .notNull()
+    .references(() => dataSources.id),
+  externalListingId: varchar('external_listing_id', { length: 120 }).notNull(),
+  sourceUrl: text('source_url'),
+  importMethod: freshnessMethodEnum('import_method').notNull(),
+  importedAt: timestamp('imported_at', { withTimezone: true }).notNull(),
+  rawSnapshot: jsonb('raw_snapshot').$type<Record<string, unknown>>(),
+  notes: text('notes'),
+  ...timestamps,
+});
+
+export const listingMedia = pgTable('listing_media', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  listingId: uuid('listing_id')
+    .notNull()
+    .references(() => propertyListings.id, { onDelete: 'cascade' }),
+  mediaAssetId: uuid('media_asset_id').references(() => mediaAssets.id),
+  sortOrder: integer('sort_order').default(0).notNull(),
+  isPlaceholder: boolean('is_placeholder').default(true).notNull(),
+  caption: varchar('caption', { length: 200 }),
+  ...timestamps,
+});
+
+export const importRuns = pgTable('import_runs', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  dataSourceId: uuid('data_source_id')
+    .notNull()
+    .references(() => dataSources.id),
+  status: importRunStatusEnum('status').default('running').notNull(),
+  startedAt: timestamp('started_at', { withTimezone: true }).defaultNow().notNull(),
+  finishedAt: timestamp('finished_at', { withTimezone: true }),
+  totalRecords: integer('total_records').default(0).notNull(),
+  insertedCount: integer('inserted_count').default(0).notNull(),
+  updatedCount: integer('updated_count').default(0).notNull(),
+  skippedCount: integer('skipped_count').default(0).notNull(),
+  rejectedCount: integer('rejected_count').default(0).notNull(),
+  report: jsonb('report').$type<Record<string, unknown>>().default({}),
+  ...timestamps,
+});
+
+export const importErrors = pgTable('import_errors', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  importRunId: uuid('import_run_id')
+    .notNull()
+    .references(() => importRuns.id, { onDelete: 'cascade' }),
+  externalListingId: varchar('external_listing_id', { length: 120 }),
+  recordIndex: integer('record_index'),
+  code: varchar('code', { length: 64 }).notNull(),
+  message: text('message').notNull(),
+  rawRecord: jsonb('raw_record').$type<Record<string, unknown>>(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const favourites = pgTable(
+  'favourites',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    listingId: uuid('listing_id')
+      .notNull()
+      .references(() => propertyListings.id, { onDelete: 'cascade' }),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex('favourites_user_listing_uidx').on(t.userId, t.listingId)],
+);

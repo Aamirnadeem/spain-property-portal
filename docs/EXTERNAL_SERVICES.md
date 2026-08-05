@@ -1,7 +1,7 @@
 # Spain Property Buyer Portal — External Services
 
-Version: 1.1  
-Status: Phase 0 deliverable (updated after legacy assessment)  
+Version: 1.2  
+Status: Phase 1.1 Supabase architecture locked  
 Includes: provider decision matrix, credential checklist, data-source permission register template, `.env.example` outline  
 Companion: [`DECISIONS_REQUIRED.md`](DECISIONS_REQUIRED.md), [`ARCHITECTURE.md`](ARCHITECTURE.md), [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md), [`LEGACY_CODE_ASSESSMENT.md`](LEGACY_CODE_ASSESSMENT.md)
 
@@ -20,8 +20,8 @@ When a provider is unavailable: implement the interface, a **test fake**, and a 
 | Capability                   | MVP need                | Locked / candidate                                          | Adapter package            | Fake for local/CI                      | Activation phase |
 | ---------------------------- | ----------------------- | ----------------------------------------------------------- | -------------------------- | -------------------------------------- | ---------------- |
 | Postgres + PostGIS           | Required                | **Supabase** (default)                                      | `packages/database`        | Local Postgres/Supabase CLI            | 1                |
-| Auth OTP email/SMS transport | Required                | Supabase Auth + SMS vendor TBD                              | Auth + `communications`    | Log OTP to console / fixed test codes  | 1                |
-| Object storage               | Required                | Supabase Storage or S3-compatible                           | Storage client             | Local disk/MinIO                       | 1–2              |
+| Auth OTP email/SMS transport | Required                | **Supabase Auth** + configured SMS vendor                   | `AuthProvider`             | Non-persistent `FakeAuthProvider`      | 1                |
+| Object storage               | Required                | **Supabase Storage**                                        | `StorageProvider`          | Non-persistent local filesystem        | 1–2              |
 | Transactional email          | Required                | Resend / SendGrid / Postmark (TBD)                          | `communications/email`     | In-memory/outbox fake                  | 1 / 3            |
 | SMS OTP / SMS notify         | OTP required            | Twilio / MessageBird / Vonage (TBD)                         | `communications/sms`       | Fake SMS sink                          | 1                |
 | Background jobs              | Required                | Inngest **or** Trigger.dev **or** pg-boss (pick in Phase 1) | `apps/worker`              | Synchronous/inline runner              | 1                |
@@ -62,6 +62,17 @@ When a provider is unavailable: implement the interface, a **test fake**, and a 
 | WhatsApp token + verify token + app secret          | 7                                       | Fake adapter          |
 | Telephony + STT/TTS keys                            | 8                                       | Fake adapters         |
 | Job framework keys (if SaaS)                        | 1 prod                                  | Inline runner         |
+
+Phase 1.1 exact Supabase configuration:
+
+- `DATABASE_URL`: direct/migration connection to Supabase PostgreSQL
+- `NEXT_PUBLIC_SUPABASE_URL`: project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: public Auth client key
+- `SUPABASE_SERVICE_ROLE_KEY`: server-only Storage/admin operations; never exposed to browsers
+- `SUPABASE_STORAGE_BUCKET`: private authorized-media bucket
+- `OTP_PROVIDER=supabase` and `STORAGE_PROVIDER=supabase` in production
+
+Without these credentials, adapters compile and configuration-gate correctly, but live Supabase Auth OTP delivery/verification and Supabase Storage operations cannot be exercised.
 
 ### 3.3 Non-credential blockers (legal/commercial)
 
@@ -197,7 +208,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 
 # Auth / OTP
-OTP_PROVIDER=fake
+OTP_PROVIDER=fake # local/test only; production=supabase
 # EMAIL_PROVIDER=fake|resend|...
 # SMS_PROVIDER=fake|twilio|...
 # TWILIO_ACCOUNT_SID=
@@ -206,11 +217,8 @@ OTP_PROVIDER=fake
 # RESEND_API_KEY=
 
 # Storage
-STORAGE_PROVIDER=local
-# S3_ENDPOINT=
-# S3_BUCKET=
-# S3_ACCESS_KEY=
-# S3_SECRET_KEY=
+STORAGE_PROVIDER=local # local/test only; production=supabase
+SUPABASE_STORAGE_BUCKET=authorized-media
 
 # Maps
 NEXT_PUBLIC_MAP_STYLE_URL=

@@ -1,27 +1,84 @@
 {
-  "appName": "Portal Inmobiliario España",
+  "appName": "Spain Property Portal",
   "tagline": "Encuentra tu hogar en España",
   "nav": {
     "home": "Inicio",
     "search": "Buscar",
+    "favourites": "Favoritos",
     "account": "Cuenta",
-    "signIn": "Iniciar sesión"
+    "signIn": "Entrar"
   },
   "home": {
-    "title": "Base de la plataforma",
-    "body": "Fase 1: idiomas, salud, OTP de prueba, sesiones de invitado y base de datos.",
-    "cta": "Comprobar salud"
+    "title": "Búsqueda de propiedades",
+    "body": "Consulta listados de snapshot de Cataluña con etiquetas de procedencia y frescura. Son registros históricos, no inventario en vivo.",
+    "cta": "Buscar propiedades"
   },
   "auth": {
-    "emailOtp": "OTP por correo",
-    "mobileOtp": "OTP por SMS",
+    "emailOtp": "OTP por email",
+    "mobileOtp": "OTP por móvil",
     "sendCode": "Enviar código",
     "verifyCode": "Verificar",
-    "codeSent": "Código enviado (revise los logs en modo fake)",
-    "guestMerged": "Las preferencias de invitado se fusionaron con su cuenta"
+    "codeSent": "Código enviado (modo fake)",
+    "guestMerged": "Preferencias de invitado fusionadas"
   },
   "health": {
     "ok": "Correcto",
     "degraded": "Degradado"
+  },
+  "search": {
+    "title": "Búsqueda de propiedades",
+    "filters": "Filtros",
+    "query": "Texto",
+    "minPrice": "Precio mín.",
+    "maxPrice": "Precio máx.",
+    "bedrooms": "Dormitorios",
+    "minSize": "Tamaño mín. m²",
+    "maxSize": "Tamaño máx. m²",
+    "area": "Ubicación",
+    "environment": "Entorno",
+    "allEnvironments": "Todos",
+    "cityCenter": "Centro",
+    "coastal": "Costa",
+    "hillside": "Colina",
+    "apply": "Aplicar",
+    "clear": "Limpiar",
+    "cards": "Tarjetas",
+    "table": "Tabla",
+    "sort": "Orden",
+    "sortNewest": "Importación reciente",
+    "sortPriceAsc": "Precio ↑",
+    "sortPriceDesc": "Precio ↓",
+    "sortSize": "Tamaño ↓",
+    "empty": "Ninguna propiedad coincide.",
+    "error": "La búsqueda no está disponible.",
+    "results": "resultados",
+    "snapshotBadge": "Snapshot legado",
+    "page": "Página",
+    "previous": "Anterior",
+    "next": "Siguiente"
+  },
+  "property": {
+    "back": "Volver a la búsqueda",
+    "bedrooms": "Dormitorios",
+    "bathrooms": "Baños",
+    "size": "Superficie",
+    "pricePerSqm": "Precio / m²",
+    "location": "Ubicación",
+    "features": "Características",
+    "transport": "Transporte",
+    "proximity": "Proximidad",
+    "source": "Fuente",
+    "openSource": "Abrir fuente original",
+    "freshness": "Frescura",
+    "noImage": "Sin fotografía autorizada",
+    "addFavourite": "Guardar favorito",
+    "removeFavourite": "Quitar favorito",
+    "unavailableBaths": "No indicado en la fuente"
+  },
+  "favourites": {
+    "title": "Favoritos",
+    "empty": "Aún no hay favoritos.",
+    "guestHint": "Los favoritos de invitado se guardan en este navegador hasta que inicies sesión.",
+    "signedInHint": "Los favoritos con sesión se guardan en tu cuenta."
   }
 }

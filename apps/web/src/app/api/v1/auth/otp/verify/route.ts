@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { mergeGuestWorkspace } from '@spain/domain';
-import { mapOtpError, otpStore, upsertUserFromIdentity } from '@/lib/auth-runtime';
+import { authProvider, mapOtpError } from '@/lib/auth-runtime';
 
 const bodySchema = z.object({
   challengeId: z.string().uuid(),
@@ -21,11 +21,10 @@ export async function POST(request: Request) {
   try {
     const json = await request.json();
     const body = bodySchema.parse(json);
-    const verified = await otpStore.verifyCode({
+    const user = await authProvider.verifyOtp({
       challengeId: body.challengeId,
       code: body.code,
     });
-    const user = upsertUserFromIdentity(verified.channel, verified.destination);
 
     let merge = null;
     if (body.guestKey && body.guestPayload) {
@@ -35,7 +34,7 @@ export async function POST(request: Request) {
           ...body.guestPayload,
         },
         {
-          userId: user.userId,
+          userId: user.id,
           favouriteListingIds: [],
           comparisonListingIds: [],
           recentViewListingIds: [],
@@ -45,9 +44,9 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({
-      userId: user.userId,
-      channel: verified.channel,
-      destination: verified.destination,
+      userId: user.id,
+      email: user.email,
+      mobile: user.mobile,
       merged: Boolean(merge),
       merge,
     });

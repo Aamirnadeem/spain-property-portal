@@ -6,8 +6,7 @@ import * as schema from './schema/index';
 async function main() {
   const url = process.env.DATABASE_URL;
   if (!url) {
-    console.log('DATABASE_URL missing — seed skipped.');
-    process.exit(0);
+    throw new Error('DATABASE_URL is required for db:seed');
   }
 
   const client = postgres(url, { max: 1 });
@@ -89,27 +88,56 @@ async function main() {
     return row!;
   }
 
-  for (const name of ['Barcelona', 'Girona', 'Lleida', 'Tarragona'] as const) {
+  const barcelonaProvince = await ensureProvince(catalonia.id, 'Barcelona');
+  for (const name of ['Girona', 'Lleida', 'Tarragona'] as const) {
     await ensureProvince(catalonia.id, name);
   }
   const albacete = await ensureProvince(clm.id, 'Albacete');
 
-  const alcaraz = await db
-    .select()
-    .from(schema.municipalities)
-    .where(
-      and(
-        eq(schema.municipalities.provinceId, albacete.id),
-        eq(schema.municipalities.nameEn, 'Alcaraz'),
-      ),
-    )
-    .limit(1);
-  if (!alcaraz[0]) {
-    await db.insert(schema.municipalities).values({
-      provinceId: albacete.id,
-      nameEn: 'Alcaraz',
-      nameEs: 'Alcaraz',
-    });
+  async function ensureMunicipality(provinceId: string, nameEn: string, nameEs?: string) {
+    const found = await db
+      .select()
+      .from(schema.municipalities)
+      .where(
+        and(
+          eq(schema.municipalities.provinceId, provinceId),
+          eq(schema.municipalities.nameEn, nameEn),
+        ),
+      )
+      .limit(1);
+    if (found[0]) return found[0];
+    const [row] = await db
+      .insert(schema.municipalities)
+      .values({ provinceId, nameEn, nameEs: nameEs ?? nameEn })
+      .returning();
+    return row!;
+  }
+
+  const barcelonaCity = await ensureMunicipality(barcelonaProvince.id, 'Barcelona');
+  await ensureMunicipality(barcelonaProvince.id, 'Sitges');
+  await ensureMunicipality(barcelonaProvince.id, 'Gavà');
+  const alcaraz = await ensureMunicipality(albacete.id, 'Alcaraz');
+  void alcaraz;
+
+  for (const name of ['Eixample', 'Sant Gervasi', 'Vallvidrera'] as const) {
+    const found = await db
+      .select()
+      .from(schema.neighborhoods)
+      .where(
+        and(
+          eq(schema.neighborhoods.municipalityId, barcelonaCity.id),
+          eq(schema.neighborhoods.nameEn, name),
+        ),
+      )
+      .limit(1);
+    if (!found[0]) {
+      await db.insert(schema.neighborhoods).values({
+        municipalityId: barcelonaCity.id,
+        nameEn: name,
+        nameEs: name,
+        nameCa: name,
+      });
+    }
   }
 
   for (const key of ['platform_admin', 'listing_reviewer', 'buyer', 'org_owner', 'org_agent']) {
@@ -117,6 +145,41 @@ async function main() {
     if (!role[0]) {
       await db.insert(schema.roles).values({ key });
     }
+  }
+
+  for (const type of [
+    { key: 'apartment', labelEn: 'Apartment' },
+    { key: 'penthouse', labelEn: 'Penthouse' },
+    { key: 'villa', labelEn: 'Villa' },
+    { key: 'detached_house', labelEn: 'Detached house' },
+    { key: 'semi_detached_house', labelEn: 'Semi-detached house' },
+    { key: 'townhouse', labelEn: 'Townhouse' },
+  ] as const) {
+    const found = await db
+      .select()
+      .from(schema.propertyTypes)
+      .where(eq(schema.propertyTypes.key, type.key))
+      .limit(1);
+    if (!found[0]) {
+      await db.insert(schema.propertyTypes).values(type);
+    }
+  }
+
+  const source = await db
+    .select()
+    .from(schema.dataSources)
+    .where(eq(schema.dataSources.sourceKey, 'legacy-barcelona-explorer-60'))
+    .limit(1);
+  if (!source[0]) {
+    await db.insert(schema.dataSources).values({
+      sourceKey: 'legacy-barcelona-explorer-60',
+      name: 'Barcelona Property Explorer legacy snapshot',
+      sourceType: 'legacy_snapshot',
+      permissionStatus: 'restricted',
+      imageRights: 'none',
+      notes:
+        'Snapshot/demo only. Not live inventory. Do not scrape portal URLs. No image republication rights.',
+    });
   }
 
   await client.end();

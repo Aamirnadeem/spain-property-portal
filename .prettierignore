@@ -7,3 +7,5 @@ legacy
 data/legacy/*.json
 pnpm-lock.yaml
 *.min.js
+apps/web/test-results
+apps/web/playwright-report

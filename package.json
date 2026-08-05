@@ -13,6 +13,9 @@
     "db:generate": "pnpm --filter @spain/database generate",
     "db:migrate": "pnpm --filter @spain/database migrate",
     "db:seed": "pnpm --filter @spain/database seed",
+    "db:import-legacy": "pnpm --filter @spain/ingestion import:legacy",
+    "test:db": "pnpm --filter @spain/database test:db",
+    "test:e2e": "pnpm --filter @spain/web test:e2e",
     "ci": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test"
   },
   "devDependencies": {

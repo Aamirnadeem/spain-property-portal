@@ -15,10 +15,14 @@
     "build": "tsc -p tsconfig.json --noEmit",
     "generate": "drizzle-kit generate",
     "migrate": "tsx src/migrate.ts",
-    "seed": "tsx src/seed.ts"
+    "seed": "tsx src/seed.ts",
+    "test:db": "tsx src/integration/database.integration.ts"
   },
   "dependencies": {
     "@spain/config": "workspace:*",
+    "@spain/domain": "workspace:*",
+    "@spain/search": "workspace:*",
+    "@supabase/supabase-js": "^2.112.1",
     "drizzle-orm": "^0.38.3",
     "postgres": "^3.4.5",
     "zod": "^3.24.1"
