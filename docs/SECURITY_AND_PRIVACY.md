@@ -16,21 +16,21 @@ This document defines the security controls, GDPR/privacy requirements, retentio
 
 ### 2.1 Assets
 
-| Asset | Sensitivity |
-|-------|-------------|
-| User identities (email, mobile), sessions | High |
-| Guest session data pending merge | Medium |
-| Favourites, shortlists, notes, saved searches, history | High (personal) |
-| AI conversations, tool calls, summaries | High (personal) |
-| Leads, viewing requests, handoff notes | High |
-| Partner organization and staff accounts | High |
-| Listing data, prices, provenance | Medium (commercial) |
-| Media assets and rights records | Medium–High (IP/rights) |
-| Raw ingestion snapshots | High (may contain incidental PII) |
-| Knowledge base and legal content | Medium (accuracy/liability) |
-| Call recordings (future) | High |
-| Secrets, API keys, service roles | Critical |
-| Consent and privacy request records | High |
+| Asset                                                  | Sensitivity                       |
+| ------------------------------------------------------ | --------------------------------- |
+| User identities (email, mobile), sessions              | High                              |
+| Guest session data pending merge                       | Medium                            |
+| Favourites, shortlists, notes, saved searches, history | High (personal)                   |
+| AI conversations, tool calls, summaries                | High (personal)                   |
+| Leads, viewing requests, handoff notes                 | High                              |
+| Partner organization and staff accounts                | High                              |
+| Listing data, prices, provenance                       | Medium (commercial)               |
+| Media assets and rights records                        | Medium–High (IP/rights)           |
+| Raw ingestion snapshots                                | High (may contain incidental PII) |
+| Knowledge base and legal content                       | Medium (accuracy/liability)       |
+| Call recordings (future)                               | High                              |
+| Secrets, API keys, service roles                       | Critical                          |
+| Consent and privacy request records                    | High                              |
 
 ### 2.2 Trust boundaries
 
@@ -78,58 +78,58 @@ flowchart TB
 
 ### 3.1 Threats (from authoritative spec — retained in full)
 
-| ID | Threat |
-|----|--------|
-| T01 | OTP abuse and SMS pumping |
-| T02 | Account takeover |
-| T03 | Broken object-level authorization |
-| T04 | Partner impersonation |
-| T05 | Malicious media uploads |
-| T06 | Feed poisoning |
-| T07 | Stored XSS through descriptions |
-| T08 | SQL/command injection |
-| T09 | Webhook spoofing and replay |
-| T10 | Privacy leakage through shared shortlists |
-| T11 | Scraping/enumeration of user data |
-| T12 | Spam leads |
-| T13 | AI prompt injection |
-| T14 | Unauthorized model/tool actions |
-| T15 | Secret leakage |
-| T16 | Call-recording consent failures (Phase 8) |
+| ID  | Threat                                         |
+| --- | ---------------------------------------------- |
+| T01 | OTP abuse and SMS pumping                      |
+| T02 | Account takeover                               |
+| T03 | Broken object-level authorization              |
+| T04 | Partner impersonation                          |
+| T05 | Malicious media uploads                        |
+| T06 | Feed poisoning                                 |
+| T07 | Stored XSS through descriptions                |
+| T08 | SQL/command injection                          |
+| T09 | Webhook spoofing and replay                    |
+| T10 | Privacy leakage through shared shortlists      |
+| T11 | Scraping/enumeration of user data              |
+| T12 | Spam leads                                     |
+| T13 | AI prompt injection                            |
+| T14 | Unauthorized model/tool actions                |
+| T15 | Secret leakage                                 |
+| T16 | Call-recording consent failures (Phase 8)      |
 | T17 | WhatsApp consent/template violations (Phase 7) |
-| T18 | SSRF via feed/image URLs |
-| T19 | XXE / decompression bombs in XML/archives |
-| T20 | Unauthorized scraping implementation pressure |
+| T18 | SSRF via feed/image URLs                       |
+| T19 | XXE / decompression bombs in XML/archives      |
+| T20 | Unauthorized scraping implementation pressure  |
 
 ### 3.2 Controls mapped to threats
 
-| Control | Mitigates |
-|---------|-----------|
-| Database RLS + service-role isolation | T03, T10, T11 |
-| Least-privilege roles | T03, T04 |
-| OTP cooldowns, per-IP/identity limits, CAPTCHA escalation, abuse scoring | T01, T02 |
-| Session revocation and device management | T02 |
-| Signed uploads, content-type validation, malware scan, image re-encode, metadata strip | T05 |
-| Source permission gate; validation; moderation queue | T06, T20 |
-| HTML sanitization of partner descriptions | T07 |
-| Parameterized queries / Drizzle; no model SQL | T08, T14 |
-| Webhook signature verification, idempotency, replay rejection | T09 |
-| Collaborator permission model; audit of sensitive access | T10 |
-| Rate limits on APIs and AI; lead spam heuristics | T11, T12 |
-| Prompt-injection isolation; allow-listed knowledge; tool allow-list | T13, T14 |
-| Secret manager; env validation; no secrets in git | T15 |
-| Call consent tables + gated feature flags before recording | T16 |
-| Separate transactional/marketing consent; template governance; opt-out | T17 |
-| URL allow-lists; block private IP ranges on fetch | T18 |
-| Secure XML parsing; size/record limits | T19 |
-| Engineering policy + source registry; no CAPTCHA bypass | T20 |
-| CSP and secure headers | T07, T11 |
-| Encryption in transit and at rest | All data-at-rest/in-transit classes |
-| Dependency and container scanning | Supply chain |
-| Immutable audit logs for sensitive actions | T03, T04, T10 |
-| Backup and restore tests | Availability / integrity |
-| Data retention and deletion jobs | Privacy |
-| Incident runbooks | Response |
+| Control                                                                                | Mitigates                           |
+| -------------------------------------------------------------------------------------- | ----------------------------------- |
+| Database RLS + service-role isolation                                                  | T03, T10, T11                       |
+| Least-privilege roles                                                                  | T03, T04                            |
+| OTP cooldowns, per-IP/identity limits, CAPTCHA escalation, abuse scoring               | T01, T02                            |
+| Session revocation and device management                                               | T02                                 |
+| Signed uploads, content-type validation, malware scan, image re-encode, metadata strip | T05                                 |
+| Source permission gate; validation; moderation queue                                   | T06, T20                            |
+| HTML sanitization of partner descriptions                                              | T07                                 |
+| Parameterized queries / Drizzle; no model SQL                                          | T08, T14                            |
+| Webhook signature verification, idempotency, replay rejection                          | T09                                 |
+| Collaborator permission model; audit of sensitive access                               | T10                                 |
+| Rate limits on APIs and AI; lead spam heuristics                                       | T11, T12                            |
+| Prompt-injection isolation; allow-listed knowledge; tool allow-list                    | T13, T14                            |
+| Secret manager; env validation; no secrets in git                                      | T15                                 |
+| Call consent tables + gated feature flags before recording                             | T16                                 |
+| Separate transactional/marketing consent; template governance; opt-out                 | T17                                 |
+| URL allow-lists; block private IP ranges on fetch                                      | T18                                 |
+| Secure XML parsing; size/record limits                                                 | T19                                 |
+| Engineering policy + source registry; no CAPTCHA bypass                                | T20                                 |
+| CSP and secure headers                                                                 | T07, T11                            |
+| Encryption in transit and at rest                                                      | All data-at-rest/in-transit classes |
+| Dependency and container scanning                                                      | Supply chain                        |
+| Immutable audit logs for sensitive actions                                             | T03, T04, T10                       |
+| Backup and restore tests                                                               | Availability / integrity            |
+| Data retention and deletion jobs                                                       | Privacy                             |
+| Incident runbooks                                                                      | Response                            |
 
 ### 3.3 Abuse cases (explicit test expectations)
 
@@ -169,16 +169,16 @@ flowchart TB
 
 ### 5.2 RLS expectations
 
-| Data | Policy outline |
-|------|----------------|
-| Published listings | Public read |
-| Draft/partner listings | Org members / admin reviewers |
-| Favourites, shortlists, notes | Owner; collaborators per grant |
-| Conversations/messages | Participants; restricted staff roles |
-| Leads | Creator buyer; assigned org; admin |
-| Raw snapshots | Service role + limited admin |
-| Privacy requests | Subject user + privacy admin |
-| Consents | Subject user + audit access |
+| Data                          | Policy outline                       |
+| ----------------------------- | ------------------------------------ |
+| Published listings            | Public read                          |
+| Draft/partner listings        | Org members / admin reviewers        |
+| Favourites, shortlists, notes | Owner; collaborators per grant       |
+| Conversations/messages        | Participants; restricted staff roles |
+| Leads                         | Creator buyer; assigned org; admin   |
+| Raw snapshots                 | Service role + limited admin         |
+| Privacy requests              | Subject user + privacy admin         |
+| Consents                      | Subject user + audit access          |
 
 ---
 
@@ -250,41 +250,41 @@ The platform stores identity, searches, history, shortlists, AI conversations, m
 
 ### 9.2 Consent categories (minimum)
 
-| Consent / preference | MVP | Notes |
-|----------------------|-----|-------|
-| Essential/session | Yes | Required for service |
-| Analytics cookies | Yes | Gated |
-| Email transactional (OTP, viewing updates) | Yes | Necessary vs marketing distinguished |
-| Email marketing / alerts beyond transactional | Opt-in | Saved-search alerts require clear opt-in |
-| SMS notifications beyond OTP | Opt-in | Cost and quiet hours |
-| WhatsApp transactional | Phase 7 | Separate from marketing |
-| WhatsApp marketing | Phase 7 | Never unsolicited |
-| Profiling for ranking personalization | Optional opt-in | Explainable ranking |
-| Call recording | Phase 8 | Explicit before record |
+| Consent / preference                          | MVP             | Notes                                    |
+| --------------------------------------------- | --------------- | ---------------------------------------- |
+| Essential/session                             | Yes             | Required for service                     |
+| Analytics cookies                             | Yes             | Gated                                    |
+| Email transactional (OTP, viewing updates)    | Yes             | Necessary vs marketing distinguished     |
+| Email marketing / alerts beyond transactional | Opt-in          | Saved-search alerts require clear opt-in |
+| SMS notifications beyond OTP                  | Opt-in          | Cost and quiet hours                     |
+| WhatsApp transactional                        | Phase 7         | Separate from marketing                  |
+| WhatsApp marketing                            | Phase 7         | Never unsolicited                        |
+| Profiling for ranking personalization         | Optional opt-in | Explainable ranking                      |
+| Call recording                                | Phase 8         | Explicit before record                   |
 
 ### 9.3 Data subject rights
 
-| Right | Implementation |
-|-------|----------------|
-| Access / export | `POST /api/v1/me/privacy/export` → `privacy_requests` job packages data |
-| Erasure | `POST /api/v1/me/privacy/delete` → delete/anonymize personal data; propagate to AI runs/messages where feasible; retain legally required audit minima |
-| Rectification | Profile and preference update APIs |
-| Restriction / objection | Communication preference and consent withdrawal |
-| Portability | Machine-readable export format |
+| Right                   | Implementation                                                                                                                                        |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Access / export         | `POST /api/v1/me/privacy/export` → `privacy_requests` job packages data                                                                               |
+| Erasure                 | `POST /api/v1/me/privacy/delete` → delete/anonymize personal data; propagate to AI runs/messages where feasible; retain legally required audit minima |
+| Rectification           | Profile and preference update APIs                                                                                                                    |
+| Restriction / objection | Communication preference and consent withdrawal                                                                                                       |
+| Portability             | Machine-readable export format                                                                                                                        |
 
 ### 9.4 Retention (initial policy — finalize with counsel)
 
-| Data class | Initial direction |
-|------------|-------------------|
-| Guest sessions / anonymous AI | Short retention; auto-expire |
-| Registered conversations | Account lifetime or user delete; channel-specific classes |
-| OTP codes | Minutes; hashed/one-time |
-| Leads | Business retention + partner needs; documented |
-| Raw snapshots | Limited window; access-restricted; minimize PII |
-| Alert deliveries | Operational window |
-| Audit/security events | Longer immutable retention |
-| Call recordings | Consent-bound; shortest practical; deletion job (Phase 8) |
-| Media | Until rights expire/takedown or listing withdrawal policy |
+| Data class                    | Initial direction                                         |
+| ----------------------------- | --------------------------------------------------------- |
+| Guest sessions / anonymous AI | Short retention; auto-expire                              |
+| Registered conversations      | Account lifetime or user delete; channel-specific classes |
+| OTP codes                     | Minutes; hashed/one-time                                  |
+| Leads                         | Business retention + partner needs; documented            |
+| Raw snapshots                 | Limited window; access-restricted; minimize PII           |
+| Alert deliveries              | Operational window                                        |
+| Audit/security events         | Longer immutable retention                                |
+| Call recordings               | Consent-bound; shortest practical; deletion job (Phase 8) |
+| Media                         | Until rights expire/takedown or listing withdrawal policy |
 
 Exact durations are an open legal decision; engineering must implement configurable retention jobs and `retention_class` fields so durations can be set without schema rewrites.
 
@@ -350,15 +350,15 @@ Cookie banner / preference center for non-essential analytics. No third-party ma
 
 Minimum runbook stubs required before production:
 
-1. Credential leak / secret rotation  
-2. OTP abuse / SMS pumping spike  
-3. Suspected account takeover  
-4. Malicious upload outbreak  
-5. Feed poisoning / bad publish batch (rollback/replay)  
-6. Privacy deletion failure  
-7. AI cost runaway  
-8. WhatsApp template/consent incident (Phase 7)  
-9. Call recording consent failure (Phase 8)  
+1. Credential leak / secret rotation
+2. OTP abuse / SMS pumping spike
+3. Suspected account takeover
+4. Malicious upload outbreak
+5. Feed poisoning / bad publish batch (rollback/replay)
+6. Privacy deletion failure
+7. AI cost runaway
+8. WhatsApp template/consent incident (Phase 7)
+9. Call recording consent failure (Phase 8)
 
 ---
 

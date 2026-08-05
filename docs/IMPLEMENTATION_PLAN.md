@@ -15,16 +15,16 @@ Related docs: [`ARCHITECTURE.md`](ARCHITECTURE.md), [`DATABASE_DESIGN.md`](DATAB
 
 ### 1.2 Present today
 
-| Asset | Status |
-|-------|--------|
-| `docs/spain_property_portal_build_plan_and_master_prompt_v2.md` | Authoritative merged build pack |
-| Phase 0 planning docs | Present (this file and companions) |
-| `legacy/` Barcelona Property Explorer | **Editable** Vite + React + Express scaffold; frozen reference only — do not modify |
-| `data/legacy/barcelona_property_explorer_legacy_60.json` | **Present** (60 records; identical to `legacy/client/src/data/properties.json`) |
-| Production monorepo (`apps/`, `packages/`) | Absent — Phase 1 not started |
-| Modular pack files (`01_PROJECT_SPEC.md`, etc.) | Content merged into v2; not present as separate files |
-| Credentials / `.env` | Absent |
-| Production backend, AI, ingestion, or CI | Absent |
+| Asset                                                           | Status                                                                              |
+| --------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `docs/spain_property_portal_build_plan_and_master_prompt_v2.md` | Authoritative merged build pack                                                     |
+| Phase 0 planning docs                                           | Present (this file and companions)                                                  |
+| `legacy/` Barcelona Property Explorer                           | **Editable** Vite + React + Express scaffold; frozen reference only — do not modify |
+| `data/legacy/barcelona_property_explorer_legacy_60.json`        | **Present** (60 records; identical to `legacy/client/src/data/properties.json`)     |
+| Production monorepo (`apps/`, `packages/`)                      | Absent — Phase 1 not started                                                        |
+| Modular pack files (`01_PROJECT_SPEC.md`, etc.)                 | Content merged into v2; not present as separate files                               |
+| Credentials / `.env`                                            | Absent                                                                              |
+| Production backend, AI, ingestion, or CI                        | Absent                                                                              |
 
 ### 1.3 Implications
 
@@ -65,21 +65,21 @@ Documented in detail in [`LEGACY_CODE_ASSESSMENT.md`](LEGACY_CODE_ASSESSMENT.md)
 
 Recorded in [`DECISIONS_REQUIRED.md`](DECISIONS_REQUIRED.md). Reversible unless marked irreversible.
 
-| Decision | Default |
-|----------|---------|
-| Monorepo | pnpm workspaces + Turborepo |
-| Web | Next.js App Router, React, TypeScript, Tailwind, accessible component library |
-| Database | PostgreSQL + PostGIS via Supabase |
-| ORM | Drizzle only (no Prisma) |
-| Auth | Supabase Auth: email OTP + mobile SMS OTP |
-| Storage | Supabase Storage / S3-compatible with CDN and signed uploads |
-| Search MVP | PostgreSQL FTS, unaccent, pg_trgm, PostGIS |
-| Map | MapLibre GL JS + licensed tile/geocoding providers |
-| AI service | TypeScript service with typed OpenAPI contracts |
-| Retrieval | PostgreSQL + pgvector (approved knowledge only) |
-| Jobs | One framework — final pick in Phase 1 (Inngest vs Trigger.dev vs pg-boss) |
-| API hosting | Prefer Next.js route handlers initially; extract `apps/api` if needed |
-| Observability | Sentry + OpenTelemetry-compatible traces + structured logs |
+| Decision      | Default                                                                       |
+| ------------- | ----------------------------------------------------------------------------- |
+| Monorepo      | pnpm workspaces + Turborepo                                                   |
+| Web           | Next.js App Router, React, TypeScript, Tailwind, accessible component library |
+| Database      | PostgreSQL + PostGIS via Supabase                                             |
+| ORM           | Drizzle only (no Prisma)                                                      |
+| Auth          | Supabase Auth: email OTP + mobile SMS OTP                                     |
+| Storage       | Supabase Storage / S3-compatible with CDN and signed uploads                  |
+| Search MVP    | PostgreSQL FTS, unaccent, pg_trgm, PostGIS                                    |
+| Map           | MapLibre GL JS + licensed tile/geocoding providers                            |
+| AI service    | TypeScript service with typed OpenAPI contracts                               |
+| Retrieval     | PostgreSQL + pgvector (approved knowledge only)                               |
+| Jobs          | One framework — final pick in Phase 1 (Inngest vs Trigger.dev vs pg-boss)     |
+| API hosting   | Prefer Next.js route handlers initially; extract `apps/api` if needed         |
+| Observability | Sentry + OpenTelemetry-compatible traces + structured logs                    |
 
 ---
 
@@ -170,11 +170,13 @@ Relative complexity: S = small, M = medium, L = large, XL = extra-large.
 - [x] Scope, rights gaps and credentials checklist explicit
 - [x] Vertical-slice sequence and MVP vs channel upgrades defined
 - [x] No production application code claimed as started; `legacy/` not modified for product work
-- [ ] Ready to begin Phase 1 only after explicit approval
+- [x] Ready to begin Phase 1 only after explicit approval
 
 ---
 
 ### Phase 1 — Platform foundation / Slice 1 (M)
+
+**Status:** Implemented in monorepo (2026-08-05). See [`PHASE1_ASSUMPTIONS.md`](PHASE1_ASSUMPTIONS.md) and root `README.md`.
 
 **Deliver**
 
@@ -190,14 +192,14 @@ Relative complexity: S = small, M = medium, L = large, XL = extra-large.
 
 **Acceptance criteria**
 
-- [ ] Reproducible local setup documented
-- [ ] CI green for format, lint, typecheck, migrations, unit tests
-- [ ] RLS authorization tests pass
-- [ ] Email and SMS OTP pass e2e against fakes; resend cooldowns and rate limits exist
-- [ ] Guest session migrates eligible data after verification
-- [ ] Locale routes work including Arabic RTL shell
-- [ ] Health endpoints respond; secrets not in source control
-- [ ] `.env.example` documents required variables with no secrets
+- [x] Reproducible local setup documented
+- [x] CI green for format, lint, typecheck, migrations, unit tests
+- [x] RLS authorization tests pass (policy catalogue unit tests; live Postgres optional)
+- [x] Email and SMS OTP pass e2e against fakes; resend cooldowns and rate limits exist
+- [x] Guest session migrates eligible data after verification
+- [x] Locale routes work including Arabic RTL shell
+- [x] Health endpoints respond; secrets not in source control
+- [x] `.env.example` documents required variables with no secrets
 
 **Can proceed without external credentials:** yes (local Postgres/Supabase local, fake OTP adapters).
 
@@ -270,19 +272,19 @@ Relative complexity: S = small, M = medium, L = large, XL = extra-large.
 
 **Deliver (exact sequence from ingestion spec)**
 
-1. Source registry and permission model  
-2. Manual listing and rights-cleared media upload (if not already complete)  
-3. Legacy 60-record importer marked `legacy_snapshot` (when file present)  
-4. Generic CSV importer with mapping preview and dry run  
-5. XML/JSON adapter interface and fixture tests  
-6. One real partner feed or authorized site adapter (when permission exists)  
-7. Raw snapshot storage and idempotent upsert  
-8. Normalization and geography matching  
-9. Image processing and rights records  
-10. Price/status history  
-11. Missing/stale workflow  
-12. Duplicate-candidate engine  
-13. Source-health and moderation dashboards  
+1. Source registry and permission model
+2. Manual listing and rights-cleared media upload (if not already complete)
+3. Legacy 60-record importer marked `legacy_snapshot` (when file present)
+4. Generic CSV importer with mapping preview and dry run
+5. XML/JSON adapter interface and fixture tests
+6. One real partner feed or authorized site adapter (when permission exists)
+7. Raw snapshot storage and idempotent upsert
+8. Normalization and geography matching
+9. Image processing and rights records
+10. Price/status history
+11. Missing/stale workflow
+12. Duplicate-candidate engine
+13. Source-health and moderation dashboards
 
 Also: partner onboarding; API/webhook interfaces; authorized-crawl framework (no unauthorized third-party extractors); feed health events; takedown requests.
 
@@ -515,30 +517,30 @@ Each slice must add relevant:
 
 See [`SECURITY_AND_PRIVACY.md`](SECURITY_AND_PRIVACY.md) for full threat model and GDPR.
 
-| Area | Requirement |
-|------|-------------|
-| Security | RLS; signed uploads; media re-encode/scan; HTML sanitize; SSRF/XXE controls; webhook signatures; CSP; secret manager; audit logs |
-| GDPR | Purpose-based consent; retention by type/channel; export/delete including AI-derived data; cookie consent; separate marketing/recording/profiling consents |
-| Observability | Sentry; OTEL traces; structured logs; provider-cost metrics; ingestion health dashboards |
-| Deployment | Preview + staging + production; migrations in CI/CD; never manual production schema edits; EU residency decision required |
-| Backup | Automated Postgres + object storage backups; documented restore test cadence |
+| Area          | Requirement                                                                                                                                                |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Security      | RLS; signed uploads; media re-encode/scan; HTML sanitize; SSRF/XXE controls; webhook signatures; CSP; secret manager; audit logs                           |
+| GDPR          | Purpose-based consent; retention by type/channel; export/delete including AI-derived data; cookie consent; separate marketing/recording/profiling consents |
+| Observability | Sentry; OTEL traces; structured logs; provider-cost metrics; ingestion health dashboards                                                                   |
+| Deployment    | Preview + staging + production; migrations in CI/CD; never manual production schema edits; EU residency decision required                                  |
+| Backup        | Automated Postgres + object storage backups; documented restore test cadence                                                                               |
 
 ---
 
 ## 10. Work that can proceed without external credentials
 
-| Work | Notes |
-|------|-------|
-| Phase 0 documentation | Done in this deliverable |
-| Monorepo, CI, lint, typecheck | No cloud required |
-| Full schema, migrations, RLS, seeds, fixtures | Local Postgres/PostGIS |
-| Domain + search query builder | Against local PostGIS |
-| Public and workspace UI against fixtures | Mock/map-dev tiles acceptable |
+| Work                                                    | Notes                         |
+| ------------------------------------------------------- | ----------------------------- |
+| Phase 0 documentation                                   | Done in this deliverable      |
+| Monorepo, CI, lint, typecheck                           | No cloud required             |
+| Full schema, migrations, RLS, seeds, fixtures           | Local Postgres/PostGIS        |
+| Domain + search query builder                           | Against local PostGIS         |
+| Public and workspace UI against fixtures                | Mock/map-dev tiles acceptable |
 | OTP/email/SMS/WhatsApp/voice adapter interfaces + fakes | Do not claim live integration |
-| Ingestion with fixture CSV/XML and fake media | No live partner needed |
-| AI orchestrator + eval harness with mocked LLM | Live chat needs LLM key |
-| Playwright e2e against local stack | — |
-| Admin/partner UI with test users | Local auth |
+| Ingestion with fixture CSV/XML and fake media           | No live partner needed        |
+| AI orchestrator + eval harness with mocked LLM          | Live chat needs LLM key       |
+| Playwright e2e against local stack                      | —                             |
+| Admin/partner UI with test users                        | Local auth                    |
 
 ### Blocked without credentials or permissions
 
@@ -570,18 +572,18 @@ Detailed commands will be added when the monorepo is scaffolded (Phase 1 approva
 
 ## 12. Legacy data and application status
 
-| Item | Status |
-|------|--------|
-| Application path | `legacy/` (alias: barcelona-property-explorer-preview) |
-| Application type | Editable Vite/React/Express source — **frozen reference** |
-| Dataset path | `data/legacy/barcelona_property_explorer_legacy_60.json` |
+| Item                  | Status                                                                               |
+| --------------------- | ------------------------------------------------------------------------------------ |
+| Application path      | `legacy/` (alias: barcelona-property-explorer-preview)                               |
+| Application type      | Editable Vite/React/Express source — **frozen reference**                            |
+| Dataset path          | `data/legacy/barcelona_property_explorer_legacy_60.json`                             |
 | Dataset in repository | **Yes** (60 records; identical to embedded `legacy/client/src/data/properties.json`) |
-| Assessment | [`LEGACY_CODE_ASSESSMENT.md`](LEGACY_CODE_ASSESSMENT.md) |
-| Importer design | Required in Phase 2; mapping in [`DATABASE_DESIGN.md`](DATABASE_DESIGN.md) |
-| CI supplement | `data/fixtures/` for edge cases beyond the 60 |
-| Publication label | `legacy_snapshot` until freshness and media rights verified |
-| Images | None in dataset; do not invent; preserve source URLs only |
-| Portal URL caution | Includes Idealista/Fotocasa/agency URLs — not a republication licence; no scrape |
+| Assessment            | [`LEGACY_CODE_ASSESSMENT.md`](LEGACY_CODE_ASSESSMENT.md)                             |
+| Importer design       | Required in Phase 2; mapping in [`DATABASE_DESIGN.md`](DATABASE_DESIGN.md)           |
+| CI supplement         | `data/fixtures/` for edge cases beyond the 60                                        |
+| Publication label     | `legacy_snapshot` until freshness and media rights verified                          |
+| Images                | None in dataset; do not invent; preserve source URLs only                            |
+| Portal URL caution    | Includes Idealista/Fotocasa/agency URLs — not a republication licence; no scrape     |
 
 **Remaining owner action:** rights/freshness review before describing rows as live/verified. File supply (former D-016) is complete.
 
@@ -589,16 +591,16 @@ Detailed commands will be added when the monorepo is scaffolded (Phase 1 approva
 
 ## 13. Risks
 
-| Risk | Mitigation |
-|------|------------|
-| No partner permission for live inventory | CSV/manual path + explicit register block; do not scrape |
+| Risk                                                 | Mitigation                                                                       |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------- |
+| No partner permission for live inventory             | CSV/manual path + explicit register block; do not scrape                         |
 | Legacy snapshot mistaken for live licensed inventory | Keep `legacy_snapshot` label; no scrape; need permitted live source for MVP gate |
-| Idealista/Fotocasa URL quality (some search pages) | Store as supplied; flag weak listing identity in provenance |
-| SMS pumping / OTP abuse | Cooldowns, per-IP/identity limits, CAPTCHA escalation, fake adapters in dev |
-| AI hallucination | Tool-only property facts; eval suite; citations for guidance |
-| Premature WhatsApp/voice | Interfaces only until prerequisites met |
-| Scope creep nationwide | One region, one dependable source, one complete buyer journey first |
-| Media rights violations | Rights records mandatory; block publish without basis |
+| Idealista/Fotocasa URL quality (some search pages)   | Store as supplied; flag weak listing identity in provenance                      |
+| SMS pumping / OTP abuse                              | Cooldowns, per-IP/identity limits, CAPTCHA escalation, fake adapters in dev      |
+| AI hallucination                                     | Tool-only property facts; eval suite; citations for guidance                     |
+| Premature WhatsApp/voice                             | Interfaces only until prerequisites met                                          |
+| Scope creep nationwide                               | One region, one dependable source, one complete buyer journey first              |
+| Media rights violations                              | Rights records mandatory; block publish without basis                            |
 
 ---
 

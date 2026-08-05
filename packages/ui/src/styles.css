@@ -1,0 +1,44 @@
+:root {
+  --background: 36 28% 97%;
+  --foreground: 200 32% 12%;
+  --card: 36 30% 99%;
+  --card-foreground: 200 32% 12%;
+  --primary: 193 72% 30%;
+  --primary-foreground: 0 0% 100%;
+  --muted: 34 20% 93%;
+  --muted-foreground: 200 10% 40%;
+  --border: 34 16% 87%;
+  --accent: 16 62% 92%;
+  --accent-foreground: 16 55% 24%;
+  --radius: 0.5rem;
+  --font-sans: 'General Sans', 'Segoe UI', sans-serif;
+  --font-serif: 'Fraunces', Georgia, serif;
+  --font-mono: 'JetBrains Mono', Menlo, monospace;
+}
+
+.dark {
+  --background: 200 32% 8%;
+  --foreground: 36 20% 94%;
+  --card: 200 30% 12%;
+  --card-foreground: 36 20% 94%;
+  --primary: 191 68% 45%;
+  --primary-foreground: 0 0% 100%;
+  --muted: 200 20% 16%;
+  --muted-foreground: 36 10% 70%;
+  --border: 200 20% 20%;
+  --accent: 16 40% 20%;
+  --accent-foreground: 16 80% 90%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-sans);
+}

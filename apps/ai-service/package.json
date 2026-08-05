@@ -1,0 +1,12 @@
+{
+  "name": "@spain/ai-service",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Reserved AI service — not implemented in Phase 1",
+  "scripts": {
+    "build": "node -e \"console.log('ai-service placeholder')\"",
+    "lint": "node -e \"process.exit(0)\"",
+    "typecheck": "node -e \"process.exit(0)\"",
+    "test": "node -e \"process.exit(0)\""
+  }
+}

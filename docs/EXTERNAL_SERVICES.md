@@ -17,25 +17,25 @@ When a provider is unavailable: implement the interface, a **test fake**, and a 
 
 ## 2. Provider decision matrix
 
-| Capability | MVP need | Locked / candidate | Adapter package | Fake for local/CI | Activation phase |
-|------------|----------|--------------------|-----------------|-------------------|------------------|
-| Postgres + PostGIS | Required | **Supabase** (default) | `packages/database` | Local Postgres/Supabase CLI | 1 |
-| Auth OTP email/SMS transport | Required | Supabase Auth + SMS vendor TBD | Auth + `communications` | Log OTP to console / fixed test codes | 1 |
-| Object storage | Required | Supabase Storage or S3-compatible | Storage client | Local disk/MinIO | 1–2 |
-| Transactional email | Required | Resend / SendGrid / Postmark (TBD) | `communications/email` | In-memory/outbox fake | 1 / 3 |
-| SMS OTP / SMS notify | OTP required | Twilio / MessageBird / Vonage (TBD) | `communications/sms` | Fake SMS sink | 1 |
-| Background jobs | Required | Inngest **or** Trigger.dev **or** pg-boss (pick in Phase 1) | `apps/worker` | Synchronous/inline runner | 1 |
-| Maps tiles | Required for map UX | MapLibre + licensed tiles (TBD vendor) | Map config | OSM demo tiles with attribution limits | 2 |
-| Geocoding | Required for enrichment | Licensed geocoder (TBD) | Geo client | Fixture geocodes | 2 / 4 |
-| LLM | Required for live AI | Provider TBD (OpenAI/Anthropic/etc.) | `apps/ai-service` | Mock LLM for evals/CI | 5 |
-| Embeddings / vector | Guidance RAG | **pgvector** default | Knowledge store | Fixture embeddings | 5 |
-| Error tracking | Required before prod | Sentry | `observability` | Console transport | 1 |
-| Tracing metrics | Required before prod | OpenTelemetry → TBD backend | `observability` | No-op exporter | 1 |
-| WhatsApp Business | Not MVP | Meta Cloud API or BSP (Twilio/etc.) TBD | `communications/whatsapp` | Fake webhook fixtures | 7 |
-| STT / TTS | Not MVP | Browser APIs first; cloud vendors TBD | `communications/speech` | Fake transcripts | 8a |
-| Telephony | Not MVP | Twilio / Vonage / etc. TBD | `communications/telephony` | Fake call events | 8b |
-| Malware scan | Media pipeline | ClamAV or cloud scanner TBD | Worker media pipeline | EICAR fixture harness | 4 |
-| CDN | Prod | TBD with hosting | — | — | Prod |
+| Capability                   | MVP need                | Locked / candidate                                          | Adapter package            | Fake for local/CI                      | Activation phase |
+| ---------------------------- | ----------------------- | ----------------------------------------------------------- | -------------------------- | -------------------------------------- | ---------------- |
+| Postgres + PostGIS           | Required                | **Supabase** (default)                                      | `packages/database`        | Local Postgres/Supabase CLI            | 1                |
+| Auth OTP email/SMS transport | Required                | Supabase Auth + SMS vendor TBD                              | Auth + `communications`    | Log OTP to console / fixed test codes  | 1                |
+| Object storage               | Required                | Supabase Storage or S3-compatible                           | Storage client             | Local disk/MinIO                       | 1–2              |
+| Transactional email          | Required                | Resend / SendGrid / Postmark (TBD)                          | `communications/email`     | In-memory/outbox fake                  | 1 / 3            |
+| SMS OTP / SMS notify         | OTP required            | Twilio / MessageBird / Vonage (TBD)                         | `communications/sms`       | Fake SMS sink                          | 1                |
+| Background jobs              | Required                | Inngest **or** Trigger.dev **or** pg-boss (pick in Phase 1) | `apps/worker`              | Synchronous/inline runner              | 1                |
+| Maps tiles                   | Required for map UX     | MapLibre + licensed tiles (TBD vendor)                      | Map config                 | OSM demo tiles with attribution limits | 2                |
+| Geocoding                    | Required for enrichment | Licensed geocoder (TBD)                                     | Geo client                 | Fixture geocodes                       | 2 / 4            |
+| LLM                          | Required for live AI    | Provider TBD (OpenAI/Anthropic/etc.)                        | `apps/ai-service`          | Mock LLM for evals/CI                  | 5                |
+| Embeddings / vector          | Guidance RAG            | **pgvector** default                                        | Knowledge store            | Fixture embeddings                     | 5                |
+| Error tracking               | Required before prod    | Sentry                                                      | `observability`            | Console transport                      | 1                |
+| Tracing metrics              | Required before prod    | OpenTelemetry → TBD backend                                 | `observability`            | No-op exporter                         | 1                |
+| WhatsApp Business            | Not MVP                 | Meta Cloud API or BSP (Twilio/etc.) TBD                     | `communications/whatsapp`  | Fake webhook fixtures                  | 7                |
+| STT / TTS                    | Not MVP                 | Browser APIs first; cloud vendors TBD                       | `communications/speech`    | Fake transcripts                       | 8a               |
+| Telephony                    | Not MVP                 | Twilio / Vonage / etc. TBD                                  | `communications/telephony` | Fake call events                       | 8b               |
+| Malware scan                 | Media pipeline          | ClamAV or cloud scanner TBD                                 | Worker media pipeline      | EICAR fixture harness                  | 4                |
+| CDN                          | Prod                    | TBD with hosting                                            | —                          | —                                      | Prod             |
 
 ---
 
@@ -47,31 +47,31 @@ When a provider is unavailable: implement the interface, a **test fake**, and a 
 
 ### 3.2 Required eventually (by phase)
 
-| Credential / config | Phase blocked if missing for *live* use | Local workaround |
-|---------------------|------------------------------------------|------------------|
-| `DATABASE_URL` / Supabase URL + anon + service keys | 1 prod | Local Postgres |
-| Supabase JWT secret / Auth settings | 1 prod | Local Auth / fake OTP |
-| Email provider API key | 3 live alerts / prod OTP email | Fake email adapter |
-| SMS provider API key + sender | 1 prod mobile OTP | Fake SMS |
-| Storage credentials | 2 prod media | Local/MinIO |
-| Map tile API key | 2 prod map | Dev tiles |
-| Geocoding API key | 4 enrichment | Fixtures |
-| LLM API key | 5 live chat | Mock LLM |
-| Sentry DSN | Prod MVP gate | Disabled/local |
-| OTEL endpoint | Prod | No-op |
-| WhatsApp token + verify token + app secret | 7 | Fake adapter |
-| Telephony + STT/TTS keys | 8 | Fake adapters |
-| Job framework keys (if SaaS) | 1 prod | Inline runner |
+| Credential / config                                 | Phase blocked if missing for _live_ use | Local workaround      |
+| --------------------------------------------------- | --------------------------------------- | --------------------- |
+| `DATABASE_URL` / Supabase URL + anon + service keys | 1 prod                                  | Local Postgres        |
+| Supabase JWT secret / Auth settings                 | 1 prod                                  | Local Auth / fake OTP |
+| Email provider API key                              | 3 live alerts / prod OTP email          | Fake email adapter    |
+| SMS provider API key + sender                       | 1 prod mobile OTP                       | Fake SMS              |
+| Storage credentials                                 | 2 prod media                            | Local/MinIO           |
+| Map tile API key                                    | 2 prod map                              | Dev tiles             |
+| Geocoding API key                                   | 4 enrichment                            | Fixtures              |
+| LLM API key                                         | 5 live chat                             | Mock LLM              |
+| Sentry DSN                                          | Prod MVP gate                           | Disabled/local        |
+| OTEL endpoint                                       | Prod                                    | No-op                 |
+| WhatsApp token + verify token + app secret          | 7                                       | Fake adapter          |
+| Telephony + STT/TTS keys                            | 8                                       | Fake adapters         |
+| Job framework keys (if SaaS)                        | 1 prod                                  | Inline runner         |
 
 ### 3.3 Non-credential blockers (legal/commercial)
 
-| Blocker | Effect |
-|---------|--------|
-| Written partner/source permission + media rights | Blocks live Phase 4 partner adapter and public “live” claims |
-| Legacy 60 rights/freshness review (D-019) | Blocks removing `legacy_snapshot` labelling / claiming live inventory |
-| WhatsApp Business account + approved templates | Blocks Phase 7 activation |
-| Recording consent policy finalized | Blocks Phase 8 recording |
-| EU region / DPA decisions | Blocks production personal-data hosting choice |
+| Blocker                                          | Effect                                                                |
+| ------------------------------------------------ | --------------------------------------------------------------------- |
+| Written partner/source permission + media rights | Blocks live Phase 4 partner adapter and public “live” claims          |
+| Legacy 60 rights/freshness review (D-019)        | Blocks removing `legacy_snapshot` labelling / claiming live inventory |
+| WhatsApp Business account + approved templates   | Blocks Phase 7 activation                                             |
+| Recording consent policy finalized               | Blocks Phase 8 recording                                              |
+| EU region / DPA decisions                        | Blocks production personal-data hosting choice                        |
 
 ---
 
@@ -102,13 +102,13 @@ Shared concerns:
 
 ## 5. Ingestion external dependencies
 
-| Dependency | Use | Constraint |
-|------------|-----|------------|
-| Partner API/webhook | Live inventory | Permission registry approved |
-| Partner CSV/XML/JSON | Imports | Mapping preview + dry run |
-| Authorized partner website | Crawl only with written auth | Path/schedule/rights recorded |
-| Official/open geo datasets | Enrichment | Licence recorded |
-| Image CDN/origin | Media fetch | Rights `download_and_transform` or approved hotlink |
+| Dependency                 | Use                          | Constraint                                          |
+| -------------------------- | ---------------------------- | --------------------------------------------------- |
+| Partner API/webhook        | Live inventory               | Permission registry approved                        |
+| Partner CSV/XML/JSON       | Imports                      | Mapping preview + dry run                           |
+| Authorized partner website | Crawl only with written auth | Path/schedule/rights recorded                       |
+| Official/open geo datasets | Enrichment                   | Licence recorded                                    |
+| Image CDN/origin           | Media fetch                  | Rights `download_and_transform` or approved hotlink |
 
 **Prohibited integrations:** scrapers for major portals without licence; CAPTCHA bypass services; residential proxy pools intended to evade blocks; unlicensed image mirrors.
 
@@ -149,13 +149,13 @@ notes
 
 ### 6.2 Initial rows
 
-| source_id | source_name | source_type | permission_status | image_rights | notes |
-|-----------|-------------|-------------|-------------------|--------------|-------|
-| `legacy-barcelona-explorer-60` | Barcelona Property Explorer legacy snapshot | `legacy_snapshot` | `restricted` | `none` (no images in file; URLs only; no republication of portal media) | File **present** at `data/legacy/barcelona_property_explorer_legacy_60.json`. Identical to `legacy/client/src/data/properties.json`. 60 rows. Portals include Engel & Völkers, Coldwell Banker, Lucas Fox, Fotocasa, Idealista — **not** a live licence (ADR-015). Some Idealista/Fotocasa URLs are search pages. Importer allowed as snapshot only; **no scrape**. |
-| `manual-editor` | Internal / partner manual entry | `manual` | `pending` | per-upload declaration | First operational path after org verification |
-| `partner-csv-generic` | Generic partner CSV | `csv` | `pending` | per agreement | Framework in Phase 4; no partner attached |
-| `partner-xml-json-generic` | Generic CRM XML/JSON | `xml`/`json` | `pending` | per agreement | Interface + fixtures only until partner named |
-| `authorized-crawl-placeholder` | Partner site crawl | `authorized_crawl` | `pending` | per agreement | **Do not implement extractor** until written authorization for that exact domain exists |
+| source_id                      | source_name                                 | source_type        | permission_status | image_rights                                                            | notes                                                                                                                                                                                                                                                                                                                                                               |
+| ------------------------------ | ------------------------------------------- | ------------------ | ----------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `legacy-barcelona-explorer-60` | Barcelona Property Explorer legacy snapshot | `legacy_snapshot`  | `restricted`      | `none` (no images in file; URLs only; no republication of portal media) | File **present** at `data/legacy/barcelona_property_explorer_legacy_60.json`. Identical to `legacy/client/src/data/properties.json`. 60 rows. Portals include Engel & Völkers, Coldwell Banker, Lucas Fox, Fotocasa, Idealista — **not** a live licence (ADR-015). Some Idealista/Fotocasa URLs are search pages. Importer allowed as snapshot only; **no scrape**. |
+| `manual-editor`                | Internal / partner manual entry             | `manual`           | `pending`         | per-upload declaration                                                  | First operational path after org verification                                                                                                                                                                                                                                                                                                                       |
+| `partner-csv-generic`          | Generic partner CSV                         | `csv`              | `pending`         | per agreement                                                           | Framework in Phase 4; no partner attached                                                                                                                                                                                                                                                                                                                           |
+| `partner-xml-json-generic`     | Generic CRM XML/JSON                        | `xml`/`json`       | `pending`         | per agreement                                                           | Interface + fixtures only until partner named                                                                                                                                                                                                                                                                                                                       |
+| `authorized-crawl-placeholder` | Partner site crawl                          | `authorized_crawl` | `pending`         | per agreement                                                           | **Do not implement extractor** until written authorization for that exact domain exists                                                                                                                                                                                                                                                                             |
 
 ### 6.3 Gate rule
 
@@ -167,15 +167,15 @@ Exception for `legacy-barcelona-explorer-60`: one-shot / idempotent **snapshot i
 
 ## 7. Legacy inventory dependency
 
-| Item | Value |
-|------|--------|
-| Expected file | `data/legacy/barcelona_property_explorer_legacy_60.json` |
-| Repository status | **Present** (60 records) |
-| Reference app | `legacy/` (frozen; do not modify) |
-| Assessment | [`LEGACY_CODE_ASSESSMENT.md`](LEGACY_CODE_ASSESSMENT.md) |
-| Treatment | Demo/snapshot only until freshness and media rights are verified (D-019) |
+| Item               | Value                                                                                                                           |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| Expected file      | `data/legacy/barcelona_property_explorer_legacy_60.json`                                                                        |
+| Repository status  | **Present** (60 records)                                                                                                        |
+| Reference app      | `legacy/` (frozen; do not modify)                                                                                               |
+| Assessment         | [`LEGACY_CODE_ASSESSMENT.md`](LEGACY_CODE_ASSESSMENT.md)                                                                        |
+| Treatment          | Demo/snapshot only until freshness and media rights are verified (D-019)                                                        |
 | Engineering action | Phase 2 importer per [`DATABASE_DESIGN.md`](DATABASE_DESIGN.md) §13; preserve source URLs; no invented images; no portal scrape |
-| Product action | Assign rights/freshness review owner |
+| Product action     | Assign rights/freshness review owner                                                                                            |
 
 ---
 

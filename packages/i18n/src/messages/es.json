@@ -1,0 +1,27 @@
+{
+  "appName": "Portal Inmobiliario España",
+  "tagline": "Encuentra tu hogar en España",
+  "nav": {
+    "home": "Inicio",
+    "search": "Buscar",
+    "account": "Cuenta",
+    "signIn": "Iniciar sesión"
+  },
+  "home": {
+    "title": "Base de la plataforma",
+    "body": "Fase 1: idiomas, salud, OTP de prueba, sesiones de invitado y base de datos.",
+    "cta": "Comprobar salud"
+  },
+  "auth": {
+    "emailOtp": "OTP por correo",
+    "mobileOtp": "OTP por SMS",
+    "sendCode": "Enviar código",
+    "verifyCode": "Verificar",
+    "codeSent": "Código enviado (revise los logs en modo fake)",
+    "guestMerged": "Las preferencias de invitado se fusionaron con su cuenta"
+  },
+  "health": {
+    "ok": "Correcto",
+    "degraded": "Degradado"
+  }
+}

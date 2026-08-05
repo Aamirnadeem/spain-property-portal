@@ -1,0 +1,27 @@
+{
+  "appName": "Portal Immobiliari Espanya",
+  "tagline": "Troba la teva llar a Espanya",
+  "nav": {
+    "home": "Inici",
+    "search": "Cerca",
+    "account": "Compte",
+    "signIn": "Inicia sessió"
+  },
+  "home": {
+    "title": "Fonaments de la plataforma",
+    "body": "Fase 1: idiomes, salut, OTP de prova, sessions d'invitat i base de dades.",
+    "cta": "Comprovar salut"
+  },
+  "auth": {
+    "emailOtp": "OTP per correu",
+    "mobileOtp": "OTP per SMS",
+    "sendCode": "Enviar codi",
+    "verifyCode": "Verificar",
+    "codeSent": "Codi enviat (reviseu els logs en mode fake)",
+    "guestMerged": "Les preferències d'invitat s'han fusionat amb el compte"
+  },
+  "health": {
+    "ok": "Correcte",
+    "degraded": "Degradat"
+  }
+}

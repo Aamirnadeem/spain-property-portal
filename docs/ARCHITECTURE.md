@@ -67,15 +67,15 @@ flowchart LR
 
 ## 3. Container view
 
-| Container | Responsibility | Tech default |
-|-----------|----------------|--------------|
-| `apps/web` | Public portal, account workspace, admin, partner UI, website chat | Next.js App Router, React, TypeScript, Tailwind |
-| `apps/api` | Domain API/BFF when not fully hosted in Next route handlers | TypeScript, Zod contracts, versioned `/api/v1` |
-| `apps/ai-service` | Orchestration, RAG over approved sources, tool calling, evaluations | TypeScript + OpenAPI |
-| `apps/worker` | Ingestion, media processing, enrichment, alerts, freshness, privacy jobs | Same monorepo TS; one job framework |
-| PostgreSQL + PostGIS | Canonical data, FTS, geospatial, pgvector knowledge | Supabase-managed |
-| Object storage | Rights-cleared media variants | Supabase Storage / S3-compatible + CDN |
-| Channel adapters | Email, SMS, WhatsApp, STT, TTS, telephony | `packages/communications` interfaces + provider adapters |
+| Container            | Responsibility                                                           | Tech default                                             |
+| -------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------- |
+| `apps/web`           | Public portal, account workspace, admin, partner UI, website chat        | Next.js App Router, React, TypeScript, Tailwind          |
+| `apps/api`           | Domain API/BFF when not fully hosted in Next route handlers              | TypeScript, Zod contracts, versioned `/api/v1`           |
+| `apps/ai-service`    | Orchestration, RAG over approved sources, tool calling, evaluations      | TypeScript + OpenAPI                                     |
+| `apps/worker`        | Ingestion, media processing, enrichment, alerts, freshness, privacy jobs | Same monorepo TS; one job framework                      |
+| PostgreSQL + PostGIS | Canonical data, FTS, geospatial, pgvector knowledge                      | Supabase-managed                                         |
+| Object storage       | Rights-cleared media variants                                            | Supabase Storage / S3-compatible + CDN                   |
+| Channel adapters     | Email, SMS, WhatsApp, STT, TTS, telephony                                | `packages/communications` interfaces + provider adapters |
 
 Provider SDKs must not own domain logic. Adapters translate provider payloads into internal events and map internal `Message` records to channel-specific formats.
 
@@ -153,12 +153,12 @@ Approved documents, jurisdiction metadata, review dates, chunks, citations, regi
 
 ### 6.1 Surfaces in `apps/web`
 
-| Surface | Audience | Capabilities |
-|---------|----------|--------------|
-| Public portal | Anonymous + registered buyers | Search (card/list/table/map), detail, temporary favourites/compare, rate-limited AI chat, share links, start enquiry |
-| Account workspace | Registered buyers | Profile, preferences, favourites, shortlists, comparisons, saved searches, alerts, history, enquiries, privacy controls |
-| Partner portal | Agencies/developers | Org verification, staff roles, listings, developments/units, media, feeds, import errors, duplicates, leads, response metrics, rights declarations |
-| Admin portal | Internal staff | Review queues, stale/duplicates, feed health, source licences, fraud reports, legal knowledge, calculator rules, consent/templates, privacy requests, AI feedback, audit logs |
+| Surface           | Audience                      | Capabilities                                                                                                                                                                  |
+| ----------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Public portal     | Anonymous + registered buyers | Search (card/list/table/map), detail, temporary favourites/compare, rate-limited AI chat, share links, start enquiry                                                          |
+| Account workspace | Registered buyers             | Profile, preferences, favourites, shortlists, comparisons, saved searches, alerts, history, enquiries, privacy controls                                                       |
+| Partner portal    | Agencies/developers           | Org verification, staff roles, listings, developments/units, media, feeds, import errors, duplicates, leads, response metrics, rights declarations                            |
+| Admin portal      | Internal staff                | Review queues, stale/duplicates, feed health, source licences, fraud reports, legal knowledge, calculator rules, consent/templates, privacy requests, AI feedback, audit logs |
 
 ### 6.2 UX constraints
 
@@ -403,14 +403,14 @@ retention_class
 
 ### 10.4 Activation policy
 
-| Channel | Schema / interface | Operational activation |
-|---------|--------------------|------------------------|
-| Website chat | Phase 5 | MVP |
-| Email | Phase 1+ | MVP (alerts, OTP) |
-| SMS | Phase 1 interface | OTP MVP; marketing SMS later with opt-in |
-| WhatsApp | Phase 6 interface | Phase 7 after prerequisites |
-| Browser voice | Phase 6 interface | Phase 8a |
-| Telephone voice | Call tables Phase 1/6 | Phase 8b after demand |
+| Channel         | Schema / interface    | Operational activation                   |
+| --------------- | --------------------- | ---------------------------------------- |
+| Website chat    | Phase 5               | MVP                                      |
+| Email           | Phase 1+              | MVP (alerts, OTP)                        |
+| SMS             | Phase 1 interface     | OTP MVP; marketing SMS later with opt-in |
+| WhatsApp        | Phase 6 interface     | Phase 7 after prerequisites              |
+| Browser voice   | Phase 6 interface     | Phase 8a                                 |
+| Telephone voice | Call tables Phase 1/6 | Phase 8b after demand                    |
 
 ---
 
@@ -436,13 +436,13 @@ flowchart LR
 
 ### 11.1 Source priority (mandatory order)
 
-1. Direct agency/developer API/webhook  
-2. Licensed portal or data-provider API  
-3. Agency CRM XML/JSON feed  
-4. Partner CSV upload  
-5. Manual partner/editor entry  
-6. Explicitly authorized crawling of a partner-controlled website  
-7. Official/open geospatial enrichment  
+1. Direct agency/developer API/webhook
+2. Licensed portal or data-provider API
+3. Agency CRM XML/JSON feed
+4. Partner CSV upload
+5. Manual partner/editor entry
+6. Explicitly authorized crawling of a partner-controlled website
+7. Official/open geospatial enrichment
 
 Prohibited: unauthorized mass scraping, CAPTCHA bypass, login/access-control evasion, proxy rotation to defeat blocking, unlicensed copying of images or descriptions. `robots.txt` is not a republication licence.
 
@@ -556,10 +556,10 @@ Full assessment: [`LEGACY_CODE_ASSESSMENT.md`](LEGACY_CODE_ASSESSMENT.md).
 
 ### 16.1 What exists
 
-| Asset | Role |
-|-------|------|
-| `legacy/` | Editable Vite + React + Express Barcelona Property Explorer — **frozen** |
-| `data/legacy/barcelona_property_explorer_legacy_60.json` | Canonical 60-record snapshot for Phase 2 import |
+| Asset                                                    | Role                                                                     |
+| -------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `legacy/`                                                | Editable Vite + React + Express Barcelona Property Explorer — **frozen** |
+| `data/legacy/barcelona_property_explorer_legacy_60.json` | Canonical 60-record snapshot for Phase 2 import                          |
 
 The legacy app loads JSON client-side, filters in-memory, and links out to portal URLs. It is **not** the production architecture.
 

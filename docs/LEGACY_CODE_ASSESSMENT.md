@@ -10,12 +10,12 @@ Related: [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md), [`ARCHITECTURE.md`]
 
 ## 0. Repository location note
 
-| User / pack reference | Actual path in this repository |
-|-----------------------|--------------------------------|
-| `legacy/barcelona-property-explorer-preview` | **Not present** as a subdirectory |
-| Supplied preview application | [`legacy/`](../legacy/) (contains `client/`, `server/`, `shared/`, configs) |
-| Extracted 60-record dataset | [`data/legacy/barcelona_property_explorer_legacy_60.json`](../data/legacy/barcelona_property_explorer_legacy_60.json) |
-| Duplicate embedded copy | [`legacy/client/src/data/properties.json`](../legacy/client/src/data/properties.json) — **identical** to the extracted JSON |
+| User / pack reference                        | Actual path in this repository                                                                                              |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `legacy/barcelona-property-explorer-preview` | **Not present** as a subdirectory                                                                                           |
+| Supplied preview application                 | [`legacy/`](../legacy/) (contains `client/`, `server/`, `shared/`, configs)                                                 |
+| Extracted 60-record dataset                  | [`data/legacy/barcelona_property_explorer_legacy_60.json`](../data/legacy/barcelona_property_explorer_legacy_60.json)       |
+| Duplicate embedded copy                      | [`legacy/client/src/data/properties.json`](../legacy/client/src/data/properties.json) — **identical** to the extracted JSON |
 
 **Policy:** Do not delete or modify files inside `legacy/`. Treat it as a frozen reference. Canonical import input for the new platform is `data/legacy/barcelona_property_explorer_legacy_60.json`.
 
@@ -68,18 +68,18 @@ legacy/
 
 ### 2.2 Identifiable stack
 
-| Layer | Technology |
-|-------|------------|
-| UI | React 18.3, TypeScript 5.6 |
-| Bundler (client) | Vite 7 + `@vitejs/plugin-react` |
-| Routing | Wouter 3 with **hash location** |
-| Styling | Tailwind CSS 3 + `tailwindcss-animate`; shadcn-style Radix primitives |
+| Layer             | Technology                                                               |
+| ----------------- | ------------------------------------------------------------------------ |
+| UI                | React 18.3, TypeScript 5.6                                               |
+| Bundler (client)  | Vite 7 + `@vitejs/plugin-react`                                          |
+| Routing           | Wouter 3 with **hash location**                                          |
+| Styling           | Tailwind CSS 3 + `tailwindcss-animate`; shadcn-style Radix primitives    |
 | Data fetching kit | TanStack React Query (present; properties loaded via static JSON import) |
-| Server | Express 5, `tsx` for dev; production `node dist/index.cjs` |
-| ORM stub | Drizzle ORM + **better-sqlite3** (not Postgres/PostGIS) |
-| Forms / UI extras | React Hook Form, Zod, Framer Motion, Lucide, cmdk, vaul, etc. |
-| Build (server) | esbuild bundle to CJS |
-| Client base path | `base: "./"` (relative asset paths; preview-friendly) |
+| Server            | Express 5, `tsx` for dev; production `node dist/index.cjs`               |
+| ORM stub          | Drizzle ORM + **better-sqlite3** (not Postgres/PostGIS)                  |
+| Forms / UI extras | React Hook Form, Zod, Framer Motion, Lucide, cmdk, vaul, etc.            |
+| Build (server)    | esbuild bundle to CJS                                                    |
+| Client base path  | `base: "./"` (relative asset paths; preview-friendly)                    |
 
 ### 2.3 How properties actually work
 
@@ -153,26 +153,26 @@ Widespread `data-testid` attributes (`card-property-*`, `panel-filters`, `table-
 
 ### 4.1 Safe to reuse as reference (not as production modules)
 
-| Asset | Use |
-|-------|-----|
-| Design tokens / palette / typography choices | Recreate in `packages/ui` or Next global CSS |
-| UX patterns (sidebar filters, card/table toggle, KPI strip, compare table behaviours) | Rebuild in App Router with URL-backed state |
-| Price formatting logic | Port ideas into shared `format` utilities |
-| Flat field vocabulary | Drive Phase 2 legacy importer mapping |
-| `data-testid` naming ideas | E2E conventions |
-| Embedded JSON (via `data/legacy/…`) | Import as `legacy_snapshot` |
+| Asset                                                                                 | Use                                          |
+| ------------------------------------------------------------------------------------- | -------------------------------------------- |
+| Design tokens / palette / typography choices                                          | Recreate in `packages/ui` or Next global CSS |
+| UX patterns (sidebar filters, card/table toggle, KPI strip, compare table behaviours) | Rebuild in App Router with URL-backed state  |
+| Price formatting logic                                                                | Port ideas into shared `format` utilities    |
+| Flat field vocabulary                                                                 | Drive Phase 2 legacy importer mapping        |
+| `data-testid` naming ideas                                                            | E2E conventions                              |
+| Embedded JSON (via `data/legacy/…`)                                                   | Import as `legacy_snapshot`                  |
 
 ### 4.2 Must rebuild (do not lift-and-shift)
 
-| Legacy piece | Why |
-|--------------|-----|
-| Vite SPA + Wouter hash routing | Spec requires Next.js, SEO, shareable search URLs, i18n/RTL |
-| Client-only JSON inventory | Spec requires Postgres/PostGIS, provenance, freshness, RLS |
-| Express + SQLite + unused users schema | Wrong auth model; not PostGIS; password field design unsafe |
-| Empty API / no BFF | Need versioned `/api/v1` domain API |
-| shadcn kit wholesale copy | Audit a11y; align with monorepo `packages/ui`; avoid unused bloat |
-| Outbound-only “detail” | Need first-party detail pages with gallery, provenance, AI actions |
-| Entire missing domains | Auth OTP, workspace, AI, ingestion, partners, admin, channels |
+| Legacy piece                           | Why                                                                |
+| -------------------------------------- | ------------------------------------------------------------------ |
+| Vite SPA + Wouter hash routing         | Spec requires Next.js, SEO, shareable search URLs, i18n/RTL        |
+| Client-only JSON inventory             | Spec requires Postgres/PostGIS, provenance, freshness, RLS         |
+| Express + SQLite + unused users schema | Wrong auth model; not PostGIS; password field design unsafe        |
+| Empty API / no BFF                     | Need versioned `/api/v1` domain API                                |
+| shadcn kit wholesale copy              | Audit a11y; align with monorepo `packages/ui`; avoid unused bloat  |
+| Outbound-only “detail”                 | Need first-party detail pages with gallery, provenance, AI actions |
+| Entire missing domains                 | Auth OTP, workspace, AI, ingestion, partners, admin, channels      |
 
 ### 4.3 Explicitly do not copy
 
@@ -208,23 +208,23 @@ category           "City Center" | "Coastal" | "Hillside"
 
 ### 5.2 Aggregate quality
 
-| Check | Result |
-|-------|--------|
-| Record count | 60 |
-| Unique ids | 60 |
-| Identity with embedded `properties.json` | Identical |
-| Price range | €299,000 – €6,700,000 |
-| `price_per_sqm` vs price/size | Consistent (tolerance ±2) |
-| Images / bathrooms / lat-lng / description / energy | **Absent** |
-| Alcaraz | **Not present** in this dataset |
+| Check                                               | Result                          |
+| --------------------------------------------------- | ------------------------------- |
+| Record count                                        | 60                              |
+| Unique ids                                          | 60                              |
+| Identity with embedded `properties.json`            | Identical                       |
+| Price range                                         | €299,000 – €6,700,000           |
+| `price_per_sqm` vs price/size                       | Consistent (tolerance ±2)       |
+| Images / bathrooms / lat-lng / description / energy | **Absent**                      |
+| Alcaraz                                             | **Not present** in this dataset |
 
-**Areas:** Sitges 12, Maresme 12, Gavà Mar 11, Vallvidrera 9, Eixample 8, Sant Gervasi 8  
+**Areas:** Sitges 12, Maresme 12, Gavà Mar 11, Vallvidrera 9, Eixample 8, Sant Gervasi 8
 
-**Categories:** Coastal 35, City Center 16, Hillside 9  
+**Categories:** Coastal 35, City Center 16, Hillside 9
 
-**Portals:** Engel & Völkers 19, Coldwell Banker 14, Lucas Fox 13, Fotocasa 9, Idealista 5  
+**Portals:** Engel & Völkers 19, Coldwell Banker 14, Lucas Fox 13, Fotocasa 9, Idealista 5
 
-**URL hosts:** engelvoelkers.com, coldwellbanker.es, fotocasa.es, lucasfox.es / lucasfox.com, idealista.com  
+**URL hosts:** engelvoelkers.com, coldwellbanker.es, fotocasa.es, lucasfox.es / lucasfox.com, idealista.com
 
 ### 5.3 Quality / rights issues
 
@@ -237,7 +237,7 @@ category           "City Center" | "Coastal" | "Hillside"
 
 ### 5.4 Fitness for Phase 2
 
-**Fit for:** deterministic `legacy_snapshot` import, filter UI demos, comparison UX, provenance labelling, importer tests.  
+**Fit for:** deterministic `legacy_snapshot` import, filter UI demos, comparison UX, provenance labelling, importer tests.
 
 **Not fit alone for:** commercial “live inventory” MVP acceptance without a permitted live source path; image galleries; map pins with real coordinates; legal/energy completeness.
 
@@ -245,24 +245,24 @@ category           "City Center" | "Coastal" | "Hillside"
 
 ## 6. Differences vs the authoritative project specification
 
-| Spec requirement | Legacy preview |
-|------------------|----------------|
-| Spain-wide geography hierarchy | Barcelona-metro areas + 3 lifestyle categories only |
-| Physical property ≠ listings | Single flat record |
-| Provenance, freshness, media rights | Absent |
-| Auth email/SMS OTP, guest merge | Absent (unused SQLite users stub only) |
-| Favourites, shortlists, saved searches, alerts | Absent |
-| Map + list sync + polygon/radius/commute search | Absent |
-| In-app property detail, gallery, price history | External link only |
-| Partner / admin portals | Absent |
-| Multilingual en/es/ca/ar + RTL | English-only UI |
-| Website AI chat + typed tools | Absent |
-| Channel-neutral conversations | Absent |
-| Ingestion pipeline / source registry | Static JSON |
-| Versioned cost rules / document readiness | Absent |
-| WCAG 2.2 AA target | Partial; see §7 |
-| URL-backed shareable search state | Hash router; filters not in URL |
-| KPI medians + tiny-sample caution | Means only; no caution |
+| Spec requirement                                | Legacy preview                                      |
+| ----------------------------------------------- | --------------------------------------------------- |
+| Spain-wide geography hierarchy                  | Barcelona-metro areas + 3 lifestyle categories only |
+| Physical property ≠ listings                    | Single flat record                                  |
+| Provenance, freshness, media rights             | Absent                                              |
+| Auth email/SMS OTP, guest merge                 | Absent (unused SQLite users stub only)              |
+| Favourites, shortlists, saved searches, alerts  | Absent                                              |
+| Map + list sync + polygon/radius/commute search | Absent                                              |
+| In-app property detail, gallery, price history  | External link only                                  |
+| Partner / admin portals                         | Absent                                              |
+| Multilingual en/es/ca/ar + RTL                  | English-only UI                                     |
+| Website AI chat + typed tools                   | Absent                                              |
+| Channel-neutral conversations                   | Absent                                              |
+| Ingestion pipeline / source registry            | Static JSON                                         |
+| Versioned cost rules / document readiness       | Absent                                              |
+| WCAG 2.2 AA target                              | Partial; see §7                                     |
+| URL-backed shareable search state               | Hash router; filters not in URL                     |
+| KPI medians + tiny-sample caution               | Means only; no caution                              |
 
 **Conclusion:** Legacy is a useful **UX and sample-data prototype** for Catalonia/Barcelona discovery. The production architecture in the Phase 0 docs remains necessary and is **not** invalidated — only enriched with concrete mapping and UI inheritance guidance.
 
@@ -354,12 +354,12 @@ flowchart LR
 
 ### 9.3 Roadmap
 
-| Item | Adjustment |
-|------|------------|
-| Phase 0 | Extended by this assessment; still no app scaffold |
-| Phase 1 | Unchanged scope; still requires explicit approval to start |
-| Phase 2 | Legacy JSON import **unblocked** for file presence; still `legacy_snapshot` until rights/freshness review |
-| Phases 3–9 | Unchanged |
+| Item                 | Adjustment                                                                                                   |
+| -------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Phase 0              | Extended by this assessment; still no app scaffold                                                           |
+| Phase 1              | Unchanged scope; still requires explicit approval to start                                                   |
+| Phase 2              | Legacy JSON import **unblocked** for file presence; still `legacy_snapshot` until rights/freshness review    |
+| Phases 3–9           | Unchanged                                                                                                    |
 | MVP live-import gate | Still needs a **permitted** live path beyond this snapshot; Idealista/Fotocasa URLs do not satisfy that gate |
 
 ### 9.4 Decisions updates

@@ -1,6 +1,6 @@
 # Spain Property Buyer Portal — Complete Claude/Codex Specification v2
-This merged document combines the modular build pack. The modular ZIP is preferable for repository use.
 
+This merged document combines the modular build pack. The modular ZIP is preferable for repository use.
 
 ---
 
@@ -45,7 +45,6 @@ docs/data/PROPERTY_DATA_INGESTION.md
 docs/agent/MASTER_PROMPT_CLAUDE_CODEX.md
 data/legacy/barcelona_property_explorer_legacy_60.json
 ```
-
 
 ---
 
@@ -711,7 +710,6 @@ Launch one excellent regional buyer journey with:
 - measurable lead delivery.
 
 Expand regions and channels only after proving that buyers engage and partners respond.
-
 
 ---
 
@@ -1387,7 +1385,6 @@ WhatsApp and telephone voice are not MVP acceptance requirements, but their shar
 - When a provider is unavailable, create a typed adapter, test fake and setup guide; do not pretend it is integrated.
 - Never mark a feature complete while critical tests fail.
 
-
 ---
 
 # Spain Property Buyer Portal — Property Data Ingestion, Crawling and Freshness Specification
@@ -1887,7 +1884,6 @@ Implement this exact sequence:
 - raw snapshots can be replayed with a newer parser;
 - every public listing exposes source and freshness;
 - legacy records are visibly marked as snapshots until verified.
-
 
 ---
 

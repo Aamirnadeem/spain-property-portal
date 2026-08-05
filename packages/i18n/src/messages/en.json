@@ -1,0 +1,27 @@
+{
+  "appName": "Spain Property Portal",
+  "tagline": "Find your home across Spain",
+  "nav": {
+    "home": "Home",
+    "search": "Search",
+    "account": "Account",
+    "signIn": "Sign in"
+  },
+  "home": {
+    "title": "Platform foundation",
+    "body": "Phase 1 vertical slice: locales, health, OTP fakes, guest sessions, and database foundations.",
+    "cta": "Check health"
+  },
+  "auth": {
+    "emailOtp": "Email OTP",
+    "mobileOtp": "Mobile OTP",
+    "sendCode": "Send code",
+    "verifyCode": "Verify",
+    "codeSent": "Code sent (check server logs in fake mode)",
+    "guestMerged": "Guest preferences were merged into your account"
+  },
+  "health": {
+    "ok": "Healthy",
+    "degraded": "Degraded"
+  }
+}
