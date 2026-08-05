@@ -1,9 +1,9 @@
 # Spain Property Buyer Portal — Architecture
 
-Version: 1.0  
-Status: Phase 0 deliverable  
+Version: 1.1  
+Status: Phase 0 deliverable (updated after legacy assessment)  
 Authoritative source: [`spain_property_portal_build_plan_and_master_prompt_v2.md`](spain_property_portal_build_plan_and_master_prompt_v2.md)  
-Companion: [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md), [`DATABASE_DESIGN.md`](DATABASE_DESIGN.md)
+Companion: [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md), [`DATABASE_DESIGN.md`](DATABASE_DESIGN.md), [`LEGACY_CODE_ASSESSMENT.md`](LEGACY_CODE_ASSESSMENT.md)
 
 ---
 
@@ -19,6 +19,7 @@ Companion: [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md), [`DATABASE_DESIGN
 8. Implement production paths as **vertical slices**, not disconnected screens.
 9. Prefer deterministic rules and geospatial calculations over AI guesses.
 10. Do not activate a channel until operational support, consent and monitoring exist.
+11. Treat [`legacy/`](../legacy/) as a **frozen UX/data reference** — rebuild the production UI on Next.js; do not adopt the Vite/Express/SQLite stack.
 
 ---
 
@@ -102,6 +103,7 @@ packages/
 data/
   legacy/
   fixtures/
+legacy/                 # FROZEN reference SPA (do not modify)
 docs/
 ```
 
@@ -162,9 +164,10 @@ Approved documents, jurisdiction metadata, review dates, chunks, citations, regi
 
 - Locales: `en`, `es`, `ca`, `ar` with proper RTL for Arabic
 - Canonical source-language listing text stored separately from translations; label machine translations; never overwrite originals
-- WCAG 2.2 AA: keyboard access, semantic controls, focus management, contrast, reduced motion, accessible tables, map alternatives, live-region announcements for changing results
-- Stable shareable URLs for search state
-- Dark/light support inspired by the original preview without treating the compiled preview as source
+- WCAG 2.2 AA: keyboard access, semantic controls, focus management, contrast, reduced motion, accessible tables, map alternatives, live-region announcements for changing results; **allow pinch-zoom** (do not inherit legacy `maximum-scale=1`)
+- Stable shareable URLs for search state (do not use legacy hash-router filter state)
+- Dark/light support inspired by the legacy Mediterranean token set (teal / sand / terracotta; General Sans, Fraunces, JetBrains Mono) without treating the Vite SPA as source
+- Preserve legacy behaviours as patterns: sticky header, filter sidebar / mobile details, cards vs compare table, KPI strip — rebuild in App Router components
 
 ### 6.3 Map
 
@@ -544,3 +547,39 @@ Environments: local, preview, staging, production. Migrations only via CI/CD. EU
 - Secondary search engines until measured need
 - Passkeys/social login (later)
 - Partner billing plans (Phase 9)
+
+---
+
+## 16. Legacy reference boundary and migration
+
+Full assessment: [`LEGACY_CODE_ASSESSMENT.md`](LEGACY_CODE_ASSESSMENT.md).
+
+### 16.1 What exists
+
+| Asset | Role |
+|-------|------|
+| `legacy/` | Editable Vite + React + Express Barcelona Property Explorer — **frozen** |
+| `data/legacy/barcelona_property_explorer_legacy_60.json` | Canonical 60-record snapshot for Phase 2 import |
+
+The legacy app loads JSON client-side, filters in-memory, and links out to portal URLs. It is **not** the production architecture.
+
+### 16.2 Migration flow
+
+```mermaid
+flowchart LR
+  LegacyApp[legacy_frozen_reference]
+  LegacyJSON[data_legacy_60_json]
+  Importer[Phase2_legacy_importer]
+  DB[(Postgres_listings_legacy_snapshot)]
+  NewUI[Next_web_rebuild]
+
+  LegacyApp -.->|UX_tokens_patterns| NewUI
+  LegacyJSON --> Importer --> DB --> NewUI
+```
+
+### 16.3 Inheritance rules
+
+- **Inherit:** visual tokens, filter/KPI/compare UX concepts, price formatting ideas, `data-testid` naming.
+- **Do not inherit:** Express, SQLite, Wouter hash routing, client-only inventory, unused Passport/Supabase template deps, plaintext password schema.
+- **Do not scrape** Idealista/Fotocasa/agency pages from stored URLs without source-register approval.
+- Field mapping: [`DATABASE_DESIGN.md`](DATABASE_DESIGN.md) §13.

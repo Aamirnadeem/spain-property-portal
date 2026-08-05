@@ -1,9 +1,9 @@
 # Spain Property Buyer Portal — Implementation Plan
 
-Version: 1.0  
-Status: Phase 0 deliverable (planning complete; application scaffolding not started)  
+Version: 1.1  
+Status: Phase 0 deliverable (planning complete + legacy assessment; application scaffolding not started)  
 Authoritative source: [`spain_property_portal_build_plan_and_master_prompt_v2.md`](spain_property_portal_build_plan_and_master_prompt_v2.md)  
-Related docs: [`ARCHITECTURE.md`](ARCHITECTURE.md), [`DATABASE_DESIGN.md`](DATABASE_DESIGN.md), [`SECURITY_AND_PRIVACY.md`](SECURITY_AND_PRIVACY.md), [`EXTERNAL_SERVICES.md`](EXTERNAL_SERVICES.md), [`DECISIONS_REQUIRED.md`](DECISIONS_REQUIRED.md)
+Related docs: [`ARCHITECTURE.md`](ARCHITECTURE.md), [`DATABASE_DESIGN.md`](DATABASE_DESIGN.md), [`SECURITY_AND_PRIVACY.md`](SECURITY_AND_PRIVACY.md), [`EXTERNAL_SERVICES.md`](EXTERNAL_SERVICES.md), [`DECISIONS_REQUIRED.md`](DECISIONS_REQUIRED.md), [`LEGACY_CODE_ASSESSMENT.md`](LEGACY_CODE_ASSESSMENT.md)
 
 ---
 
@@ -11,24 +11,26 @@ Related docs: [`ARCHITECTURE.md`](ARCHITECTURE.md), [`DATABASE_DESIGN.md`](DATAB
 
 ### 1.1 Verdict
 
-**Empty / greenfield.** No application code, packages, tests, deployment config, or git history suitable for continued product development.
+**Greenfield production app + frozen legacy reference.** There is still no production monorepo (Next.js / Supabase / workers). The repository now includes an **editable** Vite/React Barcelona Property Explorer under [`legacy/`](../legacy/) and the canonical 60-record snapshot at [`data/legacy/barcelona_property_explorer_legacy_60.json`](../data/legacy/barcelona_property_explorer_legacy_60.json). Full findings: [`LEGACY_CODE_ASSESSMENT.md`](LEGACY_CODE_ASSESSMENT.md).
 
 ### 1.2 Present today
 
 | Asset | Status |
 |-------|--------|
-| `docs/spain_property_portal_build_plan_and_master_prompt_v2.md` | Authoritative merged build pack (product, architecture, ingestion, master prompt) |
-| Application source | Absent |
-| `data/legacy/barcelona_property_explorer_legacy_60.json` | **Missing — blocked** (see §12) |
+| `docs/spain_property_portal_build_plan_and_master_prompt_v2.md` | Authoritative merged build pack |
+| Phase 0 planning docs | Present (this file and companions) |
+| `legacy/` Barcelona Property Explorer | **Editable** Vite + React + Express scaffold; frozen reference only — do not modify |
+| `data/legacy/barcelona_property_explorer_legacy_60.json` | **Present** (60 records; identical to `legacy/client/src/data/properties.json`) |
+| Production monorepo (`apps/`, `packages/`) | Absent — Phase 1 not started |
 | Modular pack files (`01_PROJECT_SPEC.md`, etc.) | Content merged into v2; not present as separate files |
-| Static Barcelona Property Explorer preview | Not in repository |
 | Credentials / `.env` | Absent |
-| Reusable backend, AI, ingestion, or CI | Absent |
+| Production backend, AI, ingestion, or CI | Absent |
 
 ### 1.3 Implications
 
-- Build a new monorepo from scratch; do not treat any compiled preview as maintainable source.
-- Implement the legacy importer and CI fixtures immediately; do not mark the real 60-record import complete until the JSON is supplied and rights/freshness are reviewed.
+- Build the production monorepo from scratch when Phase 1 is explicitly approved; **do not** lift `legacy/` into `apps/web`.
+- Inherit visual language and UX patterns from the legacy explorer (see §2.1 preserve checklist); rebuild on Next.js + Postgres/PostGIS.
+- Phase 2 legacy importer is **unblocked for file presence**; still mark rows `legacy_snapshot` until rights/freshness are reviewed; do not invent images; do not scrape portal URLs.
 - Use typed provider adapters and fakes so engineering can proceed without production credentials.
 
 ---
@@ -46,6 +48,16 @@ A **modular monolith** multilingual portal for buying property throughout Spain,
 **Differentiation:** provenance-aware inventory, explainable comparison, buyer education with citations, document readiness indicators, and a tool-bound AI that never invents listings.
 
 Full architecture: [`ARCHITECTURE.md`](ARCHITECTURE.md).
+
+### 2.1 UI patterns to preserve from legacy (rebuild, do not copy)
+
+Documented in detail in [`LEGACY_CODE_ASSESSMENT.md`](LEGACY_CODE_ASSESSMENT.md) §3:
+
+- Sticky header, brand lockup, dark/light Mediterranean theme (teal / sand / terracotta; General Sans, Fraunces, JetBrains Mono)
+- Desktop filter sidebar + mobile collapsible filters
+- Cards vs comparison-table toggle; KPI strip on filtered results
+- Category badges (City Center / Coastal / Hillside), price formatters, empty states, `data-testid` conventions
+- Add in rebuild: URL-backed search state, list + map views, in-app detail, provenance/freshness, i18n/RTL, tiny-sample KPI caution; do not default-hide homes under 2 bedrooms
 
 ---
 
@@ -91,8 +103,9 @@ packages/
   observability/          # logging, traces, metrics
   config/                 # env validation, lint, TypeScript configs
 data/
-  legacy/                 # barcelona_property_explorer_legacy_60.json (when supplied)
-  fixtures/               # synthetic CI fixtures matching legacy shape
+  legacy/                 # barcelona_property_explorer_legacy_60.json (present)
+  fixtures/               # CI edge-case fixtures
+legacy/                   # FROZEN reference SPA — do not modify; see LEGACY_CODE_ASSESSMENT.md
 docs/
   (this pack and operational docs)
 ```
@@ -144,6 +157,7 @@ Relative complexity: S = small, M = medium, L = large, XL = extra-large.
 **Deliver**
 
 - This file and companion architecture, database, security, external-services and decisions docs
+- [`LEGACY_CODE_ASSESSMENT.md`](LEGACY_CODE_ASSESSMENT.md) after legacy app + JSON were added
 - Data-source permission register template (in [`EXTERNAL_SERVICES.md`](EXTERNAL_SERVICES.md))
 - Threat model (in [`SECURITY_AND_PRIVACY.md`](SECURITY_AND_PRIVACY.md))
 - Provider decision matrix and credential checklist
@@ -151,10 +165,11 @@ Relative complexity: S = small, M = medium, L = large, XL = extra-large.
 
 **Acceptance criteria**
 
-- [x] Repository audit complete; empty/greenfield stated
+- [x] Repository audit complete; legacy reference + dataset status stated
+- [x] Legacy assessment complete (editable source, UX preserve list, dataset quality, migration path)
 - [x] Scope, rights gaps and credentials checklist explicit
 - [x] Vertical-slice sequence and MVP vs channel upgrades defined
-- [x] No application code claimed as started
+- [x] No production application code claimed as started; `legacy/` not modified for product work
 - [ ] Ready to begin Phase 1 only after explicit approval
 
 ---
@@ -195,31 +210,33 @@ Relative complexity: S = small, M = medium, L = large, XL = extra-large.
 - Nationwide geographic hierarchy with official codes, multilingual names, aliases, exact/approximate coordinates and accuracy levels
 - Physical property vs commercial listing separation; developments and units schema
 - Source, provenance, permission, freshness, price/status history and media-rights tables
-- Deterministic importer for legacy JSON when present; synthetic fixture importer for CI
-- Imported records marked `legacy_snapshot`; original source URLs preserved; no invented images
+- Deterministic importer for [`data/legacy/barcelona_property_explorer_legacy_60.json`](../data/legacy/barcelona_property_explorer_legacy_60.json) (file **present**); field mapping in [`DATABASE_DESIGN.md`](DATABASE_DESIGN.md); synthetic fixtures for CI edge cases
+- Imported records marked `legacy_snapshot`; original source URLs preserved; normalize inconsistent `property_type` while keeping source claims; no invented images; do not scrape Idealista/Fotocasa/etc. from stored URLs
 - Manual listing workflow and authorized media upload
 - Responsive card, list, table and map views with URL-backed search state
-- Filters: geography, price, beds, area, property type, lifestyle classifications (advertiser vs derived provenance)
+- Rebuild (not lift) legacy UX: filter sidebar, cards/compare toggle, KPI strip, Mediterranean tokens — plus list + map + in-app detail
+- Filters: geography, price, beds, area, property type, lifestyle classifications (advertiser vs derived provenance); City Center / Coastal / Hillside as lifestyle/derived, not admin geography
 - Synchronized map/list and accessible non-map alternative
-- Property detail: gallery, source, freshness, price history, verification explanations, energy fields
-- KPI summaries that avoid misleading averages on tiny samples
+- Property detail: gallery when rights exist, source, freshness, price history, verification explanations, energy fields
+- KPI summaries that avoid misleading averages on tiny samples (improve on legacy means-only strip)
 - SEO metadata, canonical/localized routes, structured data where appropriate
+- Do not carry `maximum-scale=1` or default `bedroomsMin: 2` as hard product defaults
 
 **Acceptance criteria**
 
-- [ ] Anonymous users can browse fixture/legacy-marked inventory with authorized images only
+- [ ] Anonymous users can browse legacy-marked inventory; images only when rights-cleared (legacy 60 has none — text-first / non-photo placeholders only)
 - [ ] List, card, table and map views work responsively
 - [ ] Location and lifestyle filters work; provenance labels distinguish claim vs derived
 - [ ] Property pages show source, rights, freshness and energy-state fields
-- [ ] Legacy/fixture records visibly marked as snapshots until verified
-- [ ] Alcaraz seeded under Castilla-La Mancha / Albacete, not Catalonia
+- [ ] All 60 legacy records import idempotently and are visibly marked as snapshots until verified
+- [ ] Alcaraz seeded under Castilla-La Mancha / Albacete, not Catalonia (not present in the 60 JSON; still required in geography seeds)
 - [ ] Approximate locations are not displayed as exact
-- [ ] Accessibility: keyboard access, focus management, map alternative
-- [ ] No invented property images
+- [ ] Accessibility: keyboard access, focus management, map alternative; pinch-zoom allowed
+- [ ] No invented property images; no unauthorized portal scraping
 
-**Can proceed without external credentials:** mostly yes (fixture data, OSM-dev or mock map tiles). Licensed production tiles need keys later.
+**Can proceed without external credentials:** mostly yes (legacy JSON + fixtures, OSM-dev or mock map tiles). Licensed production tiles need keys later.
 
-**Blocked:** real 60-record legacy import until `data/legacy/barcelona_property_explorer_legacy_60.json` is supplied.
+**Unblocked:** real 60-record file is present. **Still restricted:** treat as snapshot/demo until rights/freshness review; Idealista/Fotocasa URLs are not a live-licence path.
 
 ---
 
@@ -551,18 +568,22 @@ Detailed commands will be added when the monorepo is scaffolded (Phase 1 approva
 
 ---
 
-## 12. Legacy data status
+## 12. Legacy data and application status
 
 | Item | Status |
 |------|--------|
-| Expected path | `data/legacy/barcelona_property_explorer_legacy_60.json` |
-| In repository | **No** |
-| Importer design | Required in Phase 2/4 |
-| CI substitute | `data/fixtures/` synthetic records matching expected shape |
+| Application path | `legacy/` (alias: barcelona-property-explorer-preview) |
+| Application type | Editable Vite/React/Express source — **frozen reference** |
+| Dataset path | `data/legacy/barcelona_property_explorer_legacy_60.json` |
+| Dataset in repository | **Yes** (60 records; identical to embedded `legacy/client/src/data/properties.json`) |
+| Assessment | [`LEGACY_CODE_ASSESSMENT.md`](LEGACY_CODE_ASSESSMENT.md) |
+| Importer design | Required in Phase 2; mapping in [`DATABASE_DESIGN.md`](DATABASE_DESIGN.md) |
+| CI supplement | `data/fixtures/` for edge cases beyond the 60 |
 | Publication label | `legacy_snapshot` until freshness and media rights verified |
-| Images | Do not invent; preserve source URLs only |
+| Images | None in dataset; do not invent; preserve source URLs only |
+| Portal URL caution | Includes Idealista/Fotocasa/agency URLs — not a republication licence; no scrape |
 
-**Blocker owner:** product/data owner must supply the JSON (and preferably the modular build-pack assets). Engineering proceeds with fixtures until then.
+**Remaining owner action:** rights/freshness review before describing rows as live/verified. File supply (former D-016) is complete.
 
 ---
 
@@ -571,7 +592,8 @@ Detailed commands will be added when the monorepo is scaffolded (Phase 1 approva
 | Risk | Mitigation |
 |------|------------|
 | No partner permission for live inventory | CSV/manual path + explicit register block; do not scrape |
-| Legacy JSON missing | Fixtures; importer ready; do not fake 60 real listings |
+| Legacy snapshot mistaken for live licensed inventory | Keep `legacy_snapshot` label; no scrape; need permitted live source for MVP gate |
+| Idealista/Fotocasa URL quality (some search pages) | Store as supplied; flag weak listing identity in provenance |
 | SMS pumping / OTP abuse | Cooldowns, per-IP/identity limits, CAPTCHA escalation, fake adapters in dev |
 | AI hallucination | Tool-only property facts; eval suite; citations for guidance |
 | Premature WhatsApp/voice | Interfaces only until prerequisites met |
@@ -594,7 +616,8 @@ Detailed commands will be added when the monorepo is scaffolded (Phase 1 approva
 
 ## 15. Next gate
 
-**Phase 0 documentation is complete.**  
-**Do not scaffold the monorepo or begin Phase 1 until explicitly approved.**
+**Phase 0 documentation is complete**, including the legacy assessment addendum.  
+**Do not scaffold the monorepo or begin Phase 1 until explicitly approved.**  
+**Do not modify files under `legacy/`.**
 
 When approved, start Slice 1 (foundation) and mark Phase 0 acceptance item “Ready to begin Phase 1” complete.

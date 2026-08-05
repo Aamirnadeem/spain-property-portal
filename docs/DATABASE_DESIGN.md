@@ -1,10 +1,10 @@
 # Spain Property Buyer Portal — Database Design
 
-Version: 1.0  
-Status: Phase 0 deliverable  
+Version: 1.1  
+Status: Phase 0 deliverable (updated with legacy field mapping)  
 ORM: Drizzle  
 Database: PostgreSQL + PostGIS (+ unaccent, pg_trgm, pgvector)  
-Companion: [`ARCHITECTURE.md`](ARCHITECTURE.md), [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md)
+Companion: [`ARCHITECTURE.md`](ARCHITECTURE.md), [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md), [`LEGACY_CODE_ASSESSMENT.md`](LEGACY_CODE_ASSESSMENT.md)
 
 ---
 
@@ -371,12 +371,12 @@ Detailed policies and threat controls: [`SECURITY_AND_PRIVACY.md`](SECURITY_AND_
 | Dataset | Purpose |
 |---------|---------|
 | Geography seed | Spain communities/provinces; deeper Catalonia municipalities; Alcaraz correctness |
-| `data/fixtures/` | Synthetic listings matching expected legacy shape for CI |
-| `data/legacy/barcelona_property_explorer_legacy_60.json` | **Missing** — importer ready; import blocked until supplied |
+| `data/fixtures/` | Synthetic listings for CI edge cases |
+| `data/legacy/barcelona_property_explorer_legacy_60.json` | **Present** — Phase 2 `legacy_snapshot` import (see §13) |
 | Knowledge seed | Minimal approved educational stubs with review dates (Phase 5) |
 | Rule seed | Initial Catalonia acquisition-cost rule versions (Phase 6) |
 
-Legacy import rules: preserve original source URLs; mark `legacy_snapshot`; do not invent images; do not describe as live/verified until rechecked.
+Legacy import rules: preserve original source URLs; mark `legacy_snapshot`; do not invent images; do not describe as live/verified until rechecked; do not scrape portal HTML/images from URLs.
 
 ---
 
@@ -398,3 +398,59 @@ See [`SECURITY_AND_PRIVACY.md`](SECURITY_AND_PRIVACY.md) for GDPR schedules.
 - Enabling telephony recording features
 - Populating nationwide amenity/risk layers before licensed data is available
 - Search-engine dual-write tables (only if/when Typesense/OpenSearch is justified)
+
+---
+
+## 13. Legacy JSON → canonical entity mapping
+
+**Source file:** `data/legacy/barcelona_property_explorer_legacy_60.json`  
+**Source registry id:** `legacy-barcelona-explorer-60` (`source_type: legacy_snapshot`, `permission_status: restricted`, `image_rights: none`)  
+**External listing id:** `String(id)`  
+**Idempotency key:** `(data_source_id, external_listing_id)`
+
+### 13.1 Field map
+
+| Legacy field | Canonical target | Notes |
+|--------------|------------------|-------|
+| `id` | `property_listings.external_listing_id` | Also store in provenance |
+| `title` | listing title (source language `en`) | Preserve as source claim |
+| `url` | `property_listings` / provenance `source_url` | May be search-page URL for some Idealista/Fotocasa rows — store as-is; flag weak identity |
+| `portal` | organization/source label + `source_claims` | Not proof of partnership |
+| `area` | geography match → municipality/neighborhood + `geo_aliases` | Eixample, Sant Gervasi, Sitges, Maresme, Gavà Mar, Vallvidrera → Catalonia seeds |
+| `price` | listing price + `listing_price_history` (initial) | Currency EUR |
+| `bedrooms` | listing / physical beds | Source claim |
+| `size_sqm` | built area m² (source claim) | Distinguish later from usable if known |
+| `price_per_sqm` | derived or stored computed display field | Recompute on import; compare to stored for QA |
+| `address` | `property_addresses` free-text / structured parse best-effort | Often approximate |
+| `nearest_transit` | `source_claims` / amenity text | Not a structured stop id |
+| `commute_min` | `derived_attributes` or claim `commute_to_center_min` | Assumption: Barcelona center; not multi-destination |
+| `beach_proximity` | lifestyle/claim; nullify when `N/A` | Separate advertiser vs calculated later |
+| `park_proximity` | lifestyle/claim | |
+| `property_type` | normalize → `property_types` + keep raw in `source_claims` / `normalization_events` | See §13.2 |
+| `category` | `derived_attributes` lifestyle: `city_center` / `coastal` / `hillside` | **Not** an admin geography node |
+
+### 13.2 `property_type` normalization (initial)
+
+| Source examples | Canonical (illustrative) |
+|-----------------|--------------------------|
+| apartment, Flat, Ground Floor Flat, New Build Apartment | `apartment` (+ flags for new_build / ground_floor when present) |
+| penthouse | `penthouse` |
+| villa, Detached Villa, House/Chalet | `villa` or `detached_house` per mapping table |
+| Detached House | `detached_house` |
+| Semi-detached House | `semi_detached_house` |
+| townhouse | `townhouse` |
+
+Always persist the raw source string and mapping rule version.
+
+### 13.3 What not to invent on import
+
+- Images / media_assets
+- Bathrooms, energy rating, coordinates (unless separately geocoded under provider rights with accuracy labelled)
+- Sold/withdrawn inference
+- Agency partnership or media rights
+
+### 13.4 Listing publication on import
+
+- Status: publishable as `published` only with clear UI `legacy_snapshot` / unverified labelling, **or** `pending_review` then publish with badge — product default: allow public browse with **visible snapshot badge** and freshness “unknown / snapshot date”.
+- `last_confirmed_available_at`: null
+- Method: `legacy_snapshot`

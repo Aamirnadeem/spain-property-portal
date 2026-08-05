@@ -1,9 +1,9 @@
 # Spain Property Buyer Portal — External Services
 
-Version: 1.0  
-Status: Phase 0 deliverable  
+Version: 1.1  
+Status: Phase 0 deliverable (updated after legacy assessment)  
 Includes: provider decision matrix, credential checklist, data-source permission register template, `.env.example` outline  
-Companion: [`DECISIONS_REQUIRED.md`](DECISIONS_REQUIRED.md), [`ARCHITECTURE.md`](ARCHITECTURE.md), [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md)
+Companion: [`DECISIONS_REQUIRED.md`](DECISIONS_REQUIRED.md), [`ARCHITECTURE.md`](ARCHITECTURE.md), [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md), [`LEGACY_CODE_ASSESSMENT.md`](LEGACY_CODE_ASSESSMENT.md)
 
 ---
 
@@ -68,7 +68,7 @@ When a provider is unavailable: implement the interface, a **test fake**, and a 
 | Blocker | Effect |
 |---------|--------|
 | Written partner/source permission + media rights | Blocks live Phase 4 partner adapter and public “live” claims |
-| `barcelona_property_explorer_legacy_60.json` | Blocks real legacy import (fixtures proceed) |
+| Legacy 60 rights/freshness review (D-019) | Blocks removing `legacy_snapshot` labelling / claiming live inventory |
 | WhatsApp Business account + approved templates | Blocks Phase 7 activation |
 | Recording consent policy finalized | Blocks Phase 8 recording |
 | EU region / DPA decisions | Blocks production personal-data hosting choice |
@@ -151,7 +151,7 @@ notes
 
 | source_id | source_name | source_type | permission_status | image_rights | notes |
 |-----------|-------------|-------------|-------------------|--------------|-------|
-| `legacy-barcelona-explorer-60` | Barcelona Property Explorer legacy snapshot | `legacy_snapshot` | `restricted` | `none` (URLs only; no republication of images until rights verified) | File **missing** from repo; importer blocked; not live inventory |
+| `legacy-barcelona-explorer-60` | Barcelona Property Explorer legacy snapshot | `legacy_snapshot` | `restricted` | `none` (no images in file; URLs only; no republication of portal media) | File **present** at `data/legacy/barcelona_property_explorer_legacy_60.json`. Identical to `legacy/client/src/data/properties.json`. 60 rows. Portals include Engel & Völkers, Coldwell Banker, Lucas Fox, Fotocasa, Idealista — **not** a live licence (ADR-015). Some Idealista/Fotocasa URLs are search pages. Importer allowed as snapshot only; **no scrape**. |
 | `manual-editor` | Internal / partner manual entry | `manual` | `pending` | per-upload declaration | First operational path after org verification |
 | `partner-csv-generic` | Generic partner CSV | `csv` | `pending` | per agreement | Framework in Phase 4; no partner attached |
 | `partner-xml-json-generic` | Generic CRM XML/JSON | `xml`/`json` | `pending` | per agreement | Interface + fixtures only until partner named |
@@ -161,6 +161,8 @@ notes
 
 The source manager **must prevent jobs** when `permission_status` is missing, `pending`, `expired` or `suspended`. Expired permission prevents **new publication**.
 
+Exception for `legacy-barcelona-explorer-60`: one-shot / idempotent **snapshot import** is allowed while `restricted`, provided UI and provenance mark `legacy_snapshot` and no media download from portal URLs is performed.
+
 ---
 
 ## 7. Legacy inventory dependency
@@ -168,10 +170,12 @@ The source manager **must prevent jobs** when `permission_status` is missing, `p
 | Item | Value |
 |------|--------|
 | Expected file | `data/legacy/barcelona_property_explorer_legacy_60.json` |
-| Repository status | **Absent** |
-| Treatment | Demo/snapshot only until freshness and media rights verified |
-| Engineering action | Build importer + CI fixtures; do not invent images; preserve source URLs when file arrives |
-| Product action | Supply file; decide rights review owner |
+| Repository status | **Present** (60 records) |
+| Reference app | `legacy/` (frozen; do not modify) |
+| Assessment | [`LEGACY_CODE_ASSESSMENT.md`](LEGACY_CODE_ASSESSMENT.md) |
+| Treatment | Demo/snapshot only until freshness and media rights are verified (D-019) |
+| Engineering action | Phase 2 importer per [`DATABASE_DESIGN.md`](DATABASE_DESIGN.md) §13; preserve source URLs; no invented images; no portal scrape |
+| Product action | Assign rights/freshness review owner |
 
 ---
 
