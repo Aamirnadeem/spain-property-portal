@@ -7,7 +7,7 @@ Slice: Platform foundation + Phase 1.1 hardening
 
 | Decision              | Choice                                                                                              |
 | --------------------- | --------------------------------------------------------------------------------------------------- |
-| Job framework (D-002) | **`inline`** for Phase 1 — no Inngest/Trigger.dev credentials; revisit before worker-heavy Phase 4  |
+| Job framework (D-002) | **`inline`** for Phase 1 — no Inngest/Trigger.dev credentials; Phase 3 planning default is **pg-boss** (ADR-024) |
 | Production auth       | **Supabase Auth** for email and mobile OTP; provider user UUID is the canonical application user ID |
 | Local/test auth       | **`FakeAuthProvider`** only; process-local and non-persistent; `devCode` is local/test only         |
 | Production storage    | **Supabase Storage** for authorized media                                                           |

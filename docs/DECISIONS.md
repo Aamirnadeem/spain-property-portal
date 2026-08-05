@@ -1,9 +1,9 @@
 # Implementation decisions
 
-Date: 2026-08-05 (updated Phase 2 gate)  
+Date: 2026-08-05 (updated Phase 3 planning / ADR-022)  
 Status: Locked
 
-This is the implementation-facing decision log. The broader planning register remains in [`DECISIONS_REQUIRED.md`](DECISIONS_REQUIRED.md).
+This is the implementation-facing decision log. The broader planning register remains in [`DECISIONS_REQUIRED.md`](DECISIONS_REQUIRED.md). Phase 3 open items: [`PHASE3_DECISIONS_REQUIRED.md`](PHASE3_DECISIONS_REQUIRED.md).
 
 ## ADR-016 — Supabase production platform
 
@@ -65,7 +65,7 @@ This is the implementation-facing decision log. The broader planning register re
 
 ### Phase 2 favourites timing
 
-- Favourites (guest local + authenticated DB + merge) are delivered in **Phase 2** for the first complete public buyer journey, ahead of the broader Phase 3 buyer-workspace slice (shortlists, comparison, alerts).
+- Favourites (guest local + authenticated DB + merge) are delivered in **Phase 2** for the first complete public buyer journey, ahead of the broader buyer-workspace slice (shortlists, comparison, alerts) now scheduled as **Phase 4** (ADR-022).
 
 ### ADR-020 — Physical property vs commercial listing
 
@@ -78,3 +78,26 @@ This is the implementation-facing decision log. The broader planning register re
 - All rows from `barcelona_property_explorer_legacy_60.json` are marked `legacy_snapshot`.
 - They must never be described as live, verified, or currently available.
 - Status: locked.
+
+## Phase 3 planning (2026-08-05)
+
+### ADR-022 — Roadmap renumber: live inventory is Phase 3
+
+- **Decision:** **Phase 3** = Live Property Inventory and Agency/Admin Operations.
+- **Phase 4** = Buyer workspace remainder (shortlists, comparison, alerts, leads, privacy workflows) beyond Phase 2 favourites.
+- Former documentation that labelled live inventory as Phase 4 and buyer workspace as Phase 3 is superseded by this ADR and [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md).
+- Phase 5+ (AI chat, etc.) keep their phase numbers.
+- **Status:** locked for planning. Application implementation of Phase 3 must not start until the Phase 3 plan docs are explicitly approved.
+
+### ADR-023 — Phase 3 first vertical slice
+
+- One seeded cooperating agency (`demo-catalonia-agency`), one **Spain Partner CSV v1** format, one complete listing lifecycle through admin publish.
+- JSON and XML adapters ship with fixtures in Phase 3; end-to-end acceptance is CSV-first.
+- No unauthorized scraping or CAPTCHA/access-control bypass.
+- **Status:** locked for planning.
+
+### ADR-024 — Background jobs default (planning)
+
+- Planning default for Phase 3 workers: **pg-boss** on the application Postgres, with `JOBS_PROVIDER=inline` for unit/CI tests.
+- Inngest / Trigger.dev remain alternatives recorded in [`PHASE3_DECISIONS_REQUIRED.md`](PHASE3_DECISIONS_REQUIRED.md) if owners prefer a SaaS runner.
+- **Status:** planning default; confirm before implementation.

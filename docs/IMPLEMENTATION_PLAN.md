@@ -242,51 +242,29 @@ Relative complexity: S = small, M = medium, L = large, XL = extra-large.
 
 ---
 
-### Phase 3 — Buyer workspace / Slice 4 (M)
+### Phase 3 — Live inventory and agency/admin operations / Slice 5 (XL)
 
-**Deliver**
+> **Renumber (ADR-022):** Live inventory is Phase 3. Buyer workspace (beyond Phase 2 favourites) is Phase 4. Planning docs: [`PHASE3_PLAN.md`](PHASE3_PLAN.md), [`INGESTION_ARCHITECTURE.md`](INGESTION_ARCHITECTURE.md). **Do not implement until Phase 3 plan is explicitly approved.**
 
-- Favourites; multiple named shortlists; notes, labels, personal scores; purchase stages
-- Comparison sets with explainable weighted suitability scores (never valuation/legal opinion)
-- Recently viewed and search history
-- Saved searches and email alerts (instant/daily/weekly where appropriate)
-- Leads and viewing requests
-- Privacy export and deletion workflows
-- Optional collaborator invite model foundations (full collaboration may complete in Phase 6)
+**First vertical slice:** one cooperating demo agency, one Spain Partner CSV v1 format, one complete listing lifecycle, admin review + agency inventory UI. JSON/XML adapters with fixtures in the same phase; E2E acceptance is CSV-first. No unauthorized scraping.
 
-**Acceptance criteria**
-
-- [ ] Registered users can favourite, shortlist, compare, note, save searches and review history
-- [ ] Guest favourites/comparisons/views/AI criteria merge after registration when eligible
-- [ ] One user cannot access another user’s shortlists, notes or conversations
-- [ ] Email alerts are produced by background jobs via the email adapter
-- [ ] Enquiries and viewing requests create leads with status history
-- [ ] Privacy export and deletion workflows exist and are tested
-- [ ] Suitability score shows calculation explanation and disclaimer
-
-**Can proceed without external credentials:** yes with fake email adapter.
-
----
-
-### Phase 4 — Live inventory operations / Slice 5 (XL)
-
-**Deliver (exact sequence from ingestion spec)**
+**Deliver (exact sequence)**
 
 1. Source registry and permission model
-2. Manual listing and rights-cleared media upload (if not already complete)
-3. Legacy 60-record importer marked `legacy_snapshot` (when file present)
-4. Generic CSV importer with mapping preview and dry run
+2. Agency/developer organizations and role-based access
+3. Manual listing and rights-cleared media upload (if not already complete)
+4. Generic CSV importer with mapping preview and dry run (demo agency end-to-end)
 5. XML/JSON adapter interface and fixture tests
-6. One real partner feed or authorized site adapter (when permission exists)
+6. One real partner feed or authorized site adapter (when permission exists; otherwise register documents the block)
 7. Raw snapshot storage and idempotent upsert
 8. Normalization and geography matching
 9. Image processing and rights records
 10. Price/status history
 11. Missing/stale workflow
 12. Duplicate-candidate engine
-13. Source-health and moderation dashboards
+13. Source-health and moderation dashboards (admin + agency portals)
 
-Also: partner onboarding; API/webhook interfaces; authorized-crawl framework (no unauthorized third-party extractors); feed health events; takedown requests.
+Also: partner onboarding; API/webhook interfaces; authorized-crawl framework (no unauthorized third-party extractors); feed health events; takedown requests; audit logs; pg-boss (or approved job provider) worker jobs.
 
 **Acceptance criteria (ingestion)**
 
@@ -305,8 +283,37 @@ Also: partner onboarding; API/webhook interfaces; authorized-crawl framework (no
 - [ ] At least one permitted live import path works end to end **or** the data-source register documents the block with owner and next action
 - [ ] Admin can create, review, publish, update and withdraw listings
 - [ ] Partner can manage listings, imports, media rights declarations and leads
+- [ ] Cross-agency RLS isolation is tested (two orgs)
 
-**Can proceed without external credentials:** CSV/XML fixtures, manual entry, fake media pipeline. Live partner adapter blocked without written permission and media rights.
+**Can proceed without external credentials:** CSV/XML fixtures, manual entry, fake media pipeline, FakeAuth demo org, local Postgres + pg-boss/inline. Live partner HTTP adapter and production media blocked without written permission, Supabase Auth/Storage credentials, and media rights.
+
+---
+
+### Phase 4 — Buyer workspace / Slice 4 (M)
+
+> Favourites already shipped in Phase 2. This phase completes the remaining buyer workspace.
+
+**Deliver**
+
+- Multiple named shortlists; notes, labels, personal scores; purchase stages
+- Comparison sets with explainable weighted suitability scores (never valuation/legal opinion)
+- Recently viewed and search history
+- Saved searches and email alerts (instant/daily/weekly where appropriate)
+- Leads and viewing requests
+- Privacy export and deletion workflows
+- Optional collaborator invite model foundations (full collaboration may complete in Phase 6)
+
+**Acceptance criteria**
+
+- [ ] Registered users can shortlist, compare, note, save searches and review history (favourites already in Phase 2)
+- [ ] Guest comparisons/views/AI criteria merge after registration when eligible
+- [ ] One user cannot access another user’s shortlists, notes or conversations
+- [ ] Email alerts are produced by background jobs via the email adapter
+- [ ] Enquiries and viewing requests create leads with status history
+- [ ] Privacy export and deletion workflows exist and are tested
+- [ ] Suitability score shows calculation explanation and disclaimer
+
+**Can proceed without external credentials:** yes with fake email adapter.
 
 ---
 

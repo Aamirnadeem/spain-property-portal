@@ -330,7 +330,7 @@ Migrations are ordered and additive. Never edit production schema manually.
 | M13  | Conversations: conversations, participants, messages, attachments, property links, channel_threads, handoffs, summaries               | 5–6            |
 | M14  | AI: ai_runs, ai_tool_calls, ai_feedback, evaluation tables                                                                            | 5              |
 | M15  | Communications: communication_deliveries; call_sessions, call_recordings, call_consents (disabled in app config)                      | 6              |
-| M16  | Ingestion: data_sources through source_takedown_requests, duplicate_candidates                                                        | 4              |
+| M16  | Ingestion: data_sources through source_takedown_requests, duplicate_candidates                                                        | 3 (ADR-022; was 4) |
 | M17  | Knowledge and rules: knowledge__, jurisdictions, rule__, calculator_runs, document_checklist_templates, legal_content_reviews         | 5–6            |
 | M18  | RLS policies for all user/partner-scoped tables; service roles for workers                                                            | 1+ incremental |
 | M19  | Seeds: Spain geography (full hierarchy capability), Catalonia focus depth, Alcaraz correctness check, fixture listings                | 2              |
