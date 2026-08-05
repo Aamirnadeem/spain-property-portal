@@ -1,6 +1,6 @@
 # RLS implementation status
 
-Date: 2026-08-05 (updated Phase 3 vertical slice implementation)
+Date: 2026-08-06 (updated Phase 3.1 auth planning)  
 Migrations: `0001_phase1_rls.sql`, `0003_phase2_rls.sql`, `0005_phase3_rls.sql`
 
 Status meanings:
@@ -24,19 +24,26 @@ Status meanings:
 
 ## Phase 3 (implemented in `0005_phase3_rls.sql`, tested in `pnpm test:db`)
 
-- `organization_members` self-select, `organizations` member-or-admin select: implemented / tested (`requireOrgMember`/`requirePlatformRole` cross-org assertions in `database.integration.ts`)
-- `property_listings_org_select` / `property_listings_org_update` / `property_listings_admin_all` — org members see/update their own org's listings (any status), platform admin/reviewer see/act on all: implemented / tested
-- `import_runs_org_select` / `import_runs_admin_all`, `import_errors_org_select`, `raw_snapshots_org_select`: implemented / tested (cross-org isolation: an unrelated user sees zero rows for another org's import runs)
-- `feed_configs_org_select` / `feed_configs_admin_all`: implemented / not yet tested (no dedicated `pnpm test:db` case reads `feed_configs` directly, though the seed creates one and the pipeline reads it via the trusted server connection)
-- `source_permission_events_admin_all`: implemented / tested indirectly (a `source_permission_events` row is asserted after `updateSourcePermission`, via the trusted connection; no dedicated admin-vs-non-admin RLS read case)
-- `audit_events_org_select` (no client insert/update/delete policy — audit writes are server/service-role only, by design): implemented / tested (`listAuditEventsForOrganization` after publish/price-update/withdraw/permission-change)
-- `data_sources_admin_write` (public read already existed from Phase 2; this adds admin-only update): implemented / tested (`updateSourcePermission` flow)
+- `organization_members` self-select, `organizations` member-or-admin select: implemented / tested
+- `property_listings_org_select` / `property_listings_org_update` / `property_listings_admin_all`: implemented / tested
+- `import_runs_org_select` / `import_runs_admin_all`, `import_errors_org_select`, `raw_snapshots_org_select`: implemented / tested
+- `feed_configs_org_select` / `feed_configs_admin_all`: implemented / not yet tested (dedicated case pending)
+- `source_permission_events_admin_all`: implemented / tested indirectly
+- `audit_events_org_select` (no client insert/update/delete — service writes only): implemented / tested
+- `data_sources_admin_write`: implemented / tested
+
+## Phase 3.1 planned (ADR-029 — not migrated/wired yet)
+
+- Runtime `withAuthenticatedDb(session)` setting `SET LOCAL ROLE authenticated` + `request.jwt.claim.sub` on partner/admin/favourites request paths
+- Retire app-only reliance on `x-user-id` so RLS becomes primary defense on those routes
+- Expand `pnpm test:db` / Playwright to prove isolation under real session claim injection
+- Workers/CLI remain service-role exceptions (documented)
 
 ## Authorization / deferred
 
 - Call tables, privacy export worker paths: planned for Phase 4+ buyer/privacy work
-- Media malware scanner integration / rights-checked media pipeline: not built in Phase 3 (placeholders only; see `KNOWN_ISSUES.md`)
-- JSON/XML `duplicate_candidates` / physical-property matching tables: not built (no cross-source matching in this slice, see `KNOWN_ISSUES.md`)
+- Media malware scanner integration / rights-checked media pipeline: not built in Phase 3
+- JSON/XML `duplicate_candidates` / physical-property matching tables: not built
 
 ## Not applicable
 
@@ -44,4 +51,4 @@ Status meanings:
 
 ## Known gap (documented, not an RLS defect)
 
-Application code in `apps/web` queries Postgres through a single trusted server-side connection (service-role equivalent), not per-request `SET LOCAL ROLE authenticated` + JWT claims. The RLS policies above are the defense-in-depth layer exercised by `pnpm test:db`; the actual authorization boundary enforced by the running Next.js app today is the service-layer `requireOrgMember`/`requirePlatformRole` checks in `apps/web/src/lib/partner-auth.ts`, gated by the same non-verified `x-user-id`/cookie wiring as Phase 2 (`KNOWN_ISSUES.md` #7–8). Wiring real per-request Postgres roles (or an equivalent Supabase `auth.uid()` session) through the app is required before RLS becomes the primary enforcement path in production.
+Application code in `apps/web` still queries Postgres through a trusted server-side connection without per-request JWT claims. Partner/admin authorization today is app-layer (`partner-auth.ts`) gated by non-verified `x-user-id`/cookie wiring (`KNOWN_ISSUES.md` #7–8). **Phase 3.1** closes this gap per [`PHASE3_1_AUTH_PLAN.md`](PHASE3_1_AUTH_PLAN.md); implementation has not started.

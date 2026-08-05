@@ -159,6 +159,12 @@ flowchart TB
 - WhatsApp not used as initial authentication; later linking only after deliberate verification and consent
 - Passkeys/social login deferred
 
+### 4.1 Phase 3 temporary identity wiring (must be removed in Phase 3.1)
+
+- Partner, admin, and favourites APIs currently accept a client-supplied `x-user-id` header or client-writable `spain_user_id` cookie (`readUserId` in `apps/web/src/lib/db.ts`). This is a **known local/dev aid** (ADR-028) and is **not** production-safe.
+- Phase 3.1 (ADR-029) replaces that with server-verified AuthProvider sessions, Origin-checked mutating requests, logout, and `withAuthenticatedDb` RLS claim injection. See [`PHASE3_1_AUTH_PLAN.md`](PHASE3_1_AUTH_PLAN.md) and [`SESSION_SECURITY_DESIGN.md`](SESSION_SECURITY_DESIGN.md).
+- Do not introduce `x-organization-id` or `x-role` as authority headers.
+
 ---
 
 ## 5. Authorization model
