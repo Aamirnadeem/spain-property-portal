@@ -36,6 +36,9 @@ importers:
       '@spain/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
+      '@spain/ingestion':
+        specifier: workspace:*
+        version: link:../../packages/ingestion
       '@spain/observability':
         specifier: workspace:*
         version: link:../../packages/observability
@@ -45,6 +48,9 @@ importers:
       '@spain/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      drizzle-orm:
+        specifier: ^0.38.3
+        version: 0.38.4(@types/react@19.2.18)(postgres@3.4.9)(react@19.2.8)
       next:
         specifier: ^15.1.3
         version: 15.5.22(@playwright/test@1.62.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)

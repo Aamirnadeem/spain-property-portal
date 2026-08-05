@@ -11,7 +11,8 @@
     "lint": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "build": "tsc -p tsconfig.json --noEmit",
-    "import:legacy": "tsx src/cli.ts"
+    "import:legacy": "tsx src/cli.ts",
+    "import:partner-fixture": "tsx src/cli-partner.ts"
   },
   "dependencies": {
     "@spain/database": "workspace:*",

@@ -1,7 +1,27 @@
 import { spawnSync } from 'node:child_process';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { eq } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
+import * as schema from '../schema/index';
+import {
+  DEMO_ORG_ID,
+  DEMO_SOURCE_KEY,
+  LISTING_REVIEWER_USER_ID,
+  ORG_AGENT_USER_ID,
+  ORG_OWNER_USER_ID,
+  PLATFORM_ADMIN_USER_ID,
+} from '../seed-constants';
+import {
+  adminWithdrawListing,
+  listPendingReviewListings,
+  publishListing,
+  updateSourcePermission,
+} from '../services/admin';
+import { listAuditEventsForOrganization } from '../services/audit';
+import { ForbiddenError, requireOrgMember, requirePlatformRole } from '../services/organizations';
+import { updateOrgListingPrice, withdrawOrgListing } from '../services/partner';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '../../../..');
@@ -16,7 +36,9 @@ function assertSafeTestDatabase(url: URL): void {
   }
 }
 
-function runScript(script: 'db:migrate' | 'db:seed' | 'db:import-legacy'): void {
+function runScript(
+  script: 'db:migrate' | 'db:seed' | 'db:import-legacy' | 'db:import-partner-fixture',
+): void {
   const result = spawnSync('pnpm', [script], {
     cwd: repoRoot,
     env: { ...process.env, DATABASE_URL: testUrl },
@@ -81,6 +103,9 @@ async function main(): Promise<void> {
   runScript('db:import-legacy');
   // Idempotency: second import must not duplicate listings
   runScript('db:import-legacy');
+  runScript('db:import-partner-fixture');
+  // Idempotency: reimporting the same Spain Partner CSV v1 fixture must not duplicate listings
+  runScript('db:import-partner-fixture');
 
   const sql = postgres(testUrl, { max: 1 });
   const userA = '11111111-1111-4111-8111-111111111111';
@@ -232,6 +257,201 @@ async function main(): Promise<void> {
 
     console.log(
       'Database integration passed: migration, seed, legacy import, RLS, uniqueness, foreign keys',
+    );
+
+    // ---- Phase 3: partner CSV -> admin review -> publish -> update -> withdraw ----
+    const db = drizzle(sql, { schema });
+
+    const [demoSource] = await db
+      .select()
+      .from(schema.dataSources)
+      .where(eq(schema.dataSources.sourceKey, DEMO_SOURCE_KEY))
+      .limit(1);
+    assert(demoSource !== undefined, 'demo partner data source must be seeded');
+    const demoSourceId = demoSource!.id;
+
+    const demoListings = await sql`
+      SELECT id, operational_status, is_public_browseable FROM property_listings
+      WHERE data_source_id = ${demoSourceId}
+      ORDER BY external_listing_id
+    `;
+    assert(
+      demoListings.length === 6,
+      'partner fixture import must yield 6 listings (no duplicates on reimport)',
+    );
+    assert(
+      demoListings.every(
+        (r) => r.operational_status === 'pending_review' && r.is_public_browseable === false,
+      ),
+      'newly imported partner listings must start pending_review and non-browseable',
+    );
+
+    const pendingReview = await listPendingReviewListings(db);
+    assert(
+      pendingReview.filter((l) => l.dataSourceId === demoSourceId).length === 6,
+      'admin pending-review queue must include all newly imported partner listings',
+    );
+
+    // Authz: seeded org owner is a member of the demo org; platform admin is intentionally not.
+    const ownerMembership = await requireOrgMember(db, ORG_OWNER_USER_ID, DEMO_ORG_ID);
+    assert(ownerMembership.role === 'org_owner', 'seeded org owner role mismatch');
+    let adminNotOrgMember = false;
+    try {
+      await requireOrgMember(db, PLATFORM_ADMIN_USER_ID, DEMO_ORG_ID);
+    } catch (error) {
+      adminNotOrgMember = error instanceof ForbiddenError;
+    }
+    assert(adminNotOrgMember, 'platform admin must not be an implicit org member');
+
+    let ownerLacksPlatformRole = false;
+    try {
+      await requirePlatformRole(db, ORG_OWNER_USER_ID);
+    } catch (error) {
+      ownerLacksPlatformRole = error instanceof ForbiddenError;
+    }
+    assert(ownerLacksPlatformRole, 'org owner must not hold a platform role');
+    await requirePlatformRole(db, PLATFORM_ADMIN_USER_ID);
+    await requirePlatformRole(db, LISTING_REVIEWER_USER_ID);
+
+    // RLS: an unrelated buyer must not see the demo org's pending listings or import history.
+    const foreignPendingListings = await withRole(
+      sql,
+      'authenticated',
+      { 'request.jwt.claim.sub': userB },
+      () => sql`SELECT id FROM property_listings WHERE data_source_id = ${demoSourceId}`,
+    );
+    assert(
+      foreignPendingListings.length === 0,
+      'unrelated user must not see org-scoped pending listings via RLS',
+    );
+
+    const ownerPendingListings = await withRole(
+      sql,
+      'authenticated',
+      { 'request.jwt.claim.sub': ORG_OWNER_USER_ID },
+      () => sql`SELECT id FROM property_listings WHERE data_source_id = ${demoSourceId}`,
+    );
+    assert(
+      ownerPendingListings.length === 6,
+      'org owner must see their own org pending listings via RLS',
+    );
+
+    const foreignImportRuns = await withRole(
+      sql,
+      'authenticated',
+      { 'request.jwt.claim.sub': userB },
+      () => sql`SELECT id FROM import_runs WHERE data_source_id = ${demoSourceId}`,
+    );
+    assert(
+      foreignImportRuns.length === 0,
+      'unrelated user must not see org-scoped import runs via RLS',
+    );
+
+    const publicSeesPending = await withRole(
+      sql,
+      'anon',
+      {},
+      () => sql`SELECT id FROM property_listings WHERE data_source_id = ${demoSourceId}`,
+    );
+    assert(publicSeesPending.length === 0, 'anon must not see pending_review partner listings');
+
+    // Admin publish moves a listing into public browse.
+    const targetListingId = demoListings[0]!.id as string;
+    const published = await publishListing(db, {
+      listingId: targetListingId,
+      actorUserId: PLATFORM_ADMIN_USER_ID,
+    });
+    assert(
+      published.operationalStatus === 'available' && published.isPublicBrowseable === true,
+      'publish must set available + browseable',
+    );
+
+    const publicSeesPublished = await withRole(
+      sql,
+      'anon',
+      {},
+      () => sql`SELECT id FROM property_listings WHERE id = ${targetListingId}`,
+    );
+    assert(publicSeesPublished.length === 1, 'anon must see a published+browseable listing');
+
+    // Agency self-service price update on an already-published listing.
+    const priceUpdated = await updateOrgListingPrice(db, {
+      organizationId: DEMO_ORG_ID,
+      listingId: targetListingId,
+      actorUserId: ORG_AGENT_USER_ID,
+      priceAmount: 399000,
+    });
+    assert(Number(priceUpdated.priceAmount) === 399000, 'agency price update must persist');
+
+    const priceHistoryRows = await sql`
+      SELECT COUNT(*)::int AS count FROM listing_price_history WHERE listing_id = ${targetListingId}
+    `;
+    assert(
+      (priceHistoryRows[0]?.count ?? 0) >= 2,
+      'price history must record both the import and the agency update',
+    );
+
+    // Agency withdraws their own listing.
+    const withdrawn = await withdrawOrgListing(db, {
+      organizationId: DEMO_ORG_ID,
+      listingId: targetListingId,
+      actorUserId: ORG_OWNER_USER_ID,
+    });
+    assert(
+      withdrawn.operationalStatus === 'withdrawn' && withdrawn.isPublicBrowseable === false,
+      'agency withdrawal must hide the listing',
+    );
+
+    const publicSeesWithdrawn = await withRole(
+      sql,
+      'anon',
+      {},
+      () => sql`SELECT id FROM property_listings WHERE id = ${targetListingId}`,
+    );
+    assert(publicSeesWithdrawn.length === 0, 'anon must not see a withdrawn listing');
+
+    // Admin can also withdraw directly (not just the owning agency).
+    const secondListingId = demoListings[1]!.id as string;
+    await publishListing(db, { listingId: secondListingId, actorUserId: PLATFORM_ADMIN_USER_ID });
+    const adminWithdrawn = await adminWithdrawListing(db, {
+      listingId: secondListingId,
+      actorUserId: LISTING_REVIEWER_USER_ID,
+    });
+    assert(adminWithdrawn.operationalStatus === 'withdrawn', 'admin withdrawal must set withdrawn');
+
+    // Source permission gate: suspending a source is recorded as an auditable event.
+    await updateSourcePermission(db, {
+      dataSourceId: demoSourceId,
+      actorUserId: PLATFORM_ADMIN_USER_ID,
+      toStatus: 'suspended',
+      note: 'integration test suspension',
+    });
+    const suspendedSource = await sql`
+      SELECT permission_status FROM data_sources WHERE id = ${demoSourceId}
+    `;
+    assert(
+      suspendedSource[0]?.permission_status === 'suspended',
+      'source permission update must persist',
+    );
+    const permissionEvents = await sql`
+      SELECT COUNT(*)::int AS count FROM source_permission_events
+      WHERE data_source_id = ${demoSourceId} AND to_status = 'suspended'
+    `;
+    assert(
+      (permissionEvents[0]?.count ?? 0) === 1,
+      'permission change must be recorded as a source_permission_events row',
+    );
+
+    const auditEvents = await listAuditEventsForOrganization(db, DEMO_ORG_ID);
+    const auditActions = new Set(auditEvents.map((e) => e.action));
+    assert(auditActions.has('listing.publish'), 'publish must be audited');
+    assert(auditActions.has('listing.price_update'), 'price update must be audited');
+    assert(auditActions.has('listing.withdraw'), 'withdraw must be audited');
+    assert(auditActions.has('source.permission_change'), 'permission change must be audited');
+
+    console.log(
+      'Phase 3 integration passed: partner CSV import idempotency, org RLS isolation, ' +
+        'admin publish/withdraw, agency price update + self-withdraw, source permission gate, audit trail',
     );
   } finally {
     await sql.end();

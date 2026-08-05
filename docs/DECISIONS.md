@@ -1,6 +1,6 @@
 # Implementation decisions
 
-Date: 2026-08-05 (updated Phase 3 planning / ADR-022)  
+Date: 2026-08-05 (updated Phase 3 vertical slice implementation)
 Status: Locked
 
 This is the implementation-facing decision log. The broader planning register remains in [`DECISIONS_REQUIRED.md`](DECISIONS_REQUIRED.md). Phase 3 open items: [`PHASE3_DECISIONS_REQUIRED.md`](PHASE3_DECISIONS_REQUIRED.md).
@@ -87,17 +87,46 @@ This is the implementation-facing decision log. The broader planning register re
 - **Phase 4** = Buyer workspace remainder (shortlists, comparison, alerts, leads, privacy workflows) beyond Phase 2 favourites.
 - Former documentation that labelled live inventory as Phase 4 and buyer workspace as Phase 3 is superseded by this ADR and [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md).
 - Phase 5+ (AI chat, etc.) keep their phase numbers.
-- **Status:** locked for planning. Application implementation of Phase 3 must not start until the Phase 3 plan docs are explicitly approved.
+- **Status:** implemented — see [`PHASE3_IMPLEMENTATION.md`](PHASE3_IMPLEMENTATION.md). Phase 4 has not been started.
 
 ### ADR-023 — Phase 3 first vertical slice
 
 - One seeded cooperating agency (`demo-catalonia-agency`), one **Spain Partner CSV v1** format, one complete listing lifecycle through admin publish.
 - JSON and XML adapters ship with fixtures in Phase 3; end-to-end acceptance is CSV-first.
 - No unauthorized scraping or CAPTCHA/access-control bypass.
-- **Status:** locked for planning.
+- **Status:** implemented as scoped — CSV-only; JSON/XML adapters remain planned (`INGESTION_ARCHITECTURE.md`), not built.
 
 ### ADR-024 — Background jobs default (planning)
 
 - Planning default for Phase 3 workers: **pg-boss** on the application Postgres, with `JOBS_PROVIDER=inline` for unit/CI tests.
 - Inngest / Trigger.dev remain alternatives recorded in [`PHASE3_DECISIONS_REQUIRED.md`](PHASE3_DECISIONS_REQUIRED.md) if owners prefer a SaaS runner.
-- **Status:** planning default; confirm before implementation.
+- **Status:** superseded for this slice by ADR-027 (`JOBS_PROVIDER=inline` only — pg-boss not introduced; single small CSV per request did not justify a worker).
+
+## Phase 3 implementation (2026-08-05)
+
+### ADR-025 — Physical property vs. listing separation carries into partner feeds
+
+- Each new `(data_source_id, external_id)` from a partner CSV creates its own provisional `physical_properties` row, exactly like the legacy importer (ADR-020).
+- No cross-source or cross-listing auto-merge/matching is implemented in this slice, even when two listings plausibly describe the same building.
+- **Status:** implemented; see `packages/ingestion/src/partner/pipeline.ts`.
+
+### ADR-026 — First-publish gate, then agency self-service
+
+- A brand-new `external_id` always lands as `operational_status = 'pending_review'`, `is_public_browseable = false`, regardless of the CSV's own `status` column — an administrator must publish it once (`publishListing`).
+- After a listing has been published at least once, the **owning agency's own re-upload** may change price and status directly (including withdrawing it) without a second admin gate. This mirrors "the agency vouched for it once; the agency drives updates thereafter."
+- Admin publish additionally re-checks the owning source's permission status at publish time (not just at import time) and refuses to publish if it is no longer `approved`.
+- **Status:** implemented; see `upsertPartnerListing` in `packages/ingestion/src/partner/pipeline.ts` and `publishListing` in `packages/database/src/services/admin.ts`.
+
+### ADR-027 — Inline job processing for the Phase 3 slice
+
+- **Decision:** `runSpainPartnerCsvImport` executes synchronously inside the API request. No pg-boss (or other) job runner was introduced.
+- **Rationale:** a single small CSV upload per request does not need async processing for this slice's seeded volumes (≤ a few hundred rows); adding pg-boss would add operational surface (schema, worker process, retry/backoff policy) without a corresponding requirement here.
+- **Not chosen:** pg-boss, Inngest, Trigger.dev (all remain valid choices for a future multi-partner/larger-file phase; see [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md)).
+- **Status:** locked for this slice; revisit if file sizes or partner count grow.
+
+### ADR-028 — FakeAuth + seeded demo identities for partner/admin UI (local only)
+
+- The Phase 3 partner/admin UI reuses the Phase 2 `spain_user_id` cookie / `x-user-id` header wiring (`PHASE3_DECISIONS_REQUIRED.md` default: "FakeAuth + seed OK for local").
+- A `DevIdentitySwitcher` component lets a developer set that cookie to one of the four fixed seed UUIDs (`org_owner`, `org_agent`, `platform_admin`, `listing_reviewer`) instead of running the OTP flow, since those seed users are never created through `ensureUserRow`/OTP verification.
+- **Not chosen:** a real session-based auth check for partner/admin routes in this slice.
+- **Status:** implemented for local/dev only. **Must be replaced by a verified Supabase session check before any non-local deployment** (carried-over Phase 2 gap, see `KNOWN_ISSUES.md`).

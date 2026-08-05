@@ -1,0 +1,7 @@
+external_id,title,price_eur,property_type,status,description,currency,bedrooms,bathrooms,built_area_sqm,environment_type,municipality,neighborhood,address_text,lat,lng,location_accuracy,source_updated_at,image_urls,features
+DEMO-2001,Valid apartment in Eixample,430000,apartment,available,Well-lit two-bedroom apartment.,EUR,2,1,75,city_center,Barcelona,Eixample,"Carrer d'Aragó, 200",41.3921,2.1610,approximate,2026-07-01T09:00:00Z,,lift
+DEMO-2002,Missing price row,,apartment,available,Missing price_eur should quarantine this row.,EUR,2,1,70,city_center,Barcelona,Eixample,"Carrer de Provença, 10",41.3930,2.1600,approximate,2026-07-01T09:00:00Z,,
+DEMO-2003,Unmapped property type,300000,castle,available,Unrecognized property_type should be skipped.,EUR,3,2,140,city_center,Barcelona,Eixample,"Carrer de Pau Claris, 90",41.3910,2.1690,approximate,2026-07-01T09:00:00Z,,
+DEMO-2004,Unmapped status value,610000,villa,being_painted,Unrecognized status should be skipped.,EUR,4,3,200,coastal,Sitges,,"Carrer de la Mar, 20",41.2360,1.8090,approximate,2026-07-01T09:00:00Z,,
+DEMO-2005,Non-numeric bedrooms,275000,apartment,available,Non-numeric bedrooms should fail validation.,EUR,two,1,60,city_center,Barcelona,Eixample,"Carrer de Muntaner, 55",41.3890,2.1550,approximate,2026-07-01T09:00:00Z,,
+DEMO-2006,Valid second row after failures,510000,penthouse,available,Batch must continue after earlier quarantines.,EUR,3,2,120,city_center,Barcelona,Sant Gervasi,"Carrer de Balmes, 300",41.4020,2.1430,approximate,2026-07-01T09:00:00Z,,terrace

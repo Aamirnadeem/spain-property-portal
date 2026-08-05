@@ -29,6 +29,20 @@
       "when": 1785938096200,
       "tag": "0003_phase2_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1785959282398,
+      "tag": "0004_curious_dracula",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1785959309602,
+      "tag": "0005_phase3_rls",
+      "breakpoints": true
     }
   ]
 }

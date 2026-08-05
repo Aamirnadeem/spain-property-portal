@@ -5,15 +5,15 @@ Slice: Platform foundation + Phase 1.1 hardening
 
 ## Locked during Phase 1
 
-| Decision              | Choice                                                                                              |
-| --------------------- | --------------------------------------------------------------------------------------------------- |
+| Decision              | Choice                                                                                                           |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | Job framework (D-002) | **`inline`** for Phase 1 — no Inngest/Trigger.dev credentials; Phase 3 planning default is **pg-boss** (ADR-024) |
-| Production auth       | **Supabase Auth** for email and mobile OTP; provider user UUID is the canonical application user ID |
-| Local/test auth       | **`FakeAuthProvider`** only; process-local and non-persistent; `devCode` is local/test only         |
-| Production storage    | **Supabase Storage** for authorized media                                                           |
-| Local/test storage    | **`LocalStorageProvider`** under `.data/uploads`; non-durable and never production                  |
-| Production database   | **Supabase PostgreSQL**; Drizzle versioned migrations and typed queries                             |
-| WhatsApp / voice      | Interfaces stubbed with `operational: false` — not activated                                        |
+| Production auth       | **Supabase Auth** for email and mobile OTP; provider user UUID is the canonical application user ID              |
+| Local/test auth       | **`FakeAuthProvider`** only; process-local and non-persistent; `devCode` is local/test only                      |
+| Production storage    | **Supabase Storage** for authorized media                                                                        |
+| Local/test storage    | **`LocalStorageProvider`** under `.data/uploads`; non-durable and never production                               |
+| Production database   | **Supabase PostgreSQL**; Drizzle versioned migrations and typed queries                                          |
+| WhatsApp / voice      | Interfaces stubbed with `operational: false` — not activated                                                     |
 
 ## Unavailable credentials (not blocking Phase 1)
 

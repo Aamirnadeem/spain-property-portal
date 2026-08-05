@@ -37,6 +37,10 @@ export const rlsEnabledTables = [
   'import_runs',
   'import_errors',
   'favourites',
+  'feed_configs',
+  'source_permission_events',
+  'raw_snapshots',
+  'audit_events',
 ] as const;
 
 export const implementedRlsPolicies = [
@@ -71,4 +75,20 @@ export const implementedRlsPolicies = [
   'favourites_owner_select',
   'favourites_owner_insert',
   'favourites_owner_delete',
+  // Phase 3 — org-scoped agency/admin operations (0005_phase3_rls.sql)
+  'roles_public_read',
+  'organization_members_self_select',
+  'organizations_member_select',
+  'property_listings_org_select',
+  'property_listings_admin_all',
+  'property_listings_org_update',
+  'import_runs_org_select',
+  'import_runs_admin_all',
+  'import_errors_org_select',
+  'raw_snapshots_org_select',
+  'feed_configs_org_select',
+  'feed_configs_admin_all',
+  'source_permission_events_admin_all',
+  'audit_events_org_select',
+  'data_sources_admin_write',
 ] as const;

@@ -422,8 +422,38 @@ export const dataSources = pgTable('data_sources', {
   permissionStatus: sourcePermissionStatusEnum('permission_status').notNull(),
   imageRights: imageRightsEnum('image_rights').default('none').notNull(),
   organizationId: uuid('organization_id').references(() => organizations.id),
+  /** Gate uses expiry: jobs must refuse to run once past this timestamp. */
+  permissionExpiresAt: timestamp('permission_expires_at', { withTimezone: true }),
   notes: text('notes'),
   ...timestamps,
+});
+
+/** Format + column mapping for a data source's feed (Spain Partner CSV v1 in the Phase 3 slice). */
+export const feedConfigs = pgTable('feed_configs', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  dataSourceId: uuid('data_source_id')
+    .notNull()
+    .references(() => dataSources.id, { onDelete: 'cascade' }),
+  format: sourceTypeEnum('format').notNull(),
+  mapping: jsonb('mapping').$type<Record<string, unknown>>().default({}),
+  scheduleCron: varchar('schedule_cron', { length: 64 }),
+  isActive: boolean('is_active').default(true).notNull(),
+  ...timestamps,
+});
+
+/** Append-only history of permission_status / image_rights changes (audited, admin-only). */
+export const sourcePermissionEvents = pgTable('source_permission_events', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  dataSourceId: uuid('data_source_id')
+    .notNull()
+    .references(() => dataSources.id, { onDelete: 'cascade' }),
+  actorUserId: uuid('actor_user_id').references(() => users.id),
+  fromStatus: sourcePermissionStatusEnum('from_status'),
+  toStatus: sourcePermissionStatusEnum('to_status').notNull(),
+  fromImageRights: imageRightsEnum('from_image_rights'),
+  toImageRights: imageRightsEnum('to_image_rights'),
+  note: text('note'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
 export const propertyTypes = pgTable('property_types', {
@@ -613,11 +643,20 @@ export const listingMedia = pgTable('listing_media', {
   ...timestamps,
 });
 
+export const importRunModeEnum = pgEnum('import_run_mode', ['dry_run', 'full', 'incremental']);
+
 export const importRuns = pgTable('import_runs', {
   id: uuid('id').defaultRandom().primaryKey(),
   dataSourceId: uuid('data_source_id')
     .notNull()
     .references(() => dataSources.id),
+  /** Denormalized from data_sources.organization_id for RLS and partner queries. */
+  organizationId: uuid('organization_id').references(() => organizations.id),
+  feedConfigId: uuid('feed_config_id').references(() => feedConfigs.id),
+  rawSnapshotId: uuid('raw_snapshot_id'),
+  mode: importRunModeEnum('mode').default('full').notNull(),
+  parserVersion: varchar('parser_version', { length: 32 }),
+  actorUserId: uuid('actor_user_id').references(() => users.id),
   status: importRunStatusEnum('status').default('running').notNull(),
   startedAt: timestamp('started_at', { withTimezone: true }).defaultNow().notNull(),
   finishedAt: timestamp('finished_at', { withTimezone: true }),
@@ -640,6 +679,36 @@ export const importErrors = pgTable('import_errors', {
   code: varchar('code', { length: 64 }).notNull(),
   message: text('message').notNull(),
   rawRecord: jsonb('raw_record').$type<Record<string, unknown>>(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+/** Immutable pre-parse payload for replay and audit (sha256 dedupe, not a business record). */
+export const rawSnapshots = pgTable('raw_snapshots', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  importRunId: uuid('import_run_id')
+    .notNull()
+    .references(() => importRuns.id, { onDelete: 'cascade' }),
+  dataSourceId: uuid('data_source_id')
+    .notNull()
+    .references(() => dataSources.id),
+  contentSha256: varchar('content_sha256', { length: 64 }).notNull(),
+  parserVersion: varchar('parser_version', { length: 32 }).notNull(),
+  byteSize: integer('byte_size').notNull(),
+  /** Row-level fixtures fit inline; larger payloads should move to StorageProvider by storage_ref (future work). */
+  payload: jsonb('payload').$type<Record<string, unknown> | unknown[]>(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+/** Append-only audit trail for sensitive actions (publish, withdraw, permission change, price/status update). */
+export const auditEvents = pgTable('audit_events', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  actorUserId: uuid('actor_user_id').references(() => users.id),
+  organizationId: uuid('organization_id').references(() => organizations.id),
+  action: varchar('action', { length: 120 }).notNull(),
+  entityType: varchar('entity_type', { length: 64 }).notNull(),
+  entityId: uuid('entity_id'),
+  before: jsonb('before').$type<Record<string, unknown> | null>(),
+  after: jsonb('after').$type<Record<string, unknown> | null>(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
 

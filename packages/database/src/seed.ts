@@ -2,6 +2,17 @@ import postgres from 'postgres';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { and, eq } from 'drizzle-orm';
 import * as schema from './schema/index';
+import {
+  DEMO_ORG_ID,
+  DEMO_ORG_NAME,
+  DEMO_ORG_SLUG,
+  DEMO_SOURCE_KEY,
+  DEMO_SOURCE_NAME,
+  LISTING_REVIEWER_USER_ID,
+  ORG_AGENT_USER_ID,
+  ORG_OWNER_USER_ID,
+  PLATFORM_ADMIN_USER_ID,
+} from './seed-constants';
 
 async function main() {
   const url = process.env.DATABASE_URL;
@@ -179,6 +190,139 @@ async function main() {
       imageRights: 'none',
       notes:
         'Snapshot/demo only. Not live inventory. Do not scrape portal URLs. No image republication rights.',
+    });
+  }
+
+  // Phase 3 vertical slice — synthetic demo agency (D-P3-001: synthetic only until a named
+  // partner confirms written permission).
+  async function ensureUser(userId: string, displayName: string) {
+    const found = await db.select().from(schema.users).where(eq(schema.users.id, userId)).limit(1);
+    if (found[0]) return found[0];
+    const [row] = await db.insert(schema.users).values({ id: userId, displayName }).returning();
+    return row!;
+  }
+
+  const orgOwnerUser = await ensureUser(ORG_OWNER_USER_ID, 'Demo Agency Owner');
+  const orgAgentUser = await ensureUser(ORG_AGENT_USER_ID, 'Demo Agency Agent');
+  const platformAdminUser = await ensureUser(PLATFORM_ADMIN_USER_ID, 'Platform Admin (seed)');
+  const listingReviewerUser = await ensureUser(LISTING_REVIEWER_USER_ID, 'Listing Reviewer (seed)');
+
+  const existingOrg = await db
+    .select()
+    .from(schema.organizations)
+    .where(eq(schema.organizations.id, DEMO_ORG_ID))
+    .limit(1);
+  if (!existingOrg[0]) {
+    await db.insert(schema.organizations).values({
+      id: DEMO_ORG_ID,
+      name: DEMO_ORG_NAME,
+      slug: DEMO_ORG_SLUG,
+      type: 'agency',
+      status: 'active',
+    });
+  }
+
+  async function ensureMembership(userId: string, role: string) {
+    const found = await db
+      .select()
+      .from(schema.organizationMembers)
+      .where(
+        and(
+          eq(schema.organizationMembers.organizationId, DEMO_ORG_ID),
+          eq(schema.organizationMembers.userId, userId),
+        ),
+      )
+      .limit(1);
+    if (!found[0]) {
+      await db.insert(schema.organizationMembers).values({
+        organizationId: DEMO_ORG_ID,
+        userId,
+        role,
+      });
+    }
+  }
+  await ensureMembership(orgOwnerUser.id, 'org_owner');
+  await ensureMembership(orgAgentUser.id, 'org_agent');
+
+  async function ensurePlatformRole(userId: string, roleKey: string) {
+    const role = await db.select().from(schema.roles).where(eq(schema.roles.key, roleKey)).limit(1);
+    if (!role[0]) return;
+    const found = await db
+      .select()
+      .from(schema.userRoles)
+      .where(and(eq(schema.userRoles.userId, userId), eq(schema.userRoles.roleId, role[0].id)))
+      .limit(1);
+    if (!found[0]) {
+      await db.insert(schema.userRoles).values({ userId, roleId: role[0].id });
+    }
+  }
+  await ensurePlatformRole(platformAdminUser.id, 'platform_admin');
+  await ensurePlatformRole(listingReviewerUser.id, 'listing_reviewer');
+
+  const existingDemoSource = await db
+    .select()
+    .from(schema.dataSources)
+    .where(eq(schema.dataSources.sourceKey, DEMO_SOURCE_KEY))
+    .limit(1);
+  let demoSourceId = existingDemoSource[0]?.id;
+  if (!demoSourceId) {
+    const [created] = await db
+      .insert(schema.dataSources)
+      .values({
+        sourceKey: DEMO_SOURCE_KEY,
+        name: DEMO_SOURCE_NAME,
+        sourceType: 'csv',
+        permissionStatus: 'approved',
+        imageRights: 'none',
+        organizationId: DEMO_ORG_ID,
+        notes:
+          'Synthetic demo agency for the Phase 3 vertical slice (D-P3-001). Not a real cooperating agency; production deployments must keep this pending until a named partner supplies written permission.',
+      })
+      .returning();
+    demoSourceId = created!.id;
+
+    await db.insert(schema.sourcePermissionEvents).values({
+      dataSourceId: demoSourceId,
+      actorUserId: null,
+      fromStatus: null,
+      toStatus: 'approved',
+      fromImageRights: null,
+      toImageRights: 'none',
+      note: 'Seeded as approved for the Phase 3 vertical slice demo agency.',
+    });
+  }
+
+  const existingFeedConfig = await db
+    .select()
+    .from(schema.feedConfigs)
+    .where(eq(schema.feedConfigs.dataSourceId, demoSourceId))
+    .limit(1);
+  if (!existingFeedConfig[0]) {
+    await db.insert(schema.feedConfigs).values({
+      dataSourceId: demoSourceId,
+      format: 'csv',
+      isActive: true,
+      mapping: {
+        formatVersion: 'spain-partner-csv-v1',
+        requiredColumns: ['external_id', 'title', 'price_eur', 'property_type', 'status'],
+        optionalColumns: [
+          'description',
+          'currency',
+          'bedrooms',
+          'bathrooms',
+          'built_area_sqm',
+          'environment_type',
+          'municipality',
+          'neighborhood',
+          'address_text',
+          'lat',
+          'lng',
+          'location_accuracy',
+          'source_updated_at',
+          'image_urls',
+          'features',
+        ],
+      },
     });
   }
 
