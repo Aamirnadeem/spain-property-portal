@@ -1,0 +1,600 @@
+# Spain Property Buyer Portal — Implementation Plan
+
+Version: 1.0  
+Status: Phase 0 deliverable (planning complete; application scaffolding not started)  
+Authoritative source: [`spain_property_portal_build_plan_and_master_prompt_v2.md`](spain_property_portal_build_plan_and_master_prompt_v2.md)  
+Related docs: [`ARCHITECTURE.md`](ARCHITECTURE.md), [`DATABASE_DESIGN.md`](DATABASE_DESIGN.md), [`SECURITY_AND_PRIVACY.md`](SECURITY_AND_PRIVACY.md), [`EXTERNAL_SERVICES.md`](EXTERNAL_SERVICES.md), [`DECISIONS_REQUIRED.md`](DECISIONS_REQUIRED.md)
+
+---
+
+## 1. Repository audit
+
+### 1.1 Verdict
+
+**Empty / greenfield.** No application code, packages, tests, deployment config, or git history suitable for continued product development.
+
+### 1.2 Present today
+
+| Asset | Status |
+|-------|--------|
+| `docs/spain_property_portal_build_plan_and_master_prompt_v2.md` | Authoritative merged build pack (product, architecture, ingestion, master prompt) |
+| Application source | Absent |
+| `data/legacy/barcelona_property_explorer_legacy_60.json` | **Missing — blocked** (see §12) |
+| Modular pack files (`01_PROJECT_SPEC.md`, etc.) | Content merged into v2; not present as separate files |
+| Static Barcelona Property Explorer preview | Not in repository |
+| Credentials / `.env` | Absent |
+| Reusable backend, AI, ingestion, or CI | Absent |
+
+### 1.3 Implications
+
+- Build a new monorepo from scratch; do not treat any compiled preview as maintainable source.
+- Implement the legacy importer and CI fixtures immediately; do not mark the real 60-record import complete until the JSON is supplied and rights/freshness are reviewed.
+- Use typed provider adapters and fakes so engineering can proceed without production credentials.
+
+---
+
+## 2. Product architecture (summary)
+
+A **modular monolith** multilingual portal for buying property throughout Spain, with Catalonia (Barcelona, Girona, Lleida, Tarragona) as the first commercial focus. The data model supports all Spain from day one. Alcaraz (Albacete, Castilla-La Mancha) must never be placed under Catalonia.
+
+**Buyer journey:** landing/search → cards/list/table/map → property detail → AI or refine → favourites/shortlists → compare → cost estimate → enquire/viewing → human handoff. Anonymous browsing remains useful; registration unlocks persistence.
+
+**Channels:** day-one architecture is website chat + WhatsApp-ready + voice-ready. MVP activates website text chat only. WhatsApp is the first commercial upgrade. Browser voice, then telephone voice, follow proven demand. All channels share one identity, consent, conversation, search preferences, shortlists, leads and handoff model.
+
+**Inventory policy:** direct agency/developer feeds, licensed APIs, partner CSV/XML/JSON, manual entry, or explicitly authorized crawling. Unauthorized mass scraping, CAPTCHA bypass, access-control evasion and unlicensed image copying are prohibited.
+
+**Differentiation:** provenance-aware inventory, explainable comparison, buyer education with citations, document readiness indicators, and a tool-bound AI that never invents listings.
+
+Full architecture: [`ARCHITECTURE.md`](ARCHITECTURE.md).
+
+---
+
+## 3. Locked engineering defaults
+
+Recorded in [`DECISIONS_REQUIRED.md`](DECISIONS_REQUIRED.md). Reversible unless marked irreversible.
+
+| Decision | Default |
+|----------|---------|
+| Monorepo | pnpm workspaces + Turborepo |
+| Web | Next.js App Router, React, TypeScript, Tailwind, accessible component library |
+| Database | PostgreSQL + PostGIS via Supabase |
+| ORM | Drizzle only (no Prisma) |
+| Auth | Supabase Auth: email OTP + mobile SMS OTP |
+| Storage | Supabase Storage / S3-compatible with CDN and signed uploads |
+| Search MVP | PostgreSQL FTS, unaccent, pg_trgm, PostGIS |
+| Map | MapLibre GL JS + licensed tile/geocoding providers |
+| AI service | TypeScript service with typed OpenAPI contracts |
+| Retrieval | PostgreSQL + pgvector (approved knowledge only) |
+| Jobs | One framework — final pick in Phase 1 (Inngest vs Trigger.dev vs pg-boss) |
+| API hosting | Prefer Next.js route handlers initially; extract `apps/api` if needed |
+| Observability | Sentry + OpenTelemetry-compatible traces + structured logs |
+
+---
+
+## 4. Proposed monorepo structure
+
+```text
+apps/
+  web/                    # public portal, account, admin, partner UI
+  api/                    # domain API/BFF if not fully in Next.js
+  ai-service/             # orchestration, RAG, evaluations
+  worker/                 # ingestion, media, enrichment, alerts, freshness
+packages/
+  database/               # schema, migrations, RLS, seeds
+  domain/                 # entities, policies, scoring, status machines
+  search/                 # typed search model and adapters
+  ingestion/              # source contracts, normalization, deduplication
+  communications/         # email/SMS/WhatsApp/voice interfaces and adapters
+  ai-tools/               # property and guidance tool contracts
+  ui/                     # shared design system
+  i18n/                   # dictionaries, locale routing, formatting (en, es, ca, ar)
+  observability/          # logging, traces, metrics
+  config/                 # env validation, lint, TypeScript configs
+data/
+  legacy/                 # barcelona_property_explorer_legacy_60.json (when supplied)
+  fixtures/               # synthetic CI fixtures matching legacy shape
+docs/
+  (this pack and operational docs)
+```
+
+---
+
+## 5. MVP vs later channel upgrades
+
+### 5.1 In MVP (Phases 0–6 core)
+
+- Anonymous browse with card, list, table and map views
+- Email and mobile OTP (fakes locally; real providers when credentials exist)
+- Favourites, named shortlists, comparison, saved searches, email alerts
+- Enquiries and viewing requests; partner and admin operations
+- At least one permitted import path (manual + CSV; live partner when rights exist)
+- Provenance, freshness, media rights, price/status history
+- Multilingual UI: English, Spanish, Catalan, Arabic (RTL)
+- Website multilingual AI text chat with typed tools and grounded guidance
+- Channel-neutral conversation schema, consent model, adapter **interfaces**, webhook framework
+- Call tables created early but unused
+- Privacy export and deletion
+- WCAG 2.2 AA target
+
+### 5.2 Not MVP — WhatsApp (Phase 7)
+
+Activate only after dependable inventory, lead operations, approved WhatsApp Business account/templates, consent/opt-out, and cost monitoring exist.
+
+Capabilities retained from the spec: inbound text/location/voice notes; property cards with authorized images; identity linking; viewing/handoff; transactional vs marketing consent separation; website conversation continuity; delivery/read/failure handling. No unsolicited marketing.
+
+### 5.3 Not MVP — Voice (Phase 8)
+
+- **8a:** browser speech input/output after text chat is stable
+- **8b:** full telephone voice after demand is proven
+
+Capabilities retained: AI/recording disclosure; STT/TTS; same tools; numeric confirmation; human transfer; transcript/summary; recording consent/retention; no cold calling; never confirm viewing/availability without agency confirmation.
+
+### 5.4 Explicit non-goals for first release
+
+Nationwide coverage without dependable inventory; unlicensed portal copying; autonomous legal advice; binding valuations; automatic offer submission; mortgage approval decisions; full telephone voice; unsolicited WhatsApp campaigns; complex native mobile apps before responsive web validation.
+
+---
+
+## 6. Phased vertical-slice delivery
+
+Relative complexity: S = small, M = medium, L = large, XL = extra-large.
+
+### Phase 0 — Planning foundation (S) — **current**
+
+**Deliver**
+
+- This file and companion architecture, database, security, external-services and decisions docs
+- Data-source permission register template (in [`EXTERNAL_SERVICES.md`](EXTERNAL_SERVICES.md))
+- Threat model (in [`SECURITY_AND_PRIVACY.md`](SECURITY_AND_PRIVACY.md))
+- Provider decision matrix and credential checklist
+- Local development outline
+
+**Acceptance criteria**
+
+- [x] Repository audit complete; empty/greenfield stated
+- [x] Scope, rights gaps and credentials checklist explicit
+- [x] Vertical-slice sequence and MVP vs channel upgrades defined
+- [x] No application code claimed as started
+- [ ] Ready to begin Phase 1 only after explicit approval
+
+---
+
+### Phase 1 — Platform foundation / Slice 1 (M)
+
+**Deliver**
+
+- Monorepo, CI (format, lint, typecheck, migrations, tests)
+- PostgreSQL/PostGIS schema baseline, Drizzle migrations, RLS tests
+- Geography seed foundation (Spain hierarchy extensible)
+- Email and mobile OTP with local/test adapters
+- Guest sessions and guest-to-account merge
+- Roles and organization model
+- Storage and media foundations (signed uploads)
+- i18n routing for `en`, `es`, `ca`, `ar` with Arabic RTL
+- Observability stubs (structured logs, health endpoints, error reporting hooks)
+
+**Acceptance criteria**
+
+- [ ] Reproducible local setup documented
+- [ ] CI green for format, lint, typecheck, migrations, unit tests
+- [ ] RLS authorization tests pass
+- [ ] Email and SMS OTP pass e2e against fakes; resend cooldowns and rate limits exist
+- [ ] Guest session migrates eligible data after verification
+- [ ] Locale routes work including Arabic RTL shell
+- [ ] Health endpoints respond; secrets not in source control
+- [ ] `.env.example` documents required variables with no secrets
+
+**Can proceed without external credentials:** yes (local Postgres/Supabase local, fake OTP adapters).
+
+---
+
+### Phase 2 — Geography, inventory and public search / Slices 2–3 (L)
+
+**Deliver**
+
+- Nationwide geographic hierarchy with official codes, multilingual names, aliases, exact/approximate coordinates and accuracy levels
+- Physical property vs commercial listing separation; developments and units schema
+- Source, provenance, permission, freshness, price/status history and media-rights tables
+- Deterministic importer for legacy JSON when present; synthetic fixture importer for CI
+- Imported records marked `legacy_snapshot`; original source URLs preserved; no invented images
+- Manual listing workflow and authorized media upload
+- Responsive card, list, table and map views with URL-backed search state
+- Filters: geography, price, beds, area, property type, lifestyle classifications (advertiser vs derived provenance)
+- Synchronized map/list and accessible non-map alternative
+- Property detail: gallery, source, freshness, price history, verification explanations, energy fields
+- KPI summaries that avoid misleading averages on tiny samples
+- SEO metadata, canonical/localized routes, structured data where appropriate
+
+**Acceptance criteria**
+
+- [ ] Anonymous users can browse fixture/legacy-marked inventory with authorized images only
+- [ ] List, card, table and map views work responsively
+- [ ] Location and lifestyle filters work; provenance labels distinguish claim vs derived
+- [ ] Property pages show source, rights, freshness and energy-state fields
+- [ ] Legacy/fixture records visibly marked as snapshots until verified
+- [ ] Alcaraz seeded under Castilla-La Mancha / Albacete, not Catalonia
+- [ ] Approximate locations are not displayed as exact
+- [ ] Accessibility: keyboard access, focus management, map alternative
+- [ ] No invented property images
+
+**Can proceed without external credentials:** mostly yes (fixture data, OSM-dev or mock map tiles). Licensed production tiles need keys later.
+
+**Blocked:** real 60-record legacy import until `data/legacy/barcelona_property_explorer_legacy_60.json` is supplied.
+
+---
+
+### Phase 3 — Buyer workspace / Slice 4 (M)
+
+**Deliver**
+
+- Favourites; multiple named shortlists; notes, labels, personal scores; purchase stages
+- Comparison sets with explainable weighted suitability scores (never valuation/legal opinion)
+- Recently viewed and search history
+- Saved searches and email alerts (instant/daily/weekly where appropriate)
+- Leads and viewing requests
+- Privacy export and deletion workflows
+- Optional collaborator invite model foundations (full collaboration may complete in Phase 6)
+
+**Acceptance criteria**
+
+- [ ] Registered users can favourite, shortlist, compare, note, save searches and review history
+- [ ] Guest favourites/comparisons/views/AI criteria merge after registration when eligible
+- [ ] One user cannot access another user’s shortlists, notes or conversations
+- [ ] Email alerts are produced by background jobs via the email adapter
+- [ ] Enquiries and viewing requests create leads with status history
+- [ ] Privacy export and deletion workflows exist and are tested
+- [ ] Suitability score shows calculation explanation and disclaimer
+
+**Can proceed without external credentials:** yes with fake email adapter.
+
+---
+
+### Phase 4 — Live inventory operations / Slice 5 (XL)
+
+**Deliver (exact sequence from ingestion spec)**
+
+1. Source registry and permission model  
+2. Manual listing and rights-cleared media upload (if not already complete)  
+3. Legacy 60-record importer marked `legacy_snapshot` (when file present)  
+4. Generic CSV importer with mapping preview and dry run  
+5. XML/JSON adapter interface and fixture tests  
+6. One real partner feed or authorized site adapter (when permission exists)  
+7. Raw snapshot storage and idempotent upsert  
+8. Normalization and geography matching  
+9. Image processing and rights records  
+10. Price/status history  
+11. Missing/stale workflow  
+12. Duplicate-candidate engine  
+13. Source-health and moderation dashboards  
+
+Also: partner onboarding; API/webhook interfaces; authorized-crawl framework (no unauthorized third-party extractors); feed health events; takedown requests.
+
+**Acceptance criteria (ingestion)**
+
+- [ ] Reimporting identical source data creates no duplicates or fake histories
+- [ ] A changed price creates exactly one price event
+- [ ] A failed feed does not withdraw all listings
+- [ ] A property missing from one successful full sync enters `temporarily_unverified` first
+- [ ] Expired source permission prevents new publication
+- [ ] Unauthorized images are blocked
+- [ ] Malicious image/XML fixtures are rejected
+- [ ] Exact and approximate coordinates obey display policy
+- [ ] Duplicate candidates preserve separate source listings
+- [ ] Raw snapshots can be replayed with a newer parser
+- [ ] Every public listing exposes source and freshness
+- [ ] Legacy records remain visibly marked until verified
+- [ ] At least one permitted live import path works end to end **or** the data-source register documents the block with owner and next action
+- [ ] Admin can create, review, publish, update and withdraw listings
+- [ ] Partner can manage listings, imports, media rights declarations and leads
+
+**Can proceed without external credentials:** CSV/XML fixtures, manual entry, fake media pipeline. Live partner adapter blocked without written permission and media rights.
+
+---
+
+### Phase 5 — Website AI chat MVP / Slice 6 (L)
+
+**Deliver**
+
+- Chat UI and conversation persistence (registered history; restricted anonymous retention)
+- Channel-neutral conversation domain used by website chat
+- Typed natural-language → `PropertySearchCriteria`; hard constraints vs preferences; criteria confirmation UI
+- Property cards in chat; compare/save/request-viewing actions
+- Approved-source buyer guidance with citations, jurisdiction, review date, assumptions, disclaimer, professional escalation
+- Human handoff
+- Rate limits, token/cost budgets, prompt-injection isolation, PII minimization
+- AI evaluation suite: hallucinated facts, citations, jurisdiction, safe escalation
+
+**Required typed tools (all must exist)**
+
+`search_properties`, `get_property_details`, `get_property_freshness`, `compare_properties`, `find_similar_properties`, `get_price_history`, `get_location_context`, `calculate_estimated_purchase_cost`, `create_or_update_shortlist`, `save_property`, `save_search`, `request_viewing`, `create_lead`, `request_human_agent`, `get_general_buying_guidance`, `get_document_checklist`
+
+**Acceptance criteria**
+
+- [ ] Website AI returns only database/tool-result properties; never invents listing facts
+- [ ] No unrestricted SQL, arbitrary internet access or direct user-table writes for the model
+- [ ] Guidance answers include jurisdiction, citation/review date, disclaimer and escalation
+- [ ] Writes (save/shortlist/lead/viewing) require user intent and authorization
+- [ ] Anonymous rate limits and cost budgets enforced
+- [ ] Evaluation suite passes critical cases
+- [ ] Visible AI identity and limitations in UI
+- [ ] Human handoff creates assignable handoff records
+
+**Can proceed without external credentials:** orchestration, tool contracts, eval harness with mocked LLM. Live chat quality needs LLM API keys.
+
+---
+
+### Phase 6 — Buyer intelligence + omnichannel foundations / Slices 7–8 (L)
+
+**Deliver — buyer intelligence**
+
+- Versioned regional acquisition-cost rules engine (no single hardcoded Spain percentage)
+- Document-readiness checklist templates (never claim to prove title/compliance)
+- Commute profiles; amenity and terrain derivation from licensed/open data
+- Selected authoritative risk overlays
+- Off-plan development/unit workflows with auditable evidence states
+- Collaborative shortlists and export
+
+**Deliver — omnichannel foundations (interfaces only)**
+
+- Channel-neutral conversations/messages/participants
+- Channel identity links; communication consent and preferences
+- Delivery records; agent handoffs and summaries
+- Typed adapter contracts for email, SMS, WhatsApp, speech and telephony
+- Provider fakes for tests
+- Webhook signature verification, replay rejection, idempotency framework
+- Call tables present; recording/telephony **not** enabled
+
+**Acceptance criteria**
+
+- [ ] Cost calculations store rule version and timestamp; show ranges, assumptions, professional-review warning
+- [ ] Document readiness states are specific and auditable
+- [ ] Off-plan verification badges are never green merely because a field was supplied
+- [ ] Adapter interfaces and fakes tested; WhatsApp/voice not claimed operational
+- [ ] Webhook replay rejected; signatures verified in framework tests
+- [ ] Collaborative shortlists enforce view/comment permissions
+
+**Can proceed without external credentials:** yes for rules, checklists, adapters/fakes.
+
+---
+
+### Phase 7 — WhatsApp commercial upgrade (M after prerequisites)
+
+**Prerequisites (all required)**
+
+- Dependable inventory
+- Lead response operation
+- Approved business account and message templates
+- Clear consent and opt-out process
+- Cost controls and monitoring
+
+**Deliver**
+
+- Inbound webhook adapter; identity-linking flow
+- Text, location and authorized image/property-card support
+- Optional voice-note transcription
+- Viewing and human-handoff actions
+- Transactional alerts and opted-in marketing separation
+- Conversation continuity with website
+- Delivery/read/failure status handling
+- Template governance
+
+**Acceptance criteria**
+
+- [ ] Identity linking only after deliberate verification and consent
+- [ ] No unsolicited marketing; transactional vs marketing consent separated
+- [ ] Property cards use authorized images and deep links only
+- [ ] Opt-out processed; provider template/session rules respected
+- [ ] Website and WhatsApp share conversation continuity
+- [ ] End-to-end tests against configured provider (or documented staging sandbox)
+
+**Can proceed without credentials:** adapter stubs only. Activation blocked without WABA and consent ops.
+
+---
+
+### Phase 8 — Voice upgrade (L)
+
+**8a Browser voice** after text chat stable.  
+**8b Telephony** after demand validation.
+
+**Deliver**
+
+- Speech adapters; explicit AI and recording disclosure
+- Numeric confirmation and error recovery for prices, dates, phones, addresses
+- Phone call sessions (8b); human transfer
+- Transcript, summary and lead attachment
+- Send selected properties through opted-in email/WhatsApp
+- Recording retention and deletion
+- Multilingual quality tests
+- No cold calling; outbound only on explicit request or legally valid consent
+
+**Acceptance criteria**
+
+- [ ] AI identity disclosed; recording consent captured before recording
+- [ ] System never states viewing/availability confirmed without agency confirmation
+- [ ] Same typed tools as text channels
+- [ ] Retention/deletion jobs for recordings tested
+- [ ] Multilingual routing and fallback quality tests pass
+
+**Can proceed without credentials:** browser Web Speech prototypes with fakes. Telephony blocked without vendor credentials.
+
+---
+
+### Phase 9 — Scale and expansion (ongoing)
+
+- Additional regions and partners
+- Typesense/OpenSearch only when measurements justify it
+- Mobile app only if usage supports it
+- Performance and load testing
+- Disaster recovery drills
+- Partner billing/lead plans
+- Advanced analytics and experimentation
+
+**Acceptance criteria**
+
+- [ ] Search scale adapter introduced only with measured justification
+- [ ] DR restore tested on documented cadence
+- [ ] Expansion does not drop provenance, rights or freshness requirements
+
+---
+
+## 7. MVP acceptance gate
+
+The MVP is accepted only when all of the following are true (spec §13):
+
+- Anonymous users can browse legitimate inventory with authorized images
+- List, card, table and map views work responsively
+- Location and lifestyle filters work
+- Property pages show source, rights, freshness and energy-state fields
+- Email and phone OTP pass e2e and abuse tests
+- Registered users can favourite, shortlist, compare, note, save searches and review history
+- Email alerts are produced by background jobs
+- Admin can create, review, publish, update and withdraw listings
+- At least one permitted live import path works end to end
+- Stale/missing listings and price changes are handled
+- English, Spanish, Catalan and Arabic work, including RTL
+- Website AI chat returns only database properties and provides grounded guidance
+- Privacy export and deletion workflows exist
+- Critical security, accessibility, data-quality and browser tests pass
+- Deployment, monitoring, backups and restore are documented
+
+WhatsApp and telephone voice are **not** MVP acceptance requirements, but shared data contracts, consent model and adapter interfaces must exist.
+
+---
+
+## 8. Testing requirements (every slice)
+
+Each slice must add relevant:
+
+- Unit tests
+- Schema/migration tests
+- Authorization/RLS tests
+- API integration tests
+- Browser end-to-end tests (Playwright)
+- Accessibility checks (WCAG 2.2 AA target)
+- Data-quality and importer fixture tests
+- Security/abuse tests
+- AI evaluation tests (from Phase 5)
+
+**Critical required cases (never drop)**
+
+- Guest data merges correctly after OTP
+- One user cannot access another user’s shortlists/conversations
+- Identical reimport is idempotent
+- Changed price creates one history event
+- Failed feed does not withdraw inventory
+- Expired permission blocks publication
+- Unauthorized images are rejected
+- Approximate locations are not exposed as exact
+- AI returns no listing absent from the tool result
+- AI legal guidance has jurisdiction, citation/review date, disclaimer and escalation
+- Provider webhook replays are rejected
+- Arabic RTL and core flows pass browser tests
+
+**Definition of done:** implementation + migrations + authorization; loading/empty/error/permission states; monitoring; tests pass; localized copy or explicit fallback; env docs updated; no critical TODO presented as production.
+
+---
+
+## 9. Security, GDPR, observability, deployment, backup
+
+See [`SECURITY_AND_PRIVACY.md`](SECURITY_AND_PRIVACY.md) for full threat model and GDPR.
+
+| Area | Requirement |
+|------|-------------|
+| Security | RLS; signed uploads; media re-encode/scan; HTML sanitize; SSRF/XXE controls; webhook signatures; CSP; secret manager; audit logs |
+| GDPR | Purpose-based consent; retention by type/channel; export/delete including AI-derived data; cookie consent; separate marketing/recording/profiling consents |
+| Observability | Sentry; OTEL traces; structured logs; provider-cost metrics; ingestion health dashboards |
+| Deployment | Preview + staging + production; migrations in CI/CD; never manual production schema edits; EU residency decision required |
+| Backup | Automated Postgres + object storage backups; documented restore test cadence |
+
+---
+
+## 10. Work that can proceed without external credentials
+
+| Work | Notes |
+|------|-------|
+| Phase 0 documentation | Done in this deliverable |
+| Monorepo, CI, lint, typecheck | No cloud required |
+| Full schema, migrations, RLS, seeds, fixtures | Local Postgres/PostGIS |
+| Domain + search query builder | Against local PostGIS |
+| Public and workspace UI against fixtures | Mock/map-dev tiles acceptable |
+| OTP/email/SMS/WhatsApp/voice adapter interfaces + fakes | Do not claim live integration |
+| Ingestion with fixture CSV/XML and fake media | No live partner needed |
+| AI orchestrator + eval harness with mocked LLM | Live chat needs LLM key |
+| Playwright e2e against local stack | — |
+| Admin/partner UI with test users | Local auth |
+
+### Blocked without credentials or permissions
+
+- Production OTP delivery (email/SMS vendors)
+- Licensed production map tiles/geocoding
+- Live LLM responses
+- Real transactional email/SMS
+- First live partner feed (needs written permission + media rights)
+- WhatsApp Business activation
+- Telephony / production STT-TTS vendors
+- Production deploy, Sentry and backup backends
+
+---
+
+## 11. Local development outline (Phase 1)
+
+1. Install Node LTS, pnpm, Docker (Postgres/PostGIS or Supabase CLI).
+2. Clone repo; `pnpm install`.
+3. Copy `.env.example` → `.env.local` (no secrets committed).
+4. Start database; run migrations and seeds.
+5. Start `apps/web` (and `ai-service` / `worker` as they appear).
+6. Use fake OTP codes printed to logs in development.
+7. Run `pnpm lint && pnpm typecheck && pnpm test` before claiming a slice done.
+8. Run Playwright against local URLs for UI slices.
+
+Detailed commands will be added when the monorepo is scaffolded (Phase 1 approval).
+
+---
+
+## 12. Legacy data status
+
+| Item | Status |
+|------|--------|
+| Expected path | `data/legacy/barcelona_property_explorer_legacy_60.json` |
+| In repository | **No** |
+| Importer design | Required in Phase 2/4 |
+| CI substitute | `data/fixtures/` synthetic records matching expected shape |
+| Publication label | `legacy_snapshot` until freshness and media rights verified |
+| Images | Do not invent; preserve source URLs only |
+
+**Blocker owner:** product/data owner must supply the JSON (and preferably the modular build-pack assets). Engineering proceeds with fixtures until then.
+
+---
+
+## 13. Risks
+
+| Risk | Mitigation |
+|------|------------|
+| No partner permission for live inventory | CSV/manual path + explicit register block; do not scrape |
+| Legacy JSON missing | Fixtures; importer ready; do not fake 60 real listings |
+| SMS pumping / OTP abuse | Cooldowns, per-IP/identity limits, CAPTCHA escalation, fake adapters in dev |
+| AI hallucination | Tool-only property facts; eval suite; citations for guidance |
+| Premature WhatsApp/voice | Interfaces only until prerequisites met |
+| Scope creep nationwide | One region, one dependable source, one complete buyer journey first |
+| Media rights violations | Rights records mandatory; block publish without basis |
+
+---
+
+## 14. Engineering working method
+
+- Inspect before modifying; maintain this plan and [`DECISIONS_REQUIRED.md`](DECISIONS_REQUIRED.md)
+- Build one complete vertical slice at a time
+- Use migrations only; never edit production schema manually
+- Add tests with each slice; fix failures before claiming completion
+- Record reversible assumptions; stop for missing credentials, missing source permission, or irreversible legal/business decisions
+- When a provider is unavailable: typed adapter + test fake + setup guide — do not pretend it is integrated
+- Prefer one working end-to-end journey over many static screens
+
+---
+
+## 15. Next gate
+
+**Phase 0 documentation is complete.**  
+**Do not scaffold the monorepo or begin Phase 1 until explicitly approved.**
+
+When approved, start Slice 1 (foundation) and mark Phase 0 acceptance item “Ready to begin Phase 1” complete.
