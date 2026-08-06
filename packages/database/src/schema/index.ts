@@ -31,6 +31,27 @@ export const consentPurposeEnum = pgEnum('consent_purpose', [
   'call_recording',
 ]);
 
+/** Guest workspace JSON stored on guest_sessions (Phase 4A). */
+export type GuestWorkspacePayload = {
+  favouriteListingIds: string[];
+  comparisonListingIds: string[];
+  recentViewListingIds: string[];
+  savedSearchCriteria: unknown[];
+  shortlists?: Array<{
+    name: string;
+    isDefault?: boolean;
+    listingIds: string[];
+    note?: string;
+  }>;
+  preferenceWeights?: Record<string, number>;
+  propertyNotes?: Array<{
+    listingId: string;
+    body: string;
+    positives?: string[];
+    negatives?: string[];
+  }>;
+};
+
 const timestamps = {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
@@ -75,20 +96,15 @@ export const guestSessions = pgTable('guest_sessions', {
   /** SHA-256 hash of the opaque guest token; plaintext tokens are never stored. */
   anonymousKeyHash: varchar('anonymous_key_hash', { length: 64 }).notNull().unique(),
   locale: varchar('locale', { length: 8 }).default('en'),
-  payload: jsonb('payload')
-    .$type<{
-      favouriteListingIds: string[];
-      comparisonListingIds: string[];
-      recentViewListingIds: string[];
-      savedSearchCriteria: unknown[];
-    }>()
-    .notNull()
-    .default({
-      favouriteListingIds: [],
-      comparisonListingIds: [],
-      recentViewListingIds: [],
-      savedSearchCriteria: [],
-    }),
+  payload: jsonb('payload').$type<GuestWorkspacePayload>().notNull().default({
+    favouriteListingIds: [],
+    comparisonListingIds: [],
+    recentViewListingIds: [],
+    savedSearchCriteria: [],
+    shortlists: [],
+    preferenceWeights: {},
+    propertyNotes: [],
+  }),
   mergedIntoUserId: uuid('merged_into_user_id').references(() => users.id),
   mergedAt: timestamp('merged_at', { withTimezone: true }),
   expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
@@ -725,4 +741,99 @@ export const favourites = pgTable(
     ...timestamps,
   },
   (t) => [uniqueIndex('favourites_user_listing_uidx').on(t.userId, t.listingId)],
+);
+
+/* ─── Phase 4A buyer workspace ─────────────────────────────────────────── */
+
+export const shortlists = pgTable(
+  'shortlists',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    name: varchar('name', { length: 80 }).notNull(),
+    isDefault: boolean('is_default').notNull().default(false),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex('shortlists_user_name_uidx').on(t.userId, t.name)],
+);
+
+export const shortlistItems = pgTable(
+  'shortlist_items',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    shortlistId: uuid('shortlist_id')
+      .notNull()
+      .references(() => shortlists.id, { onDelete: 'cascade' }),
+    listingId: uuid('listing_id')
+      .notNull()
+      .references(() => propertyListings.id, { onDelete: 'cascade' }),
+    position: integer('position').notNull().default(0),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex('shortlist_items_shortlist_listing_uidx').on(t.shortlistId, t.listingId)],
+);
+
+export const propertyNotes = pgTable(
+  'property_notes',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    listingId: uuid('listing_id')
+      .notNull()
+      .references(() => propertyListings.id, { onDelete: 'cascade' }),
+    body: text('body').notNull().default(''),
+    positives: jsonb('positives').$type<string[]>().notNull().default([]),
+    negatives: jsonb('negatives').$type<string[]>().notNull().default([]),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex('property_notes_user_listing_uidx').on(t.userId, t.listingId)],
+);
+
+export const shortlistNotes = pgTable('shortlist_notes', {
+  shortlistId: uuid('shortlist_id')
+    .primaryKey()
+    .references(() => shortlists.id, { onDelete: 'cascade' }),
+  body: text('body').notNull().default(''),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const userPreferenceProfiles = pgTable('user_preference_profiles', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  name: varchar('name', { length: 80 }).notNull().default('Default'),
+  weights: jsonb('weights').$type<Record<string, number>>().notNull().default({}),
+  isActive: boolean('is_active').notNull().default(false),
+  ...timestamps,
+});
+
+export const comparisonSets = pgTable('comparison_sets', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  shortlistId: uuid('shortlist_id').references(() => shortlists.id, { onDelete: 'set null' }),
+  weightSnapshot: jsonb('weight_snapshot').$type<Record<string, number> | null>(),
+  ...timestamps,
+});
+
+export const comparisonItems = pgTable(
+  'comparison_items',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    comparisonSetId: uuid('comparison_set_id')
+      .notNull()
+      .references(() => comparisonSets.id, { onDelete: 'cascade' }),
+    listingId: uuid('listing_id')
+      .notNull()
+      .references(() => propertyListings.id, { onDelete: 'cascade' }),
+    position: integer('position').notNull().default(0),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex('comparison_items_set_listing_uidx').on(t.comparisonSetId, t.listingId)],
 );

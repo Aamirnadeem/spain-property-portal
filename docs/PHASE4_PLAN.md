@@ -31,15 +31,15 @@ Create a persistent buyer workspace so guests and authenticated buyers can organ
 
 ## Foundations to reuse
 
-| Area | Reuse |
-| ---- | ----- |
-| Favourites | `favourites` table, `/api/v1/favourites`, owner RLS |
-| Guest merge domain | `mergeGuestWorkspace` in `@spain/domain` — extend + persist |
-| Guest sessions | `guest_sessions.payload` shape — extend for shortlists/weights |
-| Search | `PropertySearchCriteria` + `@spain/search` URL helpers |
-| Listing facts | `ListingCardDto` / `ListingDetailDto` / `property_listings` |
-| Auth | ADR-029 sessions, CSRF Origin, `withAuthenticatedDb` |
-| Legacy UX | `legacy/.../ComparisonTable.tsx` (read-only inspiration) |
+| Area               | Reuse                                                          |
+| ------------------ | -------------------------------------------------------------- |
+| Favourites         | `favourites` table, `/api/v1/favourites`, owner RLS            |
+| Guest merge domain | `mergeGuestWorkspace` in `@spain/domain` — extend + persist    |
+| Guest sessions     | `guest_sessions.payload` shape — extend for shortlists/weights |
+| Search             | `PropertySearchCriteria` + `@spain/search` URL helpers         |
+| Listing facts      | `ListingCardDto` / `ListingDetailDto` / `property_listings`    |
+| Auth               | ADR-029 sessions, CSRF Origin, `withAuthenticatedDb`           |
+| Legacy UX          | `legacy/.../ComparisonTable.tsx` (read-only inspiration)       |
 
 ## Locked product decisions
 
@@ -341,20 +341,20 @@ Highlights: owner RLS; share-token security; rate limits; history retention; acc
 
 Frontend → Next.js route handlers only. Typed services (names required):
 
-| Service | Package |
-| ------- | ------- |
-| `createShortlist` / `updateShortlist` / `deleteShortlist` | `@spain/database` |
-| `addPropertyToShortlist` / `removePropertyFromShortlist` | `@spain/database` |
-| `addPropertyNote` | `@spain/database` |
-| `getComparison` | `@spain/database` + `@spain/domain` |
-| `updateComparisonWeights` | `@spain/database` |
-| `saveSearch` / `listSavedSearches` | `@spain/database` |
-| `recordPropertyView` / `listRecentlyViewed` / `clearBrowsingHistory` | `@spain/database` |
-| `listNotifications` | `@spain/database` |
-| `createComparisonShare` / `revokeComparisonShare` | `@spain/database` |
-| `scoreListingAgainstWeights` | `@spain/domain` |
-| `mergeGuestWorkspaceIntoUser` | `@spain/database` (uses domain merge) |
-| `evaluateAlertsForListing` | `@spain/database` / communications test provider |
+| Service                                                              | Package                                          |
+| -------------------------------------------------------------------- | ------------------------------------------------ |
+| `createShortlist` / `updateShortlist` / `deleteShortlist`            | `@spain/database`                                |
+| `addPropertyToShortlist` / `removePropertyFromShortlist`             | `@spain/database`                                |
+| `addPropertyNote`                                                    | `@spain/database`                                |
+| `getComparison`                                                      | `@spain/database` + `@spain/domain`              |
+| `updateComparisonWeights`                                            | `@spain/database`                                |
+| `saveSearch` / `listSavedSearches`                                   | `@spain/database`                                |
+| `recordPropertyView` / `listRecentlyViewed` / `clearBrowsingHistory` | `@spain/database`                                |
+| `listNotifications`                                                  | `@spain/database`                                |
+| `createComparisonShare` / `revokeComparisonShare`                    | `@spain/database`                                |
+| `scoreListingAgainstWeights`                                         | `@spain/domain`                                  |
+| `mergeGuestWorkspaceIntoUser`                                        | `@spain/database` (uses domain merge)            |
+| `evaluateAlertsForListing`                                           | `@spain/database` / communications test provider |
 
 All authenticated paths use `getSession` + `withAuthenticatedDb` + CSRF on mutations.
 
@@ -362,15 +362,15 @@ All authenticated paths use `getSession` + `withAuthenticatedDb` + CSRF on mutat
 
 ## Feature 12 — Tests
 
-| Layer | Coverage |
-| ----- | -------- |
-| Unit | Scoring (full + missing), merge, token hash, criteria hash, caps |
-| DB integration | CRUD + RLS cross-user; agency role denial on buyer tables |
-| Guest merge | Transactional idempotent merge suite |
-| Share-token | Create/fetch/expire/revoke/rate-limit |
-| Locale / RTL | ar direction on workspace + compare |
-| Playwright | Buyer journey: shortlist → note → compare → weights → save search → history → notification (test) → share → logout |
-| A11y | Compare table + workspace nav |
+| Layer          | Coverage                                                                                                           |
+| -------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Unit           | Scoring (full + missing), merge, token hash, criteria hash, caps                                                   |
+| DB integration | CRUD + RLS cross-user; agency role denial on buyer tables                                                          |
+| Guest merge    | Transactional idempotent merge suite                                                                               |
+| Share-token    | Create/fetch/expire/revoke/rate-limit                                                                              |
+| Locale / RTL   | ar direction on workspace + compare                                                                                |
+| Playwright     | Buyer journey: shortlist → note → compare → weights → save search → history → notification (test) → share → logout |
+| A11y           | Compare table + workspace nav                                                                                      |
 
 Gates: `pnpm format:check`, `lint`, `typecheck`, `test`, `test:db`, applicable Playwright.
 
@@ -378,13 +378,13 @@ Gates: `pnpm format:check`, `lint`, `typecheck`, `test`, `test:db`, applicable P
 
 ## Implementation order (when approved)
 
-1. Migrations + RLS + seed buyer user  
-2. Shortlists + notes services/APIs/UI  
-3. Comparison matrix + weights  
-4. Saved searches + history  
-5. Alerts foundation + notifications UI  
-6. Share links  
-7. Transactional guest merge + guest session hardening  
+1. Migrations + RLS + seed buyer user
+2. Shortlists + notes services/APIs/UI
+3. Comparison matrix + weights
+4. Saved searches + history
+5. Alerts foundation + notifications UI
+6. Share links
+7. Transactional guest merge + guest session hardening
 8. Full test suite + docs `PHASE4_IMPLEMENTATION.md`
 
 **Do not implement until this plan is explicitly approved.**

@@ -26,10 +26,10 @@ Reuse `@spain/search` `PropertySearchCriteria` (and extensions as needed):
 
 ### Persistence
 
-| Actor | Storage |
-| ----- | ------- |
-| Guest | `localStorage` array + guest payload `savedSearchCriteria` |
-| Authenticated | `saved_searches` table |
+| Actor         | Storage                                                    |
+| ------------- | ---------------------------------------------------------- |
+| Guest         | `localStorage` array + guest payload `savedSearchCriteria` |
+| Authenticated | `saved_searches` table                                     |
 
 Columns (planned): `id`, `user_id`, `name`, `criteria` jsonb, `sort`, `criteria_hash`, `last_run_at`, timestamps.
 
@@ -53,13 +53,13 @@ Columns (planned): `id`, `user_id`, `name`, `criteria` jsonb, `sort`, `criteria_
 
 ### Events (Phase 4)
 
-| Event type | Trigger |
-| ---------- | ------- |
-| `new_match` | New/published listing matches saved criteria |
-| `price_reduction` | Asking price decreases for a previously matching or watched listing |
-| `status_change` | Operational status changes (e.g. reserved, available) |
-| `listing_withdrawn` | Listing withdrawn / unavailable |
-| `stale_listing` | Freshness crosses stale threshold for a matching listing |
+| Event type          | Trigger                                                             |
+| ------------------- | ------------------------------------------------------------------- |
+| `new_match`         | New/published listing matches saved criteria                        |
+| `price_reduction`   | Asking price decreases for a previously matching or watched listing |
+| `status_change`     | Operational status changes (e.g. reserved, available)               |
+| `listing_withdrawn` | Listing withdrawn / unavailable                                     |
+| `stale_listing`     | Freshness crosses stale threshold for a matching listing            |
 
 Out of scope for Phase 4 delivery channels: media/document change, off-plan completion-date change (may be added later as event types only if data exists).
 
@@ -97,7 +97,9 @@ interface NotificationProvider {
   }): Promise<void>;
 }
 
-class TestNotificationProvider implements NotificationProvider { /* records for tests */ }
+class TestNotificationProvider implements NotificationProvider {
+  /* records for tests */
+}
 ```
 
 WhatsApp / SMS / production email providers: **not wired**.

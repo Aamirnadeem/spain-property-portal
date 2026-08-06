@@ -154,3 +154,9 @@ This is the implementation-facing decision log. The broader planning register re
 - Alert evaluation uses **inline** hooks (ADR-027); no pg-boss required for Phase 4.
 - Planning docs: [`PHASE4_PLAN.md`](PHASE4_PLAN.md), [`BUYER_WORKSPACE_DESIGN.md`](BUYER_WORKSPACE_DESIGN.md), [`PROPERTY_COMPARISON_MODEL.md`](PROPERTY_COMPARISON_MODEL.md), [`SAVED_SEARCH_AND_ALERT_MODEL.md`](SAVED_SEARCH_AND_ALERT_MODEL.md), [`PHASE4_DATABASE_CHANGES.md`](PHASE4_DATABASE_CHANGES.md), [`PHASE4_SECURITY_REVIEW.md`](PHASE4_SECURITY_REVIEW.md), [`PHASE4_ACCEPTANCE_CRITERIA.md`](PHASE4_ACCEPTANCE_CRITERIA.md), [`PHASE4_DECISIONS_REQUIRED.md`](PHASE4_DECISIONS_REQUIRED.md).
 - **Status:** **planning complete** — implementation not started until explicit approval.
+
+### ADR-030a — Phase 4A vertical slice shipped
+
+- **Decision:** Phase 4A delivers shortlists, notes, explainable comparison (`phase4a.v1`), guest cookie + transactional merge; favourites remain separate (preserve-in-place).
+- Implementation: [`PHASE4A_IMPLEMENTATION.md`](PHASE4A_IMPLEMENTATION.md), [`COMPARISON_SCORING_SPECIFICATION.md`](COMPARISON_SCORING_SPECIFICATION.md), [`GUEST_WORKSPACE_MERGE.md`](GUEST_WORKSPACE_MERGE.md).
+- **Status:** **implemented** (2026-08-06). Phase 4B/4C deferred.

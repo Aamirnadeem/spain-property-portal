@@ -497,10 +497,121 @@ async function main(): Promise<void> {
     );
     assert(viewerSeesOrgListings.length >= 1, 'org viewer must see own-org listings via RLS claim');
 
+    // ---- Phase 4A: buyer workspace RLS + merge ----
+    const buyerA = '11111111-1111-4111-8111-111111111111';
+    const buyerB = '22222222-2222-4222-8222-222222222222';
+    await sql`
+      INSERT INTO users (id, display_name, status)
+      VALUES (${buyerA}, 'Buyer A', 'active'), (${buyerB}, 'Buyer B', 'active')
+      ON CONFLICT (id) DO NOTHING
+    `;
+
+    const shortlistA = await withAuthenticatedDb(testUrl, buyerA, async (authDb) => {
+      const { createShortlist, addPropertyToShortlist, updatePropertyNote } =
+        await import('../services/buyer-workspace');
+      const listingId = (
+        await authDb
+          .select({ id: schema.propertyListings.id })
+          .from(schema.propertyListings)
+          .where(eq(schema.propertyListings.isPublicBrowseable, true))
+          .limit(1)
+      )[0]!.id;
+      const sl = await createShortlist(authDb, buyerA, { name: 'Barcelona apartments' });
+      await addPropertyToShortlist(authDb, buyerA, sl.id, listingId);
+      await updatePropertyNote(authDb, buyerA, listingId, {
+        body: 'private note A',
+        positives: ['light'],
+        negatives: [],
+      });
+      return { shortlistId: sl.id, listingId };
+    });
+
+    const crossRead = await withRole(
+      sql,
+      'authenticated',
+      { 'request.jwt.claim.sub': buyerB },
+      () => sql`SELECT id FROM shortlists WHERE id = ${shortlistA.shortlistId}`,
+    );
+    assert(crossRead.length === 0, 'buyer B must not read buyer A shortlist');
+
+    const crossNote = await withRole(
+      sql,
+      'authenticated',
+      { 'request.jwt.claim.sub': buyerB },
+      () =>
+        sql`SELECT id FROM property_notes WHERE user_id = ${buyerA} AND listing_id = ${shortlistA.listingId}`,
+    );
+    assert(crossNote.length === 0, 'buyer B must not read buyer A notes');
+
+    const agencyRead = await withRole(
+      sql,
+      'authenticated',
+      { 'request.jwt.claim.sub': ORG_AGENT_USER_ID },
+      () => sql`SELECT id FROM shortlists WHERE id = ${shortlistA.shortlistId}`,
+    );
+    assert(agencyRead.length === 0, 'agency agent must not read buyer shortlists');
+
+    const mergeOnce = await withAuthenticatedDb(testUrl, buyerB, async (authDb) => {
+      const { mergeGuestWorkspaceIntoUser, listShortlists, getPropertyNote } =
+        await import('../services/buyer-workspace');
+      const r1 = await mergeGuestWorkspaceIntoUser(authDb, buyerB, {
+        fallbackPayload: {
+          favouriteListingIds: [shortlistA.listingId],
+          comparisonListingIds: [],
+          recentViewListingIds: [],
+          savedSearchCriteria: [],
+          shortlists: [
+            {
+              name: 'Barcelona apartments',
+              listingIds: [shortlistA.listingId],
+            },
+          ],
+          propertyNotes: [
+            { listingId: shortlistA.listingId, body: 'guest note should not overwrite later' },
+          ],
+        },
+      });
+      await authDb
+        .insert(schema.propertyNotes)
+        .values({
+          userId: buyerB,
+          listingId: shortlistA.listingId,
+          body: 'auth note kept',
+          positives: [],
+          negatives: [],
+        })
+        .onConflictDoNothing();
+      const r2 = await mergeGuestWorkspaceIntoUser(authDb, buyerB, {
+        fallbackPayload: {
+          favouriteListingIds: [shortlistA.listingId],
+          comparisonListingIds: [],
+          recentViewListingIds: [],
+          savedSearchCriteria: [],
+          shortlists: [{ name: 'Barcelona apartments', listingIds: [shortlistA.listingId] }],
+          propertyNotes: [{ listingId: shortlistA.listingId, body: 'guest overwrite attempt' }],
+        },
+      });
+      const lists = await listShortlists(authDb, buyerB);
+      const note = await getPropertyNote(authDb, buyerB, shortlistA.listingId);
+      return { r1, r2, lists, note };
+    });
+    assert(
+      mergeOnce.lists.some(
+        (l) => l.name.startsWith('Guest —') || l.name === 'Barcelona apartments',
+      ),
+      'guest shortlist merged',
+    );
+    assert(
+      mergeOnce.note?.body === 'auth note kept' ||
+        mergeOnce.note?.body === 'guest note should not overwrite later',
+      'notes merge keep-auth rule',
+    );
+
     console.log(
       'Phase 3 integration passed: partner CSV import idempotency, org RLS isolation, ' +
         'admin publish/withdraw, agency price update + self-withdraw, source permission gate, audit trail, ' +
-        'Phase 3.1 withAuthenticatedDb claim writes + viewer read',
+        'Phase 3.1 withAuthenticatedDb claim writes + viewer read, ' +
+        'Phase 4A shortlist/note RLS isolation + guest merge',
     );
   } finally {
     await sql.end();

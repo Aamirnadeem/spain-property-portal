@@ -17,6 +17,9 @@ export const ORG_VIEWER_USER_ID = '88888888-8888-4888-8888-888888888888';
 export const PLATFORM_ADMIN_USER_ID = '66666666-6666-4666-8666-666666666666';
 export const LISTING_REVIEWER_USER_ID = '77777777-7777-4777-8777-777777777777';
 
+/** Phase 4A demo buyer — no org membership. */
+export const BUYER_DEMO_USER_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+
 export const DEMO_SOURCE_KEY = 'partner-csv-demo-catalonia';
 export const DEMO_SOURCE_NAME = 'Demo Catalonia Agency — Spain Partner CSV v1 feed';
 

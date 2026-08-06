@@ -10,14 +10,14 @@ Define how buyers organize properties after Phase 2 favourites: named shortlists
 
 ## Concepts
 
-| Concept | Meaning |
-| ------- | ------- |
-| Favourite | Phase 2 quick heart bookmark (`favourites` table). Independent of shortlists. |
-| Shortlist | Named collection (e.g. “Barcelona apartments”, “Coastal homes”, “Investment options”, “Final family shortlist”). |
-| Default shortlist | At most one per user (`is_default`); used as the primary “Add to shortlist” target. |
-| Property note | Private text + optional pros/cons for one listing. |
-| Shortlist note | General note for the whole shortlist. |
-| Workspace | Authenticated (and guest-local) hub under `/{locale}/workspace`. |
+| Concept           | Meaning                                                                                                          |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Favourite         | Phase 2 quick heart bookmark (`favourites` table). Independent of shortlists.                                    |
+| Shortlist         | Named collection (e.g. “Barcelona apartments”, “Coastal homes”, “Investment options”, “Final family shortlist”). |
+| Default shortlist | At most one per user (`is_default`); used as the primary “Add to shortlist” target.                              |
+| Property note     | Private text + optional pros/cons for one listing.                                                               |
+| Shortlist note    | General note for the whole shortlist.                                                                            |
+| Workspace         | Authenticated (and guest-local) hub under `/{locale}/workspace`.                                                 |
 
 ## Favourites coexistence
 
@@ -37,13 +37,13 @@ Define how buyers organize properties after Phase 2 favourites: named shortlists
 
 ### Caps (defaults)
 
-| Cap | Default | Rationale |
-| --- | ------- | --------- |
-| Shortlists / user | 20 | Abuse bound |
-| Items / shortlist | 100 | UI performance |
-| Name length | 80 | Display |
-| Guest shortlists | 5 | LocalStorage size |
-| Guest items / list | 30 | LocalStorage size |
+| Cap                | Default | Rationale         |
+| ------------------ | ------- | ----------------- |
+| Shortlists / user  | 20      | Abuse bound       |
+| Items / shortlist  | 100     | UI performance    |
+| Name length        | 80      | Display           |
+| Guest shortlists   | 5       | LocalStorage size |
+| Guest items / list | 30      | LocalStorage size |
 
 ## Notes
 
@@ -99,14 +99,14 @@ Define how buyers organize properties after Phase 2 favourites: named shortlists
 
 ## Guest behaviour
 
-| Data | Guest storage | Server |
-| ---- | ------------- | ------ |
-| Favourites | `spain_guest_favourites` | After merge → `favourites` |
-| Shortlists | `spain_guest_shortlists` JSON | After merge → tables |
-| Recent views | guest payload / local | After merge → `recently_viewed` |
-| Saved searches | local criteria array | After merge → `saved_searches` |
-| Weights | local profile | After merge → `user_preference_profiles` |
-| Notes | optional local only | Persist on auth if present |
+| Data           | Guest storage                 | Server                                   |
+| -------------- | ----------------------------- | ---------------------------------------- |
+| Favourites     | `spain_guest_favourites`      | After merge → `favourites`               |
+| Shortlists     | `spain_guest_shortlists` JSON | After merge → tables                     |
+| Recent views   | guest payload / local         | After merge → `recently_viewed`          |
+| Saved searches | local criteria array          | After merge → `saved_searches`           |
+| Weights        | local profile                 | After merge → `user_preference_profiles` |
+| Notes          | optional local only           | Persist on auth if present               |
 
 Unauthenticated users hitting `/workspace/**` pages: allow read-only guest UI **or** redirect soft-prompt to account—prefer **guest-capable workspace shell** that works offline-local, with banner “Sign in to sync”. Protected **API** still requires session.
 
@@ -121,12 +121,12 @@ Page gate: authenticated-only APIs; HTML may render guest mode without leaking o
 
 ## Authorization summary
 
-| Actor | Shortlists / notes / history / searches |
-| ----- | --------------------------------------- |
-| Anon | Guest local only |
-| Buyer (session) | Own rows only |
-| Agency roles | **No** access to buyer private tables |
-| Platform admin | No casual read of buyer notes/history in Phase 4 (admin tools out of scope) |
+| Actor           | Shortlists / notes / history / searches                                     |
+| --------------- | --------------------------------------------------------------------------- |
+| Anon            | Guest local only                                                            |
+| Buyer (session) | Own rows only                                                               |
+| Agency roles    | **No** access to buyer private tables                                       |
+| Platform admin  | No casual read of buyer notes/history in Phase 4 (admin tools out of scope) |
 
 ## Tests (workspace-focused)
 

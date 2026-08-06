@@ -50,6 +50,20 @@
       "when": 1785960000000,
       "tag": "0006_phase3_1_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1785961000000,
+      "tag": "0007_phase4_buyer_workspace",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1785961000001,
+      "tag": "0008_phase4a_rls",
+      "breakpoints": true
     }
   ]
 }

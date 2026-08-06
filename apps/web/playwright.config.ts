@@ -13,8 +13,15 @@ export default defineConfig({
   timeout: 60_000,
   fullyParallel: false,
   workers: 1,
+  // Retries stay disabled everywhere, including CI: `next dev` compiles routes on demand, so a
+  // retry would silently repeat a warm run and hide a first-run failure. The app-ready setup
+  // project absorbs cold compilation instead.
   retries: 0,
   globalSetup: './e2e/global-setup.ts',
+  // Assertion timeout for an application that is already compiled and serving. Measured warm
+  // responses for the slowest journey step (property detail page plus its API call) are ~0.6s;
+  // 15s leaves headroom for a loaded machine while still failing fast on a genuinely stuck page.
+  expect: { timeout: 15_000 },
   use: {
     baseURL,
     trace: 'on-first-retry',
@@ -25,6 +32,8 @@ export default defineConfig({
     // globalSetup recreates the e2e database.
     url: `${baseURL}/api/health`,
     reuseExistingServer: false,
+    // Server-startup budget only; route compilation and data readiness are handled by the
+    // `app-ready` setup project so the two concerns cannot be confused for one another.
     timeout: 120_000,
     env: {
       ...process.env,
@@ -34,5 +43,12 @@ export default defineConfig({
       NODE_ENV: 'development',
     },
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    { name: 'app-ready', testMatch: /app-ready\.setup\.ts$/ },
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+      dependencies: ['app-ready'],
+    },
+  ],
 });

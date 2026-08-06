@@ -9,6 +9,9 @@ describe('phase 1+2 schema', () => {
     expect(schema.propertyListings).toBeTruthy();
     expect(schema.physicalProperties).toBeTruthy();
     expect(schema.favourites).toBeTruthy();
+    expect(schema.shortlists).toBeTruthy();
+    expect(schema.propertyNotes).toBeTruthy();
+    expect(schema.comparisonSets).toBeTruthy();
     expect(schema.dataSources).toBeTruthy();
     expect(schema.importRuns).toBeTruthy();
   });
@@ -21,6 +24,8 @@ describe('RLS policy catalogue', () => {
     expect(rlsEnabledTables).toContain('user_consents');
     expect(rlsEnabledTables).toContain('property_listings');
     expect(rlsEnabledTables).toContain('favourites');
+    expect(rlsEnabledTables).toContain('shortlists');
+    expect(rlsEnabledTables).toContain('property_notes');
   });
 
   it('defines self-access and public browse policies', () => {
@@ -29,5 +34,7 @@ describe('RLS policy catalogue', () => {
     expect(implementedRlsPolicies).toContain('user_consents_self_all');
     expect(implementedRlsPolicies).toContain('property_listings_public_browse');
     expect(implementedRlsPolicies).toContain('favourites_owner_select');
+    expect(implementedRlsPolicies).toContain('shortlists_owner_select');
+    expect(implementedRlsPolicies).toContain('property_notes_owner_select');
   });
 });

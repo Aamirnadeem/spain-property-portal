@@ -13,6 +13,7 @@ import {
   ORG_OWNER_USER_ID,
   ORG_VIEWER_USER_ID,
   PLATFORM_ADMIN_USER_ID,
+  BUYER_DEMO_USER_ID,
 } from './seed-constants';
 
 async function main() {
@@ -216,6 +217,7 @@ async function main() {
   const orgViewerUser = await ensureUser(ORG_VIEWER_USER_ID, 'Demo Agency Viewer');
   const platformAdminUser = await ensureUser(PLATFORM_ADMIN_USER_ID, 'Platform Admin (seed)');
   const listingReviewerUser = await ensureUser(LISTING_REVIEWER_USER_ID, 'Listing Reviewer (seed)');
+  const buyerDemoUser = await ensureUser(BUYER_DEMO_USER_ID, 'Demo Buyer');
 
   const existingOrg = await db
     .select()
@@ -269,6 +271,7 @@ async function main() {
   }
   await ensurePlatformRole(platformAdminUser.id, 'platform_admin');
   await ensurePlatformRole(listingReviewerUser.id, 'listing_reviewer');
+  await ensurePlatformRole(buyerDemoUser.id, 'buyer');
 
   const existingDemoSource = await db
     .select()

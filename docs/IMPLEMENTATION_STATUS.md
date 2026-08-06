@@ -1,6 +1,6 @@
 # Implementation status
 
-Date: 2026-08-06 (Phase 4 planning documentation complete; implementation not started)
+Date: 2026-08-06 (Phase 4A buyer workspace implemented)
 
 ## Completed
 
@@ -16,13 +16,14 @@ Date: 2026-08-06 (Phase 4 planning documentation complete; implementation not st
 - Phase 3 planning documentation (ADR-022 renumber)
 - **Phase 3 vertical slice implementation** — authorized agency CSV upload → validation → normalization → admin review → publication → price/status update → withdrawal. See [`PHASE3_IMPLEMENTATION.md`](PHASE3_IMPLEMENTATION.md) and [`IMPORT_FORMAT_CSV.md`](IMPORT_FORMAT_CSV.md)
 - **Phase 3.1 verified session auth (ADR-029)** — FakeAuth sealed / Supabase sessions replace `x-user-id`; org/platform roles from DB; `withAuthenticatedDb` RLS claim wiring. See [`PHASE3_1_IMPLEMENTATION.md`](PHASE3_1_IMPLEMENTATION.md)
-- **Phase 4 planning documentation (ADR-030)** — shortlists, notes, comparison/weights, saved searches, history, in-app alerts foundation, share links, guest merge, security. See [`PHASE4_PLAN.md`](PHASE4_PLAN.md). **Application code not started.**
+- **Phase 4 planning documentation (ADR-030)** — see [`PHASE4_PLAN.md`](PHASE4_PLAN.md)
+- **Phase 4A implementation** — shortlists, notes, explainable comparison, guest merge. See [`PHASE4A_IMPLEMENTATION.md`](PHASE4A_IMPLEMENTATION.md)
 
 ## Credential-gated
 
 - Live Supabase Auth OTP delivery/verification
 - Live Supabase Storage uploads
-- Hosted production database (local PostGIS used for Phase 2/3/3.1 verification)
+- Hosted production database (local PostGIS used for Phase 2/3/3.1/4A verification)
 - Real partner HTTP feeds (require written permission + registry approval)
 
 ## Not started (implementation)
@@ -31,9 +32,10 @@ Date: 2026-08-06 (Phase 4 planning documentation complete; implementation not st
 - pg-boss / background job runner
 - Rights-checked media pipeline / authorized listing photographs
 - Multi-partner / nationwide rollout
-- **Phase 4 buyer workspace implementation** (plan approved pending; see [`PHASE4_PLAN.md`](PHASE4_PLAN.md))
-- Phase 4.1+ deferred Slice 4 remainder: leads, viewing requests, privacy export/delete workers, production email digests
+- **Phase 4B** — saved searches, browsing history
+- **Phase 4C** — in-app alerts foundation, comparison share links
+- Phase 4.1+ — leads, privacy export/delete workers, production email digests
 - Phase 5+ AI assistant, WhatsApp, voice
 - Map distance enrichment
 
-**Phase 4 implementation has not been started.** Planning docs are complete.
+**Phase 4B/4C have not been started.**

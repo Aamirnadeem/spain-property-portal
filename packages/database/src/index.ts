@@ -23,5 +23,6 @@ export * from './services/partner';
 export * from './services/admin';
 export * from './services/audit';
 export * from './services/authz-roles';
+export * from './services/buyer-workspace';
 export * from './auth/with-authenticated-db';
 export * from './seed-constants';

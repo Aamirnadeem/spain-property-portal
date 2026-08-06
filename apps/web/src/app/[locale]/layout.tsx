@@ -47,6 +47,7 @@ export default async function LocaleLayout({
             <Link href={`/${locale}`}>{messages.nav.home}</Link>
             <Link href={`/${locale}/search`}>{messages.nav.search}</Link>
             <Link href={`/${locale}/favourites`}>{messages.nav.favourites}</Link>
+            <Link href={`/${locale}/workspace`}>{messages.nav.workspace}</Link>
             <Link href={`/${locale}/partner`}>{messages.nav.partnerPortal}</Link>
             <Link href={`/${locale}/admin`}>{messages.nav.adminPortal}</Link>
             {locales.map((l) => (

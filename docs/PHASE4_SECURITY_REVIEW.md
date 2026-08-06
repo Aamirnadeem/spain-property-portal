@@ -7,20 +7,20 @@ Builds on: [`SECURITY_AND_PRIVACY.md`](SECURITY_AND_PRIVACY.md), ADR-029, [`SESS
 
 ## Threat model (buyer workspace)
 
-| ID | Threat | Mitigation |
-| -- | ------ | ---------- |
-| B1 | Enumerate another user’s shortlist by ID | Owner RLS + API ownership check; 404 not 403 for items if preferred |
-| B2 | Read another user’s notes / history | Owner RLS; no agency SELECT |
-| B3 | Forge `x-user-id` to attach shortlists | ADR-029 sessions only; headers ignored in production |
-| B4 | Guest merge forgery via huge/malicious payload | Schema bounds, size limits, untrusted input; prefer HttpOnly guest session |
-| B5 | Guess share tokens | 32+ byte token; store hash; rate-limit public GET |
-| B6 | Share link leaks notes / identity / history | DTO allowlist; tests assert absence |
-| B7 | Revoked/expired share still works | Check `revoked_at` / `expires_at` server-side |
-| B8 | Alert spam / enumeration | Dedupe keys; rate limits; consent required |
-| B9 | Agency staff sees buyer browsing history | No partner/admin queries; RLS deny |
-| B10 | CSRF on workspace mutations | Origin/Referer allowlist (Phase 3.1 pattern) |
-| B11 | Score presented as valuation | Mandatory disclaimer; copy review |
-| B12 | Account deletion leaves private data | CASCADE FKs; revoke shares |
+| ID  | Threat                                         | Mitigation                                                                 |
+| --- | ---------------------------------------------- | -------------------------------------------------------------------------- |
+| B1  | Enumerate another user’s shortlist by ID       | Owner RLS + API ownership check; 404 not 403 for items if preferred        |
+| B2  | Read another user’s notes / history            | Owner RLS; no agency SELECT                                                |
+| B3  | Forge `x-user-id` to attach shortlists         | ADR-029 sessions only; headers ignored in production                       |
+| B4  | Guest merge forgery via huge/malicious payload | Schema bounds, size limits, untrusted input; prefer HttpOnly guest session |
+| B5  | Guess share tokens                             | 32+ byte token; store hash; rate-limit public GET                          |
+| B6  | Share link leaks notes / identity / history    | DTO allowlist; tests assert absence                                        |
+| B7  | Revoked/expired share still works              | Check `revoked_at` / `expires_at` server-side                              |
+| B8  | Alert spam / enumeration                       | Dedupe keys; rate limits; consent required                                 |
+| B9  | Agency staff sees buyer browsing history       | No partner/admin queries; RLS deny                                         |
+| B10 | CSRF on workspace mutations                    | Origin/Referer allowlist (Phase 3.1 pattern)                               |
+| B11 | Score presented as valuation                   | Mandatory disclaimer; copy review                                          |
+| B12 | Account deletion leaves private data           | CASCADE FKs; revoke shares                                                 |
 
 ## RLS and authorization
 
@@ -40,13 +40,13 @@ Builds on: [`SECURITY_AND_PRIVACY.md`](SECURITY_AND_PRIVACY.md), ADR-029, [`SESS
 
 ## Rate limits (planned)
 
-| Endpoint | Limit |
-| -------- | ----- |
-| Public share GET | 60/min/IP |
-| `recordPropertyView` | 30/min/user |
+| Endpoint                       | Limit       |
+| ------------------------------ | ----------- |
+| Public share GET               | 60/min/IP   |
+| `recordPropertyView`           | 30/min/user |
 | Save search / create shortlist | 20/min/user |
-| Create share | 10/min/user |
-| Guest merge | 5/min/user |
+| Create share                   | 10/min/user |
+| Guest merge                    | 5/min/user  |
 
 ## History retention and privacy
 
@@ -76,12 +76,12 @@ Phase 4 implements schema cascades; full privacy export/delete **workflow** rema
 
 ## Audit requirements
 
-| Action | Audit? |
-| ------ | ------ |
-| Share create / revoke | Yes — actor = session user |
-| Alert enable / disable | Yes (lightweight) |
-| Shortlist CRUD | Optional (prefer application logs); not mandatory Phase 4 |
-| Record view | No (volume) |
+| Action                 | Audit?                                                    |
+| ---------------------- | --------------------------------------------------------- |
+| Share create / revoke  | Yes — actor = session user                                |
+| Alert enable / disable | Yes (lightweight)                                         |
+| Shortlist CRUD         | Optional (prefer application logs); not mandatory Phase 4 |
+| Record view            | No (volume)                                               |
 
 Actor identity always from verified session—never from body `actorUserId`.
 
@@ -95,16 +95,16 @@ Documented debt (KNOWN_ISSUES / decisions):
 
 ## Cross-user test matrix (required)
 
-| Case | Expect |
-| ---- | ------ |
-| User A GET User B shortlist | 404/403 |
-| User A PATCH User B note | 404/403 |
-| User A list B history | empty/403 |
-| User A read B notification | 403 |
+| Case                                      | Expect                                                                                  |
+| ----------------------------------------- | --------------------------------------------------------------------------------------- |
+| User A GET User B shortlist               | 404/403                                                                                 |
+| User A PATCH User B note                  | 404/403                                                                                 |
+| User A list B history                     | empty/403                                                                               |
+| User A read B notification                | 403                                                                                     |
 | Agency agent GET `/me/shortlists` as self | only if they also have buyer data as that user—org role must not bypass to other buyers |
-| Forged headers | ignored |
-| Share token for set with notes | notes absent |
-| Expired token | 404 |
+| Forged headers                            | ignored                                                                                 |
+| Share token for set with notes            | notes absent                                                                            |
+| Expired token                             | 404                                                                                     |
 
 ## Residual risks
 

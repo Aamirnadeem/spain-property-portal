@@ -41,25 +41,20 @@ Status meanings:
 - CSV partner import POST remains **service-role after API session + mutator checks** (ingestion exception, same class as workers/CLI)
 - Workers/CLI remain service-role exceptions (documented)
 
-## Phase 4 buyer workspace (planned — ADR-030)
+## Phase 4 buyer workspace (Phase 4A implemented — ADR-030a)
 
-Owner-scoped policies via `request.jwt.claim.sub` + `withAuthenticatedDb` on `/api/v1/me/*` (same pattern as favourites). Agencies must **not** receive SELECT on these tables.
+Owner-scoped policies via `request.jwt.claim.sub` + `withAuthenticatedDb` on `/api/v1/me/*`. Agencies have **no** SELECT on these tables.
 
-| Table | Planned policies |
-| ----- | ---------------- |
-| `shortlists` | owner select/insert/update/delete |
-| `shortlist_items` | via shortlist ownership |
-| `shortlist_notes` | via shortlist ownership |
-| `property_notes` | owner select/insert/update/delete |
-| `user_preference_profiles` | owner all |
-| `comparison_sets` / `comparison_items` | owner all |
-| `comparison_shares` | owner manage; **no** anon table SELECT — public token via server hash lookup |
-| `saved_searches` | owner all |
-| `recently_viewed` | owner all; never partner/admin APIs |
-| `alert_subscriptions` | owner all |
-| `in_app_notifications` | owner select/update (read) |
+| Table                                  | Status                                                                  |
+| -------------------------------------- | ----------------------------------------------------------------------- |
+| `shortlists`                           | **Implemented / tested** (`0008_phase4a_rls.sql`, `test:db`)            |
+| `shortlist_items`                      | **Implemented / tested**                                                |
+| `shortlist_notes`                      | **Implemented / tested** (catalogue + grants)                           |
+| `property_notes`                       | **Implemented / tested**                                                |
+| `user_preference_profiles`             | **Implemented** (migration + grants; profile path covered via services) |
+| `comparison_sets` / `comparison_items` | **Implemented** (migration + grants)                                    |
 
-Status: **Planned only** — see [`PHASE4_SECURITY_REVIEW.md`](PHASE4_SECURITY_REVIEW.md).
+Phase 4B/4C tables (`saved_searches`, `recently_viewed`, alerts, `comparison_shares`): **Planned only**.
 
 ## Authorization / deferred
 

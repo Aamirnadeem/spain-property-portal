@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { mergeGuestWorkspace } from '@spain/domain';
+import { mergeGuestWorkspaceIntoUser } from '@spain/database';
 import { authProvider, mapOtpError } from '@/lib/auth-runtime';
 import { ensureUserRow } from '@/lib/ensure-user';
 import { getAppDb } from '@/lib/db';
 import { appendFakeSessionCookie, appendSupabaseSessionCookies } from '@/lib/session';
 import { assertSameOrigin } from '@/lib/csrf';
+import { readGuestToken } from '@/lib/guest-cookie';
 
 const bodySchema = z.object({
   challengeId: z.string().uuid(),
@@ -17,6 +18,29 @@ const bodySchema = z.object({
       comparisonListingIds: z.array(z.string()).max(50).default([]),
       recentViewListingIds: z.array(z.string()).max(100).default([]),
       savedSearchCriteria: z.array(z.unknown()).max(20).default([]),
+      shortlists: z
+        .array(
+          z.object({
+            name: z.string().max(80),
+            isDefault: z.boolean().optional(),
+            listingIds: z.array(z.string()).max(100),
+            note: z.string().max(4000).optional(),
+          }),
+        )
+        .max(20)
+        .optional(),
+      preferenceWeights: z.record(z.string(), z.number()).optional(),
+      propertyNotes: z
+        .array(
+          z.object({
+            listingId: z.string(),
+            body: z.string().max(4000),
+            positives: z.array(z.string()).max(10).optional(),
+            negatives: z.array(z.string()).max(10).optional(),
+          }),
+        )
+        .max(100)
+        .optional(),
     })
     .optional(),
 });
@@ -33,29 +57,29 @@ export async function POST(request: Request) {
       code: body.code,
     });
     const user = verified.user;
+    const guestToken = readGuestToken(request);
 
     const { db, client } = getAppDb();
+    let mergeResult = null;
     try {
       await ensureUserRow(db, user.id);
+      mergeResult = await mergeGuestWorkspaceIntoUser(db, user.id, {
+        guestToken,
+        guestSessionId: body.guestKey,
+        fallbackPayload: body.guestPayload
+          ? {
+              favouriteListingIds: body.guestPayload.favouriteListingIds ?? [],
+              comparisonListingIds: body.guestPayload.comparisonListingIds ?? [],
+              recentViewListingIds: body.guestPayload.recentViewListingIds ?? [],
+              savedSearchCriteria: body.guestPayload.savedSearchCriteria ?? [],
+              shortlists: body.guestPayload.shortlists,
+              preferenceWeights: body.guestPayload.preferenceWeights,
+              propertyNotes: body.guestPayload.propertyNotes,
+            }
+          : null,
+      });
     } finally {
       await client.end({ timeout: 5 });
-    }
-
-    let merge = null;
-    if (body.guestKey && body.guestPayload) {
-      merge = mergeGuestWorkspace(
-        {
-          guestSessionId: body.guestKey,
-          ...body.guestPayload,
-        },
-        {
-          userId: user.id,
-          favouriteListingIds: [],
-          comparisonListingIds: [],
-          recentViewListingIds: [],
-          savedSearchCriteria: [],
-        },
-      );
     }
 
     const headers = new Headers();
@@ -70,8 +94,8 @@ export async function POST(request: Request) {
         userId: user.id,
         email: user.email,
         mobile: user.mobile,
-        merged: Boolean(merge),
-        merge,
+        merged: Boolean(mergeResult),
+        merge: mergeResult,
       },
       { headers },
     );

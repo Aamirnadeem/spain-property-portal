@@ -1,6 +1,6 @@
 # Known issues
 
-Date: 2026-08-06 (Phase 2 + Phase 3 + Phase 3.1)
+Date: 2026-08-06 (Phase 2 + Phase 3 + Phase 3.1 + Phase 4A)
 
 ## Phase 2
 
@@ -25,8 +25,15 @@ Date: 2026-08-06 (Phase 2 + Phase 3 + Phase 3.1)
 
 ## Phase 3.1 residual
 
-16. **Guest merge still accepts client `guestPayload`** (bounded by schema size). Prefer HttpOnly guest cookie as a fast follow; does not block agency session work.
+16. ~~**Guest merge still accepts client `guestPayload`**~~ — **Narrowed in Phase 4A**: HttpOnly `spain_guest_token` + `guest_sessions` is preferred; bounded `guestPayload` remains a fallback on OTP verify / merge. localStorage still used as a cache for shortlists/favourites.
 17. **CSV import uses service-role DB** after session + mutator checks (intentional ingestion exception; listing price/withdraw/admin/favourites use `withAuthenticatedDb`).
 18. **Live Supabase cookie SSR path** is wired for access-token cookies from OTP verify; full `@supabase/ssr` refresh-cookie rotation against a live project remains credential-gated.
 19. ~~**`pnpm format:check` fails on Windows checkouts** for ~100 files no phase touched~~ — **Resolved**: `.prettierrc.json` now sets `endOfLine: "auto"`, so Prettier accepts the platform's checked-out line endings (Windows `core.autocrlf=true` produces CRLF working trees while the repository stores LF) and still enforces consistency within each file. Chosen over `.gitattributes` + renormalization because it fixes the gate without a repository-wide line-ending-only diff; Git continues to normalize to LF on commit, so committed content is unchanged.
 20. **FakeAuth logout is cookie-clear only.** FakeAuth sessions are stateless HMAC tokens, so logout does not revoke a copied token before its eight-hour expiry. This provider is restricted to local/test use; production Supabase session revocation remains provider-managed.
+
+## Phase 4A residual
+
+21. **Energy / condition / outdoor / accessibility / investment** comparison criteria remain unavailable or always-missing until real inventory fields exist — UI shows unavailable; scoring excludes them.
+22. **Guest comparison** uses client-side `scoreComparisonSet` for anonymous users; authenticated users use `/api/v1/me/comparisons/preview`. Notes are never included for guests.
+23. Phase 4B/4C (saved searches, history, alerts, share links) not started.
+24. ~~**Phase 4A buyer journey fails on a cold Playwright run**~~ — **Resolved**: on a genuinely cold run (`apps/web/.next` deleted) `expect(getByTestId('property-detail'))` failed inside the default 5s budget because `next dev` still had to compile two chained routes after the click — `/[locale]/properties/[listingId]` (measured 3776 ms) and the `/api/v1/properties/[listingId]` call its client component awaits (4119 ms), ~7.9s in total versus ~0.6s warm. Playwright's `webServer.url` gate only proved `/api/health` had compiled, so nothing guaranteed application readiness. Fixed with an `app-ready` setup project (`apps/web/e2e/app-ready.setup.ts`) that polls `/api/health`, polls `/api/v1/properties?limit=1` until a seeded listing is queryable (proving migrations + seed + property API), and warms every route the journeys visit; the journey now waits for the property-detail response to complete before asserting; and server-startup (120s), readiness (180s) and per-assertion (15s, measured from warm behaviour) budgets are separated. No sleeps, no weakened assertions, retries still `0` everywhere so a first-run failure can never be masked. Verified with 5 consecutive clean cold runs plus 2 warm runs (7/7 pass) and a cold full suite (16 passed) — details and residual limitations in `docs/PHASE4A_ACCEPTANCE_REVIEW.md`.

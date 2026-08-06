@@ -187,9 +187,11 @@ export async function mergeGuestFavouritesIntoUser(
   userId: string,
   guestListingIds: string[],
 ): Promise<string[]> {
-  for (const listingId of guestListingIds) {
-    await addFavourite(db, userId, listingId);
-  }
+  await db.transaction(async (tx) => {
+    for (const listingId of guestListingIds) {
+      await tx.insert(schema.favourites).values({ userId, listingId }).onConflictDoNothing();
+    }
+  });
   const listed = await listFavourites(db, userId);
   return listed.map((l) => l.id);
 }

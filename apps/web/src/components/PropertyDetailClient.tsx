@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { formatPriceEur, type ListingDetailDto } from '@spain/domain';
+import { AddToShortlistControl } from './AddToShortlistControl';
 
 const FAV_KEY = 'spain_guest_favourites';
 
@@ -145,6 +146,10 @@ export function PropertyDetailClient({
       <button type="button" onClick={toggleFavourite} data-testid="favourite-toggle">
         {favourited ? labels.removeFavourite : labels.addFavourite}
       </button>
+      <AddToShortlistControl
+        listingId={listingId}
+        label={labels.addToShortlist ?? 'Add to shortlist'}
+      />
     </article>
   );
 }

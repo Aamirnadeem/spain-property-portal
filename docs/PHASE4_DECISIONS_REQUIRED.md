@@ -8,14 +8,14 @@ Resolved planning locks are in ADR-030 ([`DECISIONS.md`](DECISIONS.md)). This fi
 
 ## Already locked (do not re-open without ADR)
 
-| Topic | Lock |
-| ----- | ---- |
-| Phase number | Phase 4 = buyer workspace remainder (ADR-022) |
-| Favourites | Keep Phase 2 table; shortlists are separate; no auto-sync hearts → shortlists |
-| Alerts channels | In-app + TestNotificationProvider only; no prod email/SMS/WhatsApp |
-| Jobs | Inline evaluation (ADR-027); no pg-boss in Phase 4 |
-| Missing facts | Show unavailable; no enrichment invention |
-| Score | Preference fit with disclaimer; not valuation |
+| Topic                 | Lock                                                                                         |
+| --------------------- | -------------------------------------------------------------------------------------------- |
+| Phase number          | Phase 4 = buyer workspace remainder (ADR-022)                                                |
+| Favourites            | Keep Phase 2 table; shortlists are separate; no auto-sync hearts → shortlists                |
+| Alerts channels       | In-app + TestNotificationProvider only; no prod email/SMS/WhatsApp                           |
+| Jobs                  | Inline evaluation (ADR-027); no pg-boss in Phase 4                                           |
+| Missing facts         | Show unavailable; no enrichment invention                                                    |
+| Score                 | Preference fit with disclaimer; not valuation                                                |
 | Deferred from Slice 4 | Leads, viewing requests, privacy export/delete workers, collaborators → Phase 4.1+ / Phase 6 |
 
 ## Open decisions
@@ -26,7 +26,7 @@ Resolved planning locks are in ADR-030 ([`DECISIONS.md`](DECISIONS.md)). This fi
 
 **Recommendation:** (b) as Phase 4 implementation goal; (a) acceptable interim if schedule-bound.
 
-**Owner:** Engineering  
+**Owner:** Engineering
 
 ### D2 — Default shortlist on first login
 
@@ -34,7 +34,7 @@ Resolved planning locks are in ADR-030 ([`DECISIONS.md`](DECISIONS.md)). This fi
 
 **Recommendation:** (b) empty default named “My shortlist” — keeps favourites independent.
 
-**Owner:** Product  
+**Owner:** Product
 
 ### D3 — Unauthenticated `/workspace` HTML
 
@@ -42,37 +42,37 @@ Resolved planning locks are in ADR-030 ([`DECISIONS.md`](DECISIONS.md)). This fi
 
 **Recommendation:** (a) for buyer UX; APIs remain session-protected.
 
-**Owner:** Product  
+**Owner:** Product
 
 ### D4 — Comparison max items
 
 Locked default **5** in plan. Confirm if product wants 4 or 6.
 
-**Owner:** Product  
+**Owner:** Product
 
 ### D5 — History retention days
 
 Locked default **90**. Confirm env override and whether guest local history uses same cap (50 items).
 
-**Owner:** Product / Privacy  
+**Owner:** Product / Privacy
 
 ### D6 — Public share includes frozen scores?
 
 Plan default: **no** scores on public share unless user opts in at creation.
 
-**Owner:** Product  
+**Owner:** Product
 
 ### D7 — Promote new default when default shortlist deleted
 
 Plan default: **do not** auto-promote. Confirm.
 
-**Owner:** Product  
+**Owner:** Product
 
 ### D8 — Extend `PropertySearchCriteria` for status / off-plan
 
 May require small `@spain/search` schema extension. Confirm field names before migration of saved_searches examples.
 
-**Owner:** Engineering  
+**Owner:** Engineering
 
 ### D9 — Phase 4.1 backlog naming
 
@@ -80,7 +80,7 @@ Confirm label for deferred Slice 4 remainder (leads, privacy workflows, email di
 
 **Recommendation:** Phase 4.1 for leads + privacy workers; email digests when notification channels expand; collaborators stay Phase 6.
 
-**Owner:** Product  
+**Owner:** Product
 
 ### D10 — `investment_potential` weight
 
@@ -88,20 +88,20 @@ Plan: always missing unless future personal score. Confirm weight remains in UI 
 
 **Recommendation:** Show in UI but disable / explain data not available.
 
-**Owner:** Product  
+**Owner:** Product
 
 ## Implementation blockers (external)
 
-| Blocker | Impact |
-| ------- | ------ |
-| None for local FakeAuth + PostGIS | Phase 4 can proceed without live Supabase credentials |
-| Live email | Not needed (test provider only) |
-| Energy / school / hospital source data | Fields stay unavailable until real ingestion exists |
+| Blocker                                | Impact                                                |
+| -------------------------------------- | ----------------------------------------------------- |
+| None for local FakeAuth + PostGIS      | Phase 4 can proceed without live Supabase credentials |
+| Live email                             | Not needed (test provider only)                       |
+| Energy / school / hospital source data | Fields stay unavailable until real ingestion exists   |
 
 ## Sign-off
 
 Phase 4 **implementation** must not start until:
 
-1. This plan set is reviewed  
-2. Critical opens D2, D3, D6 acknowledged (defaults OK if silent approval)  
+1. This plan set is reviewed
+2. Critical opens D2, D3, D6 acknowledged (defaults OK if silent approval)
 3. Explicit user approval to implement

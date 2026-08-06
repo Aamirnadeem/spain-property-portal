@@ -18,30 +18,30 @@ Define a structured, explainable side-by-side comparison of listings and a weigh
 
 Each cell is `{ status: "available", value: T } | { status: "unavailable", reason: "not_in_source" | "not_applicable" }`.
 
-| Field | Source (planned) | Notes |
-| ----- | ---------------- | ----- |
-| Asking price | `property_listings.price_amount` + currency | |
-| Price per m² | `price_per_sqm` or computed if built area present | If neither → unavailable |
-| Bedrooms | `bedrooms` | |
-| Bathrooms | `bathrooms` | |
-| Built area | `built_area_sqm` | |
-| Usable area | `usable_area_sqm` | Often null → unavailable |
-| Property type | `property_type_key` / label | |
-| Condition | feature or attribute if present | Else unavailable — **do not invent** |
-| Energy rating | not in Phase 2/3 schema | **unavailable** until a real column/source exists |
-| Location | `area_label`, `address_text` | |
-| Environmental classification | `environment_type` | city_center / coastal / hillside |
-| Transport access | `nearest_transit` | |
-| Estimated commute | `commute_min` | |
-| Beach proximity | `beach_proximity` | |
-| Park proximity | `park_proximity` | |
-| School proximity | not populated | unavailable |
-| Hospital proximity | not populated | unavailable |
-| Listing freshness | freshness fields / `last_confirmed_available_at` | |
-| Source | portal / agency attribution | |
-| Off-plan status | listing flag/feature if present | unavailable if unknown |
-| Known recurring expenses | if present on listing/features | unavailable if unknown |
-| Buyer notes | `property_notes` | **Owner session only**; omit on public share |
+| Field                        | Source (planned)                                  | Notes                                             |
+| ---------------------------- | ------------------------------------------------- | ------------------------------------------------- |
+| Asking price                 | `property_listings.price_amount` + currency       |                                                   |
+| Price per m²                 | `price_per_sqm` or computed if built area present | If neither → unavailable                          |
+| Bedrooms                     | `bedrooms`                                        |                                                   |
+| Bathrooms                    | `bathrooms`                                       |                                                   |
+| Built area                   | `built_area_sqm`                                  |                                                   |
+| Usable area                  | `usable_area_sqm`                                 | Often null → unavailable                          |
+| Property type                | `property_type_key` / label                       |                                                   |
+| Condition                    | feature or attribute if present                   | Else unavailable — **do not invent**              |
+| Energy rating                | not in Phase 2/3 schema                           | **unavailable** until a real column/source exists |
+| Location                     | `area_label`, `address_text`                      |                                                   |
+| Environmental classification | `environment_type`                                | city_center / coastal / hillside                  |
+| Transport access             | `nearest_transit`                                 |                                                   |
+| Estimated commute            | `commute_min`                                     |                                                   |
+| Beach proximity              | `beach_proximity`                                 |                                                   |
+| Park proximity               | `park_proximity`                                  |                                                   |
+| School proximity             | not populated                                     | unavailable                                       |
+| Hospital proximity           | not populated                                     | unavailable                                       |
+| Listing freshness            | freshness fields / `last_confirmed_available_at`  |                                                   |
+| Source                       | portal / agency attribution                       |                                                   |
+| Off-plan status              | listing flag/feature if present                   | unavailable if unknown                            |
+| Known recurring expenses     | if present on listing/features                    | unavailable if unknown                            |
+| Buyer notes                  | `property_notes`                                  | **Owner session only**; omit on public share      |
 
 ### Hard rule
 
@@ -91,19 +91,19 @@ Pure function in `@spain/domain` (unit-tested):
 
 ### Fact mappings (conservative)
 
-| Weight key | Uses available facts | Heuristic (document as preference fit, not appraisal) |
-| ---------- | -------------------- | ---------------------------------------------------- |
-| price | asking price vs user max from saved search or cohort median of compare set | Lower relative price → higher fact score within set |
-| location | area label present | Binary 1 if present (weak) — prefer user-set preferred areas later |
-| commute | `commute_min` | Inverse normalize within set |
-| quiet_surroundings | environment / features if any | Else missing |
-| coastal_access | beach proximity or environment=`coastal` | Else missing |
-| outdoor_space | features (terrace/garden) if joined | Else missing |
-| size | built or usable area | Normalize within set |
-| condition | condition cell | Else missing |
-| energy_efficiency | energy cell | Else missing until data exists |
-| accessibility | feature flags if any | Else missing |
-| investment_potential | **never auto-claimed** | Always `missing` unless user supplies explicit personal score later |
+| Weight key           | Uses available facts                                                       | Heuristic (document as preference fit, not appraisal)               |
+| -------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| price                | asking price vs user max from saved search or cohort median of compare set | Lower relative price → higher fact score within set                 |
+| location             | area label present                                                         | Binary 1 if present (weak) — prefer user-set preferred areas later  |
+| commute              | `commute_min`                                                              | Inverse normalize within set                                        |
+| quiet_surroundings   | environment / features if any                                              | Else missing                                                        |
+| coastal_access       | beach proximity or environment=`coastal`                                   | Else missing                                                        |
+| outdoor_space        | features (terrace/garden) if joined                                        | Else missing                                                        |
+| size                 | built or usable area                                                       | Normalize within set                                                |
+| condition            | condition cell                                                             | Else missing                                                        |
+| energy_efficiency    | energy cell                                                                | Else missing until data exists                                      |
+| accessibility        | feature flags if any                                                       | Else missing                                                        |
+| investment_potential | **never auto-claimed**                                                     | Always `missing` unless user supplies explicit personal score later |
 
 Investment potential must not be inferred from price alone in Phase 4.
 
@@ -115,13 +115,13 @@ i18n key: `compare.suitabilityDisclaimer`.
 
 ## Share vs owner views
 
-| Element | Owner compare | Public share |
-| ------- | ------------- | ------------ |
-| Matrix facts | Yes | Yes (selected listings only) |
-| Buyer notes | Yes | No |
-| Weights / score | Yes (optional) | Optional public score **without** identity; prefer omit personal weights or show anonymous snapshot baked at share time |
-| Account identity | Yes | No |
-| History | No | No |
+| Element          | Owner compare  | Public share                                                                                                            |
+| ---------------- | -------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Matrix facts     | Yes            | Yes (selected listings only)                                                                                            |
+| Buyer notes      | Yes            | No                                                                                                                      |
+| Weights / score  | Yes (optional) | Optional public score **without** identity; prefer omit personal weights or show anonymous snapshot baked at share time |
+| Account identity | Yes            | No                                                                                                                      |
+| History          | No             | No                                                                                                                      |
 
 Locked default: **public share includes matrix facts + optional title; excludes notes, identity, history; excludes live personal weights** (may include frozen score snapshot if user opts in at create time — decision default: **no scores on public share** unless opted in).
 
