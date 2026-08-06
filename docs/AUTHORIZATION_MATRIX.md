@@ -1,10 +1,10 @@
-# Authorization matrix — Phase 3.1
+# Authorization matrix — Phase 3.1 (+ Phase 4 planned)
 
 Date: 2026-08-06  
-Status: **Implemented**  
+Status: Phase 3.1 **Implemented**; Phase 4 buyer routes **Planned** ([`PHASE4_PLAN.md`](PHASE4_PLAN.md))  
 Related: [`PHASE3_1_AUTH_PLAN.md`](PHASE3_1_AUTH_PLAN.md), [`SESSION_SECURITY_DESIGN.md`](SESSION_SECURITY_DESIGN.md), [`PHASE3_1_IMPLEMENTATION.md`](PHASE3_1_IMPLEMENTATION.md)
 
-Legend: **Y** = allow · **N** = deny · **—** = not applicable · **S** = session required
+Legend: **Y** = allow · **N** = deny · **—** = not applicable · **S** = session required · **P** = planned Phase 4
 
 Role keys: `anon`, `buyer` (authenticated, no org/platform role), `org_viewer`, `org_agent` (editor), `org_admin`/`org_owner` (agency admin), `listing_reviewer`, `platform_admin`.
 
@@ -20,6 +20,25 @@ Role keys: `anon`, `buyer` (authenticated, no org/platform role), `org_viewer`, 
 | `POST /api/v1/auth/otp/request`      | Y    | Y     | Rate limited             |
 | `POST /api/v1/auth/otp/verify`       | Y    | Y     | Establishes session      |
 | `POST /api/v1/auth/logout`           | Y    | Y     | Clears cookies           |
+
+### Phase 4 buyer workspace APIs (planned)
+
+| Route | anon | buyer | org_* | Notes |
+| ----- | ---- | ----- | ----- | ----- |
+| `GET/POST/PATCH/DELETE /api/v1/me/shortlists` | N | Y (S) **P** | N\* | Owner only; \*org role does not grant other buyers’ data |
+| `POST/DELETE /api/v1/me/shortlists/{id}/items` | N | Y (S) **P** | N | |
+| `GET/PUT/DELETE /api/v1/me/notes/properties/{id}` | N | Y (S) **P** | N | |
+| `POST /api/v1/me/comparisons/preview` | N | Y (S) **P** | N | |
+| `GET/PUT /api/v1/me/preference-profiles` | N | Y (S) **P** | N | |
+| `GET/POST/PATCH/DELETE /api/v1/me/saved-searches` | N | Y (S) **P** | N | |
+| `POST/DELETE /api/v1/me/saved-searches/{id}/alerts` | N | Y (S) **P** | N | Consent required |
+| `GET/DELETE /api/v1/me/history` | N | Y (S) **P** | N | Never agency-visible |
+| `POST /api/v1/me/history/views` | N | Y (S) **P** | N | |
+| `GET/PATCH /api/v1/me/notifications` | N | Y (S) **P** | N | |
+| `POST/DELETE /api/v1/me/comparison-shares` | N | Y (S) **P** | N | |
+| `GET /api/v1/compare/shared/{token}` | Y **P** | Y | Y | Public facts only; rate-limited; no notes/identity |
+
+Guest shortlists/searches/history: **local only** until merge after auth.
 
 ---
 
@@ -64,6 +83,8 @@ All require **verified session** + platform role.
 | ----------------------------------- | --------------- | ----- | ------------------ | --------------------- |
 | `/{locale}/search`, property detail | Y               | Y     | Y                  | Y                     |
 | `/{locale}/favourites`              | Y (guest local) | Y (S) | Y                  | Y                     |
+| `/{locale}/workspace/**` (Phase 4)  | Y (guest local) **P** | Y (S) **P** | Y (own buyer data only) | Y |
+| `/{locale}/compare/shared/{token}`  | Y **P**         | Y     | Y                  | Y                     |
 | `/{locale}/partner/**`              | N → login       | N     | Y (S + membership) | N\*                   |
 | `/{locale}/admin/**`                | N → login       | N     | N                  | Y (S + platform role) |
 | `DevIdentitySwitcher`               | —               | —     | Dev/fake only      | Dev/fake only         |
@@ -82,6 +103,10 @@ All require **verified session** + platform role.
 | `x-user-id` of admin without session (prod) | 401 (ignored)               |
 | Body `actorUserId` spoof on audit write     | Ignored; session actor used |
 | Role string in body/query                   | Ignored                     |
+| Buyer A reads Buyer B shortlist/notes/history (Phase 4) | 403 / empty        |
+| Agency role lists another buyer’s `/me/*` (Phase 4)     | Denied             |
+| Public share returns notes or identity (Phase 4)        | Must not           |
+| Expired/revoked share token (Phase 4)                   | 404                |
 
 ---
 

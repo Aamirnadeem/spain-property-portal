@@ -87,7 +87,7 @@ This is the implementation-facing decision log. The broader planning register re
 - **Phase 4** = Buyer workspace remainder (shortlists, comparison, alerts, leads, privacy workflows) beyond Phase 2 favourites.
 - Former documentation that labelled live inventory as Phase 4 and buyer workspace as Phase 3 is superseded by this ADR and [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md).
 - Phase 5+ (AI chat, etc.) keep their phase numbers.
-- **Status:** implemented — see [`PHASE3_IMPLEMENTATION.md`](PHASE3_IMPLEMENTATION.md). Phase 4 has not been started.
+- **Status:** implemented — see [`PHASE3_IMPLEMENTATION.md`](PHASE3_IMPLEMENTATION.md). Phase 4 **planning** complete ([`PHASE4_PLAN.md`](PHASE4_PLAN.md)); Phase 4 **implementation** not started.
 
 ### ADR-023 — Phase 3 first vertical slice
 
@@ -143,3 +143,14 @@ This is the implementation-facing decision log. The broader planning register re
 - Planning docs: [`PHASE3_1_AUTH_PLAN.md`](PHASE3_1_AUTH_PLAN.md), [`AUTHORIZATION_MATRIX.md`](AUTHORIZATION_MATRIX.md), [`SESSION_SECURITY_DESIGN.md`](SESSION_SECURITY_DESIGN.md), [`PHASE3_1_ACCEPTANCE_CRITERIA.md`](PHASE3_1_ACCEPTANCE_CRITERIA.md).
 - Implementation: [`PHASE3_1_IMPLEMENTATION.md`](PHASE3_1_IMPLEMENTATION.md).
 - **Status:** **implemented** (2026-08-06).
+
+## Phase 4 planning (2026-08-06)
+
+### ADR-030 — Phase 4 buyer workspace scope lock
+
+- **Decision:** Phase 4 implements shortlists, notes, structured comparison with explainable weights, saved searches, browsing history, in-app alerts foundation (TestNotificationProvider only), shareable comparisons, and transactional guest merge—reusing Phase 2 favourites and ADR-029 sessions.
+- **Not in Phase 4:** production email/SMS/WhatsApp alerts; leads/viewing requests; privacy export/delete workers; collaborator invites; AI/WhatsApp/voice; inventing missing listing facts.
+- Favourites remain a separate Phase 2 heart bookmark; named shortlists do not auto-sync from favourites.
+- Alert evaluation uses **inline** hooks (ADR-027); no pg-boss required for Phase 4.
+- Planning docs: [`PHASE4_PLAN.md`](PHASE4_PLAN.md), [`BUYER_WORKSPACE_DESIGN.md`](BUYER_WORKSPACE_DESIGN.md), [`PROPERTY_COMPARISON_MODEL.md`](PROPERTY_COMPARISON_MODEL.md), [`SAVED_SEARCH_AND_ALERT_MODEL.md`](SAVED_SEARCH_AND_ALERT_MODEL.md), [`PHASE4_DATABASE_CHANGES.md`](PHASE4_DATABASE_CHANGES.md), [`PHASE4_SECURITY_REVIEW.md`](PHASE4_SECURITY_REVIEW.md), [`PHASE4_ACCEPTANCE_CRITERIA.md`](PHASE4_ACCEPTANCE_CRITERIA.md), [`PHASE4_DECISIONS_REQUIRED.md`](PHASE4_DECISIONS_REQUIRED.md).
+- **Status:** **planning complete** — implementation not started until explicit approval.

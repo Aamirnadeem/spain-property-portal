@@ -291,29 +291,38 @@ Also: partner onboarding; API/webhook interfaces; authorized-crawl framework (no
 
 ### Phase 4 — Buyer workspace / Slice 4 (M)
 
-> Favourites already shipped in Phase 2. This phase completes the remaining buyer workspace.
+> Favourites already shipped in Phase 2. **Planning:** [`PHASE4_PLAN.md`](PHASE4_PLAN.md) (ADR-030). **Do not implement until the Phase 4 plan is explicitly approved.**
 
-**Deliver**
+**Deliver (Phase 4 scope lock)**
 
-- Multiple named shortlists; notes, labels, personal scores; purchase stages
-- Comparison sets with explainable weighted suitability scores (never valuation/legal opinion)
-- Recently viewed and search history
-- Saved searches and email alerts (instant/daily/weekly where appropriate)
+- Multiple named shortlists; property and shortlist notes; default shortlist
+- Comparison matrix with explainable weighted suitability scores (never valuation/legal opinion); unavailable facts not invented
+- Recently viewed history with privacy controls
+- Saved searches; guest local → merge on auth
+- Alerts **foundation**: in-app notification centre + TestNotificationProvider only (inline evaluation; no production email/SMS/WhatsApp)
+- Secure shareable comparison links (expire/revoke)
+- Transactional guest→account merge for favourites, shortlists, searches, history, weights
+- Owner RLS + cross-user isolation tests
+
+**Deferred to Phase 4.1+ / Phase 6 (not Phase 4)**
+
 - Leads and viewing requests
-- Privacy export and deletion workflows
-- Optional collaborator invite model foundations (full collaboration may complete in Phase 6)
+- Privacy export and deletion workers
+- Production email/SMS/WhatsApp alert delivery and digests
+- Shortlist collaborator invites (Phase 6)
+- Purchase-stage labels / full collaborator export
 
 **Acceptance criteria**
 
 - [ ] Registered users can shortlist, compare, note, save searches and review history (favourites already in Phase 2)
-- [ ] Guest comparisons/views/AI criteria merge after registration when eligible
-- [ ] One user cannot access another user’s shortlists, notes or conversations
-- [ ] Email alerts are produced by background jobs via the email adapter
-- [ ] Enquiries and viewing requests create leads with status history
-- [ ] Privacy export and deletion workflows exist and are tested
+- [ ] Guest shortlists/views/saved searches/weights merge after registration when eligible
+- [ ] One user cannot access another user’s shortlists, notes or history
+- [ ] In-app notifications fire for subscribed alert events via test provider; no prod email/SMS/WhatsApp
+- [ ] Share links hide identity, notes and history; expire and revoke work
 - [ ] Suitability score shows calculation explanation and disclaimer
+- See full checklist: [`PHASE4_ACCEPTANCE_CRITERIA.md`](PHASE4_ACCEPTANCE_CRITERIA.md)
 
-**Can proceed without external credentials:** yes with fake email adapter.
+**Can proceed without external credentials:** yes with FakeAuth + TestNotificationProvider.
 
 ---
 

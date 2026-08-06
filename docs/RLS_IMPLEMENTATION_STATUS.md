@@ -1,7 +1,8 @@
 # RLS implementation status
 
-Date: 2026-08-06 (updated Phase 3.1 implementation)  
-Migrations: `0001_phase1_rls.sql`, `0003_phase2_rls.sql`, `0005_phase3_rls.sql`, `0006_phase3_1_rls.sql`
+Date: 2026-08-06 (Phase 4 policies **planned** — not migrated)  
+Migrations: `0001_phase1_rls.sql`, `0003_phase2_rls.sql`, `0005_phase3_rls.sql`, `0006_phase3_1_rls.sql`  
+Planned: `0007_phase4_buyer_workspace.sql`, `0008_phase4_rls.sql` ([`PHASE4_DATABASE_CHANGES.md`](PHASE4_DATABASE_CHANGES.md))
 
 Status meanings:
 
@@ -40,11 +41,33 @@ Status meanings:
 - CSV partner import POST remains **service-role after API session + mutator checks** (ingestion exception, same class as workers/CLI)
 - Workers/CLI remain service-role exceptions (documented)
 
+## Phase 4 buyer workspace (planned — ADR-030)
+
+Owner-scoped policies via `request.jwt.claim.sub` + `withAuthenticatedDb` on `/api/v1/me/*` (same pattern as favourites). Agencies must **not** receive SELECT on these tables.
+
+| Table | Planned policies |
+| ----- | ---------------- |
+| `shortlists` | owner select/insert/update/delete |
+| `shortlist_items` | via shortlist ownership |
+| `shortlist_notes` | via shortlist ownership |
+| `property_notes` | owner select/insert/update/delete |
+| `user_preference_profiles` | owner all |
+| `comparison_sets` / `comparison_items` | owner all |
+| `comparison_shares` | owner manage; **no** anon table SELECT — public token via server hash lookup |
+| `saved_searches` | owner all |
+| `recently_viewed` | owner all; never partner/admin APIs |
+| `alert_subscriptions` | owner all |
+| `in_app_notifications` | owner select/update (read) |
+
+Status: **Planned only** — see [`PHASE4_SECURITY_REVIEW.md`](PHASE4_SECURITY_REVIEW.md).
+
 ## Authorization / deferred
 
-- Call tables, privacy export worker paths: planned for Phase 4+ buyer/privacy work
+- Privacy export worker paths: Phase 4.1+
+- Call tables: later phases
 - Media malware scanner integration / rights-checked media pipeline: not built in Phase 3
 - JSON/XML `duplicate_candidates` / physical-property matching tables: not built
+- Leads / viewing requests RLS: Phase 4.1+
 
 ## Not applicable
 

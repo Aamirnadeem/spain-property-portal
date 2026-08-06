@@ -208,20 +208,32 @@ GET  /api/v1/properties/{listingId}/price-history
 GET  /api/v1/properties/{listingId}/freshness
 POST /api/v1/search/parse-natural-language
 POST /api/v1/compare/preview
+GET  /api/v1/compare/shared/{token}    # Phase 4 — public share (rate-limited)
 ```
 
 ### 7.3 Account / workspace
 
 ```text
 GET/PUT /api/v1/me/profile
-GET/POST/DELETE /api/v1/me/favourites
-GET/POST/PUT/DELETE /api/v1/me/shortlists
-POST /api/v1/me/shortlists/{id}/items
+GET/POST/DELETE /api/v1/favourites          # Phase 2 (shipped); me/favourites alias optional later
+GET/POST/PUT/DELETE /api/v1/me/shortlists   # Phase 4 (planned)
+POST/DELETE /api/v1/me/shortlists/{id}/items
+PUT /api/v1/me/shortlists/{id}/note
+GET/PUT/DELETE /api/v1/me/notes/properties/{listingId}
+POST /api/v1/me/comparisons/preview
+GET/PUT /api/v1/me/preference-profiles
 GET/POST/PUT/DELETE /api/v1/me/saved-searches
-GET /api/v1/me/history
-POST /api/v1/me/privacy/export
-POST /api/v1/me/privacy/delete
+POST/DELETE /api/v1/me/saved-searches/{id}/alerts
+GET/DELETE /api/v1/me/history
+POST /api/v1/me/history/views
+GET/PATCH /api/v1/me/notifications
+POST/DELETE /api/v1/me/comparison-shares
+POST /api/v1/me/workspace/merge
+POST /api/v1/me/privacy/export              # Phase 4.1+ deferred
+POST /api/v1/me/privacy/delete              # Phase 4.1+ deferred
 ```
+
+Phase 4 design: [`PHASE4_PLAN.md`](PHASE4_PLAN.md), [`BUYER_WORKSPACE_DESIGN.md`](BUYER_WORKSPACE_DESIGN.md).
 
 ### 7.4 Leads and AI
 

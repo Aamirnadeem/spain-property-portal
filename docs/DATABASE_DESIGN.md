@@ -324,9 +324,10 @@ Migrations are ordered and additive. Never edit production schema manually.
 | M07  | Histories: listing_status_history, listing_price_history, verification_events                                                         | 2                  |
 | M08  | Media: media_assets, media_rights, listing_media                                                                                      | 2                  |
 | M09  | Off-plan: developments, development_units, offplan_milestones, property_documents, document_verifications                             | 2 / 6              |
-| M10  | Buyer workspace: favourites, shortlists, items, notes, comparisons, saved_searches, search_runs, recently_viewed, preference profiles | 3                  |
-| M11  | Alerts: alerts, alert_deliveries; collaborators                                                                                       | 3 / 6              |
-| M12  | Leads: leads, links, viewing_requests, assignments, status history                                                                    | 3                  |
+| M10  | Buyer workspace: favourites (done P2); shortlists, items, notes, comparisons, shares, saved_searches, recently_viewed, preference profiles | **4** (plan: [`PHASE4_DATABASE_CHANGES.md`](PHASE4_DATABASE_CHANGES.md); was mis-labelled 3) |
+| M11  | Alerts: alert_subscriptions, in_app_notifications (P4); email deliveries / collaborators later                                         | **4** foundation / 4.1+ / 6 |
+| M12  | Leads: leads, links, viewing_requests, assignments, status history                                                                    | **4.1+** (deferred from Phase 4 scope lock) |
+
 | M13  | Conversations: conversations, participants, messages, attachments, property links, channel_threads, handoffs, summaries               | 5–6                |
 | M14  | AI: ai_runs, ai_tool_calls, ai_feedback, evaluation tables                                                                            | 5                  |
 | M15  | Communications: communication_deliveries; call_sessions, call_recordings, call_consents (disabled in app config)                      | 6                  |

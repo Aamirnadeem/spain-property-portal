@@ -1,6 +1,6 @@
 # Implementation status
 
-Date: 2026-08-06 (Phase 3.1 authentication hardening complete)
+Date: 2026-08-06 (Phase 4 planning documentation complete; implementation not started)
 
 ## Completed
 
@@ -16,6 +16,7 @@ Date: 2026-08-06 (Phase 3.1 authentication hardening complete)
 - Phase 3 planning documentation (ADR-022 renumber)
 - **Phase 3 vertical slice implementation** — authorized agency CSV upload → validation → normalization → admin review → publication → price/status update → withdrawal. See [`PHASE3_IMPLEMENTATION.md`](PHASE3_IMPLEMENTATION.md) and [`IMPORT_FORMAT_CSV.md`](IMPORT_FORMAT_CSV.md)
 - **Phase 3.1 verified session auth (ADR-029)** — FakeAuth sealed / Supabase sessions replace `x-user-id`; org/platform roles from DB; `withAuthenticatedDb` RLS claim wiring. See [`PHASE3_1_IMPLEMENTATION.md`](PHASE3_1_IMPLEMENTATION.md)
+- **Phase 4 planning documentation (ADR-030)** — shortlists, notes, comparison/weights, saved searches, history, in-app alerts foundation, share links, guest merge, security. See [`PHASE4_PLAN.md`](PHASE4_PLAN.md). **Application code not started.**
 
 ## Credential-gated
 
@@ -30,8 +31,9 @@ Date: 2026-08-06 (Phase 3.1 authentication hardening complete)
 - pg-boss / background job runner
 - Rights-checked media pipeline / authorized listing photographs
 - Multi-partner / nationwide rollout
-- Phase 4 buyer workspace remainder (shortlists, comparison, alerts, leads beyond Phase 2 favourites)
+- **Phase 4 buyer workspace implementation** (plan approved pending; see [`PHASE4_PLAN.md`](PHASE4_PLAN.md))
+- Phase 4.1+ deferred Slice 4 remainder: leads, viewing requests, privacy export/delete workers, production email digests
 - Phase 5+ AI assistant, WhatsApp, voice
 - Map distance enrichment
 
-**Phase 4 has not been started.**
+**Phase 4 implementation has not been started.** Planning docs are complete.
