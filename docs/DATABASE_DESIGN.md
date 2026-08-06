@@ -163,6 +163,9 @@ Spain
 | `saved_search_evaluation_runs` / `saved_search_last_matches` | Alert evaluation — **4B shipped**                                              |
 | `in_app_notifications` / `notification_deliveries`           | In-app alerts — **4B shipped**                                                 |
 | `alerts` / `alert_subscriptions`                             | Prefer columns on `saved_searches` in 4B; legacy name deprecated               |
+| `comparison_shares`                                          | Secure public comparison links (token hash, expiry, revoke) — **4C planned**   |
+| `comparison_share_items`                                     | Explicit 2–5 listing selection frozen at create — **4C planned**               |
+| `comparison_share_access_events`                             | Privacy-minimal resolve events — **4C planned**                                |
 
 Purchase stages (on notes/items or dedicated field): researching, viewing requested, viewed, offer considered, rejected (extendable).
 
@@ -248,6 +251,8 @@ Jobs must not run when approval is missing, expired or suspended.
 | `property_listings`   | `listing_media`           | 1:N                  | Ordered gallery                |
 | `users`               | `shortlists`              | 1:N                  | Named lists                    |
 | `shortlists`          | `shortlist_collaborators` | 1:N                  | Permissions                    |
+| `users`               | `comparison_shares`       | 1:N                  | Owner share links (4C planned) |
+| `comparison_shares`   | `comparison_share_items`  | 1:N                  | Frozen listing selection       |
 | `users` / guests      | `conversations`           | M:N via participants | Channel-neutral                |
 | `conversations`       | `messages`                | 1:N                  | Includes AI and human          |
 | `conversations`       | `ai_runs`                 | 1:N                  | Tool audit                     |
@@ -325,7 +330,7 @@ Migrations are ordered and additive. Never edit production schema manually.
 | M07  | Histories: listing_status_history, listing_price_history, verification_events                                                        | 2                                                                                                                                |
 | M08  | Media: media_assets, media_rights, listing_media                                                                                     | 2                                                                                                                                |
 | M09  | Off-plan: developments, development_units, offplan_milestones, property_documents, document_verifications                            | 2 / 6                                                                                                                            |
-| M10  | Buyer workspace: favourites (P2); shortlists/notes/comparisons/prefs (P4A); shares (P4C); `saved_searches`, `browsing_history` (P4B) | **4** ([`PHASE4_DATABASE_CHANGES.md`](PHASE4_DATABASE_CHANGES.md), [`PHASE4B_DATABASE_CHANGES.md`](PHASE4B_DATABASE_CHANGES.md)) |
+| M10  | Buyer workspace: favourites (P2); shortlists/notes/comparisons/prefs (P4A); shares (P4C planned); `saved_searches`, `browsing_history` (P4B) | **4** ([`PHASE4_DATABASE_CHANGES.md`](PHASE4_DATABASE_CHANGES.md), [`PHASE4B_DATABASE_CHANGES.md`](PHASE4B_DATABASE_CHANGES.md), [`PHASE4C_DATABASE_CHANGES.md`](PHASE4C_DATABASE_CHANGES.md)) |
 | M11  | Alerts: evaluation runs, last matches, `in_app_notifications`, `notification_deliveries` (P4B); email deliveries later               | **4B** foundation / 4.1+ channels                                                                                                |
 | M12  | Leads: leads, links, viewing_requests, assignments, status history                                                                   | **4.1+** (deferred from Phase 4 scope lock)                                                                                      |
 

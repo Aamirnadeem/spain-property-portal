@@ -87,7 +87,7 @@ This is the implementation-facing decision log. The broader planning register re
 - **Phase 4** = Buyer workspace remainder (shortlists, comparison, alerts, leads, privacy workflows) beyond Phase 2 favourites.
 - Former documentation that labelled live inventory as Phase 4 and buyer workspace as Phase 3 is superseded by this ADR and [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md).
 - Phase 5+ (AI chat, etc.) keep their phase numbers.
-- **Status:** implemented — see [`PHASE3_IMPLEMENTATION.md`](PHASE3_IMPLEMENTATION.md). Phase 4 **planning** complete ([`PHASE4_PLAN.md`](PHASE4_PLAN.md)); Phase 4A **implemented**; Phase 4B **implemented** ([`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md), ADR-030b); Phase 4C (shares) not started.
+- **Status:** implemented — see [`PHASE3_IMPLEMENTATION.md`](PHASE3_IMPLEMENTATION.md). Phase 4 **planning** complete ([`PHASE4_PLAN.md`](PHASE4_PLAN.md)); Phase 4A **implemented**; Phase 4B **implemented** ([`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md), ADR-030b); Phase 4C **planning complete** (ADR-030c); 4C implementation not started.
 
 ### ADR-023 — Phase 3 first vertical slice
 
@@ -153,7 +153,7 @@ This is the implementation-facing decision log. The broader planning register re
 - Favourites remain a separate Phase 2 heart bookmark; named shortlists do not auto-sync from favourites.
 - Alert evaluation uses **inline** hooks (ADR-027); no pg-boss required for Phase 4.
 - Planning docs: [`PHASE4_PLAN.md`](PHASE4_PLAN.md), [`BUYER_WORKSPACE_DESIGN.md`](BUYER_WORKSPACE_DESIGN.md), [`PROPERTY_COMPARISON_MODEL.md`](PROPERTY_COMPARISON_MODEL.md), [`SAVED_SEARCH_AND_ALERT_MODEL.md`](SAVED_SEARCH_AND_ALERT_MODEL.md), [`PHASE4_DATABASE_CHANGES.md`](PHASE4_DATABASE_CHANGES.md), [`PHASE4_SECURITY_REVIEW.md`](PHASE4_SECURITY_REVIEW.md), [`PHASE4_ACCEPTANCE_CRITERIA.md`](PHASE4_ACCEPTANCE_CRITERIA.md), [`PHASE4_DECISIONS_REQUIRED.md`](PHASE4_DECISIONS_REQUIRED.md).
-- **Status:** **planning complete** — Phase 4A implemented (ADR-030a); Phase 4B implemented (ADR-030b); Phase 4C (shares) not started.
+- **Status:** **planning complete** — Phase 4A implemented (ADR-030a); Phase 4B implemented (ADR-030b); Phase 4C planning complete (ADR-030c); implementation of 4C awaits approval.
 
 ### ADR-030a — Phase 4A vertical slice shipped
 
@@ -175,3 +175,12 @@ This is the implementation-facing decision log. The broader planning register re
 - Planning docs: [`PHASE4B_PLAN.md`](PHASE4B_PLAN.md), [`SAVED_SEARCH_CRITERIA_SPEC.md`](SAVED_SEARCH_CRITERIA_SPEC.md), [`BROWSING_HISTORY_DESIGN.md`](BROWSING_HISTORY_DESIGN.md), [`IN_APP_NOTIFICATION_DESIGN.md`](IN_APP_NOTIFICATION_DESIGN.md), [`ALERT_MATCHING_ENGINE.md`](ALERT_MATCHING_ENGINE.md), [`PHASE4B_DATABASE_CHANGES.md`](PHASE4B_DATABASE_CHANGES.md), [`PHASE4B_SECURITY_REVIEW.md`](PHASE4B_SECURITY_REVIEW.md), [`PHASE4B_ACCEPTANCE_CRITERIA.md`](PHASE4B_ACCEPTANCE_CRITERIA.md), [`PHASE4B_DECISIONS_REQUIRED.md`](PHASE4B_DECISIONS_REQUIRED.md).
 - Implementation: [`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md).
 - **Status:** **implemented** (2026-08-06).
+
+### ADR-030c — Phase 4C scope: secure comparison share links
+
+- **Decision:** Phase **4C** implements secure, expiring, revocable **read-only** public comparison share links for authenticated buyers. Recipients need no account. Payload is an explicit public DTO allowlist only.
+- **Locks:** default expiry **7 days**; max **90 days**; permanent links **disabled**; token ≥ **256-bit** entropy; store **SHA-256** hash only; scores/weights **off by default** (opt-in frozen snapshot — closes D6); private notes and buyer identity **never** shared; public route `/{locale}/shared-comparison/{token}`; no anon RLS SELECT on share tables.
+- Selection is frozen on the share (`comparison_share_items`); later workspace edits must not expand the public set.
+- Live resolve refreshes public listing facts for selected IDs only; never silently substitutes another property.
+- Planning docs: [`PHASE4C_PLAN.md`](PHASE4C_PLAN.md), [`COMPARISON_SHARE_SECURITY_MODEL.md`](COMPARISON_SHARE_SECURITY_MODEL.md), [`PUBLIC_COMPARISON_DTO.md`](PUBLIC_COMPARISON_DTO.md), [`PHASE4C_DATABASE_CHANGES.md`](PHASE4C_DATABASE_CHANGES.md), [`PHASE4C_SECURITY_REVIEW.md`](PHASE4C_SECURITY_REVIEW.md), [`PHASE4C_ACCEPTANCE_CRITERIA.md`](PHASE4C_ACCEPTANCE_CRITERIA.md), [`PHASE4C_DECISIONS_REQUIRED.md`](PHASE4C_DECISIONS_REQUIRED.md).
+- **Status:** **planning complete** — implementation not started.

@@ -1,6 +1,6 @@
 # Implementation status
 
-Date: 2026-08-06 (Phase 4B implemented — ADR-030b)
+Date: 2026-08-06 (Phase 4C planning complete — ADR-030c; implementation not started)
 
 ## Completed
 
@@ -19,6 +19,7 @@ Date: 2026-08-06 (Phase 4B implemented — ADR-030b)
 - **Phase 4 planning documentation (ADR-030)** — see [`PHASE4_PLAN.md`](PHASE4_PLAN.md)
 - **Phase 4A implementation** — shortlists, notes, explainable comparison, guest merge. See [`PHASE4A_IMPLEMENTATION.md`](PHASE4A_IMPLEMENTATION.md)
 - **Phase 4B implementation** — saved searches, browsing history, in-app alerts / matching engine. See [`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md)
+- **Phase 4C planning documentation (ADR-030c)** — secure comparison share links. See [`PHASE4C_PLAN.md`](PHASE4C_PLAN.md). **Planning complete; application code not started.**
 
 ## Credential-gated
 
@@ -33,7 +34,7 @@ Date: 2026-08-06 (Phase 4B implemented — ADR-030b)
 - pg-boss / background job runner (4B ships InlineJobRunner + TestJobRunner only; `evaluateAllDueSavedSearches` is a scheduler seam, not production-wired)
 - Rights-checked media pipeline / authorized listing photographs
 - Multi-partner / nationwide rollout
-- **Phase 4C** — comparison share links only
+- **Phase 4C implementation** — comparison share links (planning complete; code/migrations/UI not started)
 - Phase 4.1+ — leads, privacy export/delete workers, production email digests
 - Phase 5+ AI assistant, WhatsApp, voice
 - Map distance enrichment

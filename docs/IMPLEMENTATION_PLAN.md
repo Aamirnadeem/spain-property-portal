@@ -291,17 +291,17 @@ Also: partner onboarding; API/webhook interfaces; authorized-crawl framework (no
 
 ### Phase 4 — Buyer workspace / Slice 4 (M)
 
-> Favourites already shipped in Phase 2. **Planning:** [`PHASE4_PLAN.md`](PHASE4_PLAN.md) (ADR-030). **Phase 4A implemented** ([`PHASE4A_IMPLEMENTATION.md`](PHASE4A_IMPLEMENTATION.md)). **Phase 4B implemented** ([`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md), ADR-030b). **Phase 4C** (comparison shares) not started.
+> Favourites already shipped in Phase 2. **Planning:** [`PHASE4_PLAN.md`](PHASE4_PLAN.md) (ADR-030). **Phase 4A implemented** ([`PHASE4A_IMPLEMENTATION.md`](PHASE4A_IMPLEMENTATION.md)). **Phase 4B implemented** ([`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md), ADR-030b). **Phase 4C planning complete** ([`PHASE4C_PLAN.md`](PHASE4C_PLAN.md), ADR-030c); **implementation not started**.
 
 **Deliver (Phase 4 scope lock)**
 
 - Multiple named shortlists; property and shortlist notes; default shortlist — **4A done**
 - Comparison matrix with explainable weighted suitability scores — **4A done**
-- Recently viewed / browsing history with privacy controls — **4B planned**
-- Saved searches; guest local → merge on auth — **4B planned**
-- Alerts **foundation**: in-app notification centre + TestNotificationProvider only (inline evaluation; no production email/SMS/WhatsApp) — **4B planned** (ADR-030b; no longer deferred to 4C)
-- Secure shareable comparison links (expire/revoke) — **4C planned**
-- Transactional guest→account merge for favourites, shortlists, searches, history, weights — 4A done for workspace; **4B extends** searches/history
+- Recently viewed / browsing history with privacy controls — **4B done**
+- Saved searches; guest local → merge on auth — **4B done**
+- Alerts **foundation**: in-app notification centre + TestNotificationProvider only (inline evaluation; no production email/SMS/WhatsApp) — **4B done** (ADR-030b; no longer deferred to 4C)
+- Secure shareable comparison links (expire/revoke) — **4C planning complete; implementation not started**
+- Transactional guest→account merge for favourites, shortlists, searches, history, weights — 4A done for workspace; **4B done** for searches/history
 - Owner RLS + cross-user isolation tests
 
 **Deferred to Phase 4.1+ / Phase 6 (not Phase 4)**
@@ -315,13 +315,13 @@ Also: partner onboarding; API/webhook interfaces; authorized-crawl framework (no
 **Acceptance criteria**
 
 - [x] Registered users can shortlist, compare, note (favourites already in Phase 2) — **4A**
-- [ ] Registered users can save searches and review history — **4B**
-- [ ] Guest shortlists/views/saved searches/weights merge after registration when eligible
-- [ ] One user cannot access another user’s shortlists, notes or history
-- [ ] In-app notifications fire for subscribed alert events via test provider; no prod email/SMS/WhatsApp — **4B**
-- [ ] Share links hide identity, notes and history; expire and revoke work — **4C**
+- [x] Registered users can save searches and review history — **4B**
+- [x] Guest shortlists/views/saved searches/weights merge after registration when eligible — **4A/4B**
+- [x] One user cannot access another user’s shortlists, notes or history — **4A/4B**
+- [x] In-app notifications fire for subscribed alert events via test provider; no prod email/SMS/WhatsApp — **4B**
+- [ ] Share links hide identity, notes and history; expire and revoke work — **4C** (planning complete; impl not started)
 - [x] Suitability score shows calculation explanation and disclaimer — **4A**
-- See: [`PHASE4_ACCEPTANCE_CRITERIA.md`](PHASE4_ACCEPTANCE_CRITERIA.md), [`PHASE4B_ACCEPTANCE_CRITERIA.md`](PHASE4B_ACCEPTANCE_CRITERIA.md)
+- See: [`PHASE4_ACCEPTANCE_CRITERIA.md`](PHASE4_ACCEPTANCE_CRITERIA.md), [`PHASE4B_ACCEPTANCE_CRITERIA.md`](PHASE4B_ACCEPTANCE_CRITERIA.md), [`PHASE4C_ACCEPTANCE_CRITERIA.md`](PHASE4C_ACCEPTANCE_CRITERIA.md)
 
 **Can proceed without external credentials:** yes with FakeAuth + TestNotificationProvider.
 
