@@ -1,8 +1,8 @@
 # RLS implementation status
 
-Date: 2026-08-06 (Phase 4A + Phase 4B policies **implemented**; Phase 4C **planning complete**, migrations not started)  
-Migrations: `0001_phase1_rls.sql`, `0003_phase2_rls.sql`, `0005_phase3_rls.sql`, `0006_phase3_1_rls.sql`, `0008_phase4a_rls.sql`, `0010_phase4b_rls.sql`  
-Phase 4C planned (illustrative): `0011`/`0012` — see [`PHASE4C_DATABASE_CHANGES.md`](PHASE4C_DATABASE_CHANGES.md) (supersedes share sketches in [`PHASE4_DATABASE_CHANGES.md`](PHASE4_DATABASE_CHANGES.md))
+Date: 2026-08-06 (Phase 4A + Phase 4B + Phase 4C policies **implemented**)  
+Migrations: `0001_phase1_rls.sql`, `0003_phase2_rls.sql`, `0005_phase3_rls.sql`, `0006_phase3_1_rls.sql`, `0008_phase4a_rls.sql`, `0010_phase4b_rls.sql`, `0012_phase4c_comparison_shares_rls.sql`  
+Phase 4C schema: [`PHASE4C_DATABASE_CHANGES.md`](PHASE4C_DATABASE_CHANGES.md) / [`PHASE4C_IMPLEMENTATION.md`](PHASE4C_IMPLEMENTATION.md)
 
 Status meanings:
 
@@ -65,18 +65,18 @@ Phase 4B tables (ADR-030b — [`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATI
 | `in_app_notifications`         | **Implemented / tested**                                                 |
 | `notification_deliveries`      | **Implemented / tested** (owner via parent EXISTS)                       |
 
-Phase 4C tables (ADR-030c — [`PHASE4C_DATABASE_CHANGES.md`](PHASE4C_DATABASE_CHANGES.md); **planning complete / not migrated**):
+Phase 4C tables (ADR-030c — [`PHASE4C_IMPLEMENTATION.md`](PHASE4C_IMPLEMENTATION.md)):
 
-| Table                            | Status                                                                      |
-| -------------------------------- | --------------------------------------------------------------------------- |
-| `comparison_shares`              | **Planned only** — owner CRUD via `user_id = jwt.sub`; **no anon SELECT**   |
-| `comparison_share_items`         | **Planned only** — via parent share ownership                               |
-| `comparison_share_access_events` | **Planned only** — owner select via parent; writes from resolve path        |
+| Table                            | Status                                                                            |
+| -------------------------------- | --------------------------------------------------------------------------------- |
+| `comparison_shares`              | **Implemented / tested** — owner CRUD via `user_id = jwt.sub`; **no anon SELECT** |
+| `comparison_share_items`         | **Implemented / tested** — via parent share ownership                             |
+| `comparison_share_access_events` | **Implemented / tested** — owner select via parent; writes from resolve path      |
 
 Service-role exceptions:
 
 - Listing-change fan-out after partner/admin mutations uses `withServiceRoleDb` (4B; same class as workers/CLI), not buyer `/me` routes.
-- Public comparison share resolve + access recording (4C planned): service-role after API rate limit; returns PublicComparisonDto only — see [`COMPARISON_SHARE_SECURITY_MODEL.md`](COMPARISON_SHARE_SECURITY_MODEL.md).
+- Public comparison share resolve + access recording (4C): service-role after API rate limit; returns PublicComparisonDto only — see [`COMPARISON_SHARE_SECURITY_MODEL.md`](COMPARISON_SHARE_SECURITY_MODEL.md).
 
 ## Authorization / deferred
 

@@ -1,6 +1,6 @@
 # Implementation status
 
-Date: 2026-08-06 (Phase 4C planning complete — ADR-030c; implementation not started)
+Date: 2026-08-06 (Phase 4C implemented — ADR-030c)
 
 ## Completed
 
@@ -19,13 +19,13 @@ Date: 2026-08-06 (Phase 4C planning complete — ADR-030c; implementation not st
 - **Phase 4 planning documentation (ADR-030)** — see [`PHASE4_PLAN.md`](PHASE4_PLAN.md)
 - **Phase 4A implementation** — shortlists, notes, explainable comparison, guest merge. See [`PHASE4A_IMPLEMENTATION.md`](PHASE4A_IMPLEMENTATION.md)
 - **Phase 4B implementation** — saved searches, browsing history, in-app alerts / matching engine. See [`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md)
-- **Phase 4C planning documentation (ADR-030c)** — secure comparison share links. See [`PHASE4C_PLAN.md`](PHASE4C_PLAN.md). **Planning complete; application code not started.**
+- **Phase 4C implementation** — secure, expiring, revocable comparison share links. See [`PHASE4C_IMPLEMENTATION.md`](PHASE4C_IMPLEMENTATION.md) and [`PHASE4C_PLAN.md`](PHASE4C_PLAN.md)
 
 ## Credential-gated
 
 - Live Supabase Auth OTP delivery/verification
 - Live Supabase Storage uploads
-- Hosted production database (local PostGIS used for Phase 2/3/3.1/4A/4B verification)
+- Hosted production database (local PostGIS used for Phase 2/3/3.1/4A/4B/4C verification)
 - Real partner HTTP feeds (require written permission + registry approval)
 
 ## Not started (implementation)
@@ -34,7 +34,6 @@ Date: 2026-08-06 (Phase 4C planning complete — ADR-030c; implementation not st
 - pg-boss / background job runner (4B ships InlineJobRunner + TestJobRunner only; `evaluateAllDueSavedSearches` is a scheduler seam, not production-wired)
 - Rights-checked media pipeline / authorized listing photographs
 - Multi-partner / nationwide rollout
-- **Phase 4C implementation** — comparison share links (planning complete; code/migrations/UI not started)
 - Phase 4.1+ — leads, privacy export/delete workers, production email digests
 - Phase 5+ AI assistant, WhatsApp, voice
 - Map distance enrichment

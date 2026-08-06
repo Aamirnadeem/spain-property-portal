@@ -144,7 +144,33 @@
     "alertSettings": "Configuració d'alertes",
     "lastEvaluated": "Última avaluació",
     "openSearch": "Obrir a la cerca",
-    "openProperty": "Veure propietat"
+    "openProperty": "Veure propietat",
+    "shareComparison": "Comparteix la comparació",
+    "createShare": "Crea l'enllaç",
+    "copyLink": "Copia l'enllaç",
+    "revokeShare": "Revoca",
+    "shareExpiry": "Caducitat de l'enllaç",
+    "shareTitle": "Títol públic",
+    "shareDescription": "Descripció pública",
+    "includeScores": "Inclou puntuacions congelades",
+    "includeWeights": "Inclou pesos congelats",
+    "shareCreated": "Enllaç creat. Copieu-lo ara: no es mostrarà de nou.",
+    "shareList": "Els vostres enllaços compartits",
+    "shareSignInRequired": "Inicieu la sessió per crear un enllaç compartible.",
+    "expiry24h": "24 hores",
+    "expiry7d": "7 dies",
+    "expiry30d": "30 dies",
+    "shareActive": "Actiu",
+    "shareExpired": "Caducat",
+    "shareRevoked": "Revocat",
+    "sharedComparisonTitle": "Comparació compartida",
+    "sharedComparisonUnavailable": "Aquest enllaç de comparació no està disponible.",
+    "sharedComparisonWarning": "Actualització de l'anunci",
+    "sourceAttribution": "Font"
+  },
+  "sharedComparison": {
+    "unavailable": "Aquest enllaç de comparació no està disponible.",
+    "title": "Comparació compartida"
   },
   "notifications": {
     "new_match": {

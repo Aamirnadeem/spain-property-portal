@@ -1,8 +1,8 @@
 # Phase 4C plan — Secure, expiring, revocable property comparison sharing
 
 Date: 2026-08-06  
-Status: Phase 4C planning (not implemented)  
-ADR: [`ADR-030c`](DECISIONS.md) · Parent: [`PHASE4_PLAN.md`](PHASE4_PLAN.md) · Builds on: [`PHASE4A_IMPLEMENTATION.md`](PHASE4A_IMPLEMENTATION.md)
+Status: Phase 4C **implemented**  
+ADR: [`ADR-030c`](DECISIONS.md) · Parent: [`PHASE4_PLAN.md`](PHASE4_PLAN.md) · Builds on: [`PHASE4A_IMPLEMENTATION.md`](PHASE4A_IMPLEMENTATION.md) · Ship notes: [`PHASE4C_IMPLEMENTATION.md`](PHASE4C_IMPLEMENTATION.md)
 
 ## Objective
 
@@ -76,12 +76,12 @@ See [`PHASE4C_DATABASE_CHANGES.md`](PHASE4C_DATABASE_CHANGES.md): `comparison_sh
 
 ### API
 
-| Method | Path | Auth |
-| ------ | ---- | ---- |
-| POST   | `/api/v1/me/comparison-shares` | Session + CSRF |
-| GET    | `/api/v1/me/comparison-shares` | Session |
-| GET    | `/api/v1/me/comparison-shares/{id}` | Session |
-| POST   | `/api/v1/me/comparison-shares/{id}/revoke` | Session + CSRF |
+| Method | Path                                        | Auth           |
+| ------ | ------------------------------------------- | -------------- |
+| POST   | `/api/v1/me/comparison-shares`              | Session + CSRF |
+| GET    | `/api/v1/me/comparison-shares`              | Session        |
+| GET    | `/api/v1/me/comparison-shares/{id}`         | Session        |
+| POST   | `/api/v1/me/comparison-shares/{id}/revoke`  | Session + CSRF |
 | POST   | `/api/v1/me/comparison-shares/{id}/replace` | Session + CSRF |
 
 ### UI
@@ -112,15 +112,15 @@ Public URL: `/{locale}/shared-comparison/{token}` — no sequential internal IDs
 
 Manifest schema version **`phase4c.v1`** (jsonb on `comparison_shares.manifest`).
 
-| Captured at create | Resolved live at open |
-| ------------------ | --------------------- |
-| Selected listing IDs + positions | Current public price/status/freshness/images/attribution for those IDs |
-| Allowed public field keys | Mapped through PublicComparisonDto only |
-| include_weights / include_scores | Frozen weight/score snapshots if enabled |
-| score_model_version (`phase4a.v1`) | — |
-| public title/description | — |
-| created_at / expires_at | — |
-| optional physical_property_id per item | Warning if listing merged/withdrawn |
+| Captured at create                     | Resolved live at open                                                  |
+| -------------------------------------- | ---------------------------------------------------------------------- |
+| Selected listing IDs + positions       | Current public price/status/freshness/images/attribution for those IDs |
+| Allowed public field keys              | Mapped through PublicComparisonDto only                                |
+| include_weights / include_scores       | Frozen weight/score snapshots if enabled                               |
+| score_model_version (`phase4a.v1`)     | —                                                                      |
+| public title/description               | —                                                                      |
+| created_at / expires_at                | —                                                                      |
+| optional physical_property_id per item | Warning if listing merged/withdrawn                                    |
 
 Future private workspace changes must not add properties or fields to an existing share.
 
@@ -136,15 +136,15 @@ Dedicated mapper — never serialize ORM entities. Notes, identity, history, sea
 
 ## Feature 5 — Property changes after sharing
 
-| Event | Public page behaviour |
-| ----- | --------------------- |
-| Price change | Show live price; optional “price updated” cue |
-| Reserved / under offer / withdrawn | Status warning on that slot |
-| Stale | Freshness warning |
-| Deleted / not browseable | Slot unavailable warning; keep position |
-| Image authorization lost | No image / placeholder; never unauthorized binary |
-| Physical-property merge | Warning; **never** auto-swap to sibling listing |
-| Replaced by another agency listing | Warning; keep original listing id slot |
+| Event                              | Public page behaviour                             |
+| ---------------------------------- | ------------------------------------------------- |
+| Price change                       | Show live price; optional “price updated” cue     |
+| Reserved / under offer / withdrawn | Status warning on that slot                       |
+| Stale                              | Freshness warning                                 |
+| Deleted / not browseable           | Slot unavailable warning; keep position           |
+| Image authorization lost           | No image / placeholder; never unauthorized binary |
+| Physical-property merge            | Warning; **never** auto-swap to sibling listing   |
+| Replaced by another agency listing | Warning; keep original listing id slot            |
 
 Silent substitution of another property is forbidden.
 
@@ -172,9 +172,9 @@ Silent substitution of another property is forbidden.
 
 ## Feature 8 — Rate limiting and abuse
 
-| Action | Limit |
-| ------ | ----- |
-| Public resolve | 60/min/IP |
+| Action         | Limit       |
+| -------------- | ----------- |
+| Public resolve | 60/min/IP   |
 | Create/replace | 10/min/user |
 
 Enumeration resistance: generic responses; hash lookup only; never log full tokens.
@@ -191,15 +191,15 @@ Enumeration resistance: generic responses; hash lookup only; never log full toke
 
 ## Feature 11 — Services
 
-| Function | Role |
-| -------- | ---- |
-| `createComparisonShare` | Validate; mint; hash; insert |
-| `listComparisonShares` | Owner list by status |
-| `getComparisonShareForOwner` | Metadata (no plaintext token) |
-| `revokeComparisonShare` | Set `revoked_at` |
-| `replaceComparisonShare` | Revoke + create; link replacement |
+| Function                       | Role                               |
+| ------------------------------ | ---------------------------------- |
+| `createComparisonShare`        | Validate; mint; hash; insert       |
+| `listComparisonShares`         | Owner list by status               |
+| `getComparisonShareForOwner`   | Metadata (no plaintext token)      |
+| `revokeComparisonShare`        | Set `revoked_at`                   |
+| `replaceComparisonShare`       | Revoke + create; link replacement  |
 | `resolvePublicComparisonShare` | Hash resolve → PublicComparisonDto |
-| `recordShareAccess` | Aggregates + optional event |
+| `recordShareAccess`            | Aggregates + optional event        |
 
 Validate all inputs at API/service boundaries.
 
@@ -225,15 +225,15 @@ authenticated buyer → open comparison → select two properties → create 7-d
 
 ## Documentation map
 
-| Doc | Role |
-| --- | ---- |
-| [`COMPARISON_SHARE_SECURITY_MODEL.md`](COMPARISON_SHARE_SECURITY_MODEL.md) | Tokens / abuse |
-| [`PUBLIC_COMPARISON_DTO.md`](PUBLIC_COMPARISON_DTO.md) | Allowlist / snapshot vs live |
-| [`PHASE4C_DATABASE_CHANGES.md`](PHASE4C_DATABASE_CHANGES.md) | Schema / RLS |
-| [`PHASE4C_SECURITY_REVIEW.md`](PHASE4C_SECURITY_REVIEW.md) | Threats |
-| [`PHASE4C_ACCEPTANCE_CRITERIA.md`](PHASE4C_ACCEPTANCE_CRITERIA.md) | Gates |
-| [`PHASE4C_DECISIONS_REQUIRED.md`](PHASE4C_DECISIONS_REQUIRED.md) | Locks |
+| Doc                                                                        | Role                         |
+| -------------------------------------------------------------------------- | ---------------------------- |
+| [`COMPARISON_SHARE_SECURITY_MODEL.md`](COMPARISON_SHARE_SECURITY_MODEL.md) | Tokens / abuse               |
+| [`PUBLIC_COMPARISON_DTO.md`](PUBLIC_COMPARISON_DTO.md)                     | Allowlist / snapshot vs live |
+| [`PHASE4C_DATABASE_CHANGES.md`](PHASE4C_DATABASE_CHANGES.md)               | Schema / RLS                 |
+| [`PHASE4C_SECURITY_REVIEW.md`](PHASE4C_SECURITY_REVIEW.md)                 | Threats                      |
+| [`PHASE4C_ACCEPTANCE_CRITERIA.md`](PHASE4C_ACCEPTANCE_CRITERIA.md)         | Gates                        |
+| [`PHASE4C_DECISIONS_REQUIRED.md`](PHASE4C_DECISIONS_REQUIRED.md)           | Locks                        |
 
 ## Implementation status
 
-**Planning complete. Application code not started.**
+**Implemented.** See [`PHASE4C_IMPLEMENTATION.md`](PHASE4C_IMPLEMENTATION.md).

@@ -611,6 +611,253 @@ export function ComparisonClient({
           ))}
         </div>
       )}
+
+      <ComparisonSharePanel
+        locale={locale}
+        listingIds={listingIds}
+        labels={labels}
+        weights={weights}
+      />
     </div>
+  );
+}
+
+type OwnerShareRow = {
+  id: string;
+  status: string;
+  expiresAt: string;
+  publicTitle: string | null;
+  listingIds?: string[];
+};
+
+function ComparisonSharePanel({
+  locale,
+  listingIds,
+  labels,
+  weights,
+}: {
+  locale: string;
+  listingIds: string[];
+  labels: Labels;
+  weights: Record<string, number>;
+}) {
+  const [open, setOpen] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
+  const [selected, setSelected] = useState<string[]>(listingIds);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [expiryPreset, setExpiryPreset] = useState<'24h' | '7d' | '30d'>('7d');
+  const [includeScores, setIncludeScores] = useState(false);
+  const [includeWeights, setIncludeWeights] = useState(false);
+  const [publicUrl, setPublicUrl] = useState<string | null>(null);
+  const [shares, setShares] = useState<OwnerShareRow[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [shareError, setShareError] = useState<string | null>(null);
+
+  useEffect(() => {
+    void hasSession().then(setSignedIn);
+  }, []);
+
+  useEffect(() => {
+    setSelected(listingIds);
+  }, [listingIds]);
+
+  async function refreshShares() {
+    const res = await fetch('/api/v1/me/comparison-shares', { credentials: 'same-origin' });
+    if (!res.ok) return;
+    const data = (await res.json()) as { items: OwnerShareRow[] };
+    setShares(data.items ?? []);
+  }
+
+  useEffect(() => {
+    if (signedIn) void refreshShares();
+  }, [signedIn]);
+
+  async function createShare() {
+    if (selected.length < 2) {
+      setShareError(labels.error);
+      return;
+    }
+    setBusy(true);
+    setShareError(null);
+    try {
+      const res = await fetch('/api/v1/me/comparison-shares', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          listingIds: selected,
+          publicTitle: title || null,
+          publicDescription: description || null,
+          expiryPreset,
+          includeScores,
+          includeWeights,
+          weights: includeScores || includeWeights ? weights : undefined,
+          locale,
+        }),
+      });
+      if (!res.ok) {
+        setShareError(labels.error);
+        return;
+      }
+      const data = (await res.json()) as { publicUrl: string };
+      setPublicUrl(data.publicUrl);
+      await refreshShares();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function revokeShare(id: string) {
+    setBusy(true);
+    try {
+      await fetch(`/api/v1/me/comparison-shares/${id}/revoke`, {
+        method: 'POST',
+        credentials: 'same-origin',
+      });
+      await refreshShares();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (listingIds.length < 2) return null;
+
+  return (
+    <section style={{ marginTop: '2rem' }} aria-labelledby="share-heading">
+      <h2 id="share-heading">{labels.shareComparison}</h2>
+      {!signedIn ? (
+        <p>{labels.shareSignInRequired}</p>
+      ) : (
+        <>
+          <button type="button" data-testid="open-share-dialog" onClick={() => setOpen((v) => !v)}>
+            {labels.shareComparison}
+          </button>
+          {open && (
+            <div data-testid="share-dialog" style={{ marginTop: '1rem', maxWidth: 520 }}>
+              {shareError && (
+                <p role="alert" style={{ color: 'crimson' }}>
+                  {shareError}
+                </p>
+              )}
+              <fieldset>
+                <legend>{labels.items}</legend>
+                {listingIds.map((id) => (
+                  <label key={id} style={{ display: 'block' }}>
+                    <input
+                      type="checkbox"
+                      data-testid={`share-listing-${id}`}
+                      checked={selected.includes(id)}
+                      onChange={(e) =>
+                        setSelected((prev) =>
+                          e.target.checked ? [...prev, id] : prev.filter((x) => x !== id),
+                        )
+                      }
+                    />{' '}
+                    {id.slice(0, 8)}…
+                  </label>
+                ))}
+              </fieldset>
+              <label style={{ display: 'block', marginTop: '0.5rem' }}>
+                {labels.shareTitle}
+                <input
+                  data-testid="share-title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  maxLength={120}
+                />
+              </label>
+              <label style={{ display: 'block', marginTop: '0.5rem' }}>
+                {labels.shareDescription}
+                <textarea
+                  data-testid="share-description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  maxLength={500}
+                />
+              </label>
+              <label style={{ display: 'block', marginTop: '0.5rem' }}>
+                {labels.shareExpiry}
+                <select
+                  data-testid="share-expiry"
+                  value={expiryPreset}
+                  onChange={(e) => setExpiryPreset(e.target.value as '24h' | '7d' | '30d')}
+                >
+                  <option value="24h">{labels.expiry24h}</option>
+                  <option value="7d">{labels.expiry7d}</option>
+                  <option value="30d">{labels.expiry30d}</option>
+                </select>
+              </label>
+              <label style={{ display: 'block', marginTop: '0.5rem' }}>
+                <input
+                  type="checkbox"
+                  data-testid="share-include-scores"
+                  checked={includeScores}
+                  onChange={(e) => setIncludeScores(e.target.checked)}
+                />{' '}
+                {labels.includeScores}
+              </label>
+              <label style={{ display: 'block', marginTop: '0.5rem' }}>
+                <input
+                  type="checkbox"
+                  data-testid="share-include-weights"
+                  checked={includeWeights}
+                  onChange={(e) => setIncludeWeights(e.target.checked)}
+                />{' '}
+                {labels.includeWeights}
+              </label>
+              <button
+                type="button"
+                data-testid="create-share"
+                disabled={busy}
+                onClick={() => void createShare()}
+                style={{ marginTop: '0.75rem' }}
+              >
+                {labels.createShare}
+              </button>
+              {publicUrl && (
+                <div style={{ marginTop: '0.75rem' }}>
+                  <p>{labels.shareCreated}</p>
+                  <input
+                    data-testid="share-link"
+                    readOnly
+                    value={publicUrl}
+                    style={{ width: '100%' }}
+                  />
+                  <button
+                    type="button"
+                    data-testid="copy-share-link"
+                    onClick={() => void navigator.clipboard.writeText(publicUrl)}
+                  >
+                    {labels.copyLink}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+          <div data-testid="share-list" style={{ marginTop: '1.5rem' }}>
+            <h3>{labels.shareList}</h3>
+            <ul>
+              {shares.map((s) => (
+                <li key={s.id}>
+                  <span>
+                    {s.publicTitle ?? s.id.slice(0, 8)} — {s.status}
+                  </span>{' '}
+                  {s.status === 'active' && (
+                    <button
+                      type="button"
+                      data-testid={`revoke-share-${s.id}`}
+                      onClick={() => void revokeShare(s.id)}
+                    >
+                      {labels.revokeShare}
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </>
+      )}
+    </section>
   );
 }

@@ -1,16 +1,21 @@
 import {
+  type AnyPgColumn,
   boolean,
+  check,
+  index,
   integer,
   jsonb,
   numeric,
   pgEnum,
   pgTable,
+  smallint,
   text,
   timestamp,
   uniqueIndex,
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 export const authIdentityTypeEnum = pgEnum('auth_identity_type', ['email', 'mobile']);
 export const permissionStatusEnum = pgEnum('org_verification_status', [
@@ -972,3 +977,89 @@ export const notificationDeliveries = pgTable('notification_deliveries', {
   errorCode: varchar('error_code', { length: 64 }),
   attemptedAt: timestamp('attempted_at', { withTimezone: true }).defaultNow().notNull(),
 });
+
+/* ─── Phase 4C secure comparison sharing ───────────────────────────────── */
+
+export const comparisonShares = pgTable(
+  'comparison_shares',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    comparisonSetId: uuid('comparison_set_id').references(() => comparisonSets.id, {
+      onDelete: 'set null',
+    }),
+    tokenHash: varchar('token_hash', { length: 64 }).notNull(),
+    publicTitle: varchar('public_title', { length: 120 }),
+    publicDescription: varchar('public_description', { length: 500 }),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    replacedByShareId: uuid('replaced_by_share_id').references(
+      (): AnyPgColumn => comparisonShares.id,
+      { onDelete: 'set null' },
+    ),
+    manifest: jsonb('manifest').$type<Record<string, unknown>>().notNull(),
+    includeWeights: boolean('include_weights').notNull().default(false),
+    includeScores: boolean('include_scores').notNull().default(false),
+    scoreModelVersion: varchar('score_model_version', { length: 32 }),
+    weightSnapshot: jsonb('weight_snapshot').$type<Record<string, number> | null>(),
+    accessCount: integer('access_count').notNull().default(0),
+    lastAccessedAt: timestamp('last_accessed_at', { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex('comparison_shares_token_hash_uidx').on(t.tokenHash),
+    index('comparison_shares_user_created_idx').on(t.userId, t.createdAt),
+    index('comparison_shares_user_status_idx').on(t.userId, t.revokedAt, t.expiresAt),
+    index('comparison_shares_user_active_idx')
+      .on(t.userId, t.expiresAt)
+      .where(sql`${t.revokedAt} IS NULL`),
+    check('comparison_shares_expiry_check', sql`${t.expiresAt} > ${t.createdAt}`),
+  ],
+);
+
+export const comparisonShareItems = pgTable(
+  'comparison_share_items',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    shareId: uuid('share_id')
+      .notNull()
+      .references(() => comparisonShares.id, { onDelete: 'cascade' }),
+    listingId: uuid('listing_id').references(() => propertyListings.id, {
+      onDelete: 'set null',
+    }),
+    position: smallint('position').notNull(),
+    physicalPropertyId: uuid('physical_property_id'),
+  },
+  (t) => [
+    uniqueIndex('comparison_share_items_share_listing_uidx').on(t.shareId, t.listingId),
+    uniqueIndex('comparison_share_items_share_position_uidx').on(t.shareId, t.position),
+    index('comparison_share_items_share_position_idx').on(t.shareId, t.position),
+    index('comparison_share_items_listing_idx').on(t.listingId),
+  ],
+);
+
+export const comparisonShareAccessEvents = pgTable(
+  'comparison_share_access_events',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    shareId: uuid('share_id')
+      .notNull()
+      .references(() => comparisonShares.id, { onDelete: 'cascade' }),
+    accessedAt: timestamp('accessed_at', { withTimezone: true }).defaultNow().notNull(),
+    result: varchar('result', { length: 32 }).notNull(),
+    uaCategory: varchar('ua_category', { length: 32 }),
+  },
+  (t) => [
+    index('comparison_share_access_events_share_accessed_idx').on(t.shareId, t.accessedAt),
+    check(
+      'comparison_share_access_events_result_check',
+      sql`${t.result} IN ('ok', 'not_found', 'expired', 'revoked')`,
+    ),
+    check(
+      'comparison_share_access_events_ua_check',
+      sql`${t.uaCategory} IS NULL OR ${t.uaCategory} IN ('browser', 'bot', 'preview', 'other')`,
+    ),
+  ],
+);

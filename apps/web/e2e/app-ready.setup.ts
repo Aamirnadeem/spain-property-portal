@@ -18,6 +18,7 @@ const STATIC_ROUTES = [
   '/en/workspace/shortlists',
   '/en/workspace/compare',
   '/ar/workspace',
+  '/en/shared-comparison/warmup-placeholder-tokenxx',
 ];
 
 setup('application and database are ready', async ({ request, baseURL }) => {

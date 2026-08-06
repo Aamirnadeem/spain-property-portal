@@ -144,7 +144,33 @@
     "alertSettings": "Alert settings",
     "lastEvaluated": "Last evaluated",
     "openSearch": "Open in search",
-    "openProperty": "View property"
+    "openProperty": "View property",
+    "shareComparison": "Share comparison",
+    "createShare": "Create share link",
+    "copyLink": "Copy link",
+    "revokeShare": "Revoke",
+    "shareExpiry": "Link expiry",
+    "shareTitle": "Public title",
+    "shareDescription": "Public description",
+    "includeScores": "Include frozen scores",
+    "includeWeights": "Include frozen weights",
+    "shareCreated": "Share link created. Copy it now — it will not be shown again.",
+    "shareList": "Your share links",
+    "shareSignInRequired": "Sign in to create a shareable comparison link.",
+    "expiry24h": "24 hours",
+    "expiry7d": "7 days",
+    "expiry30d": "30 days",
+    "shareActive": "Active",
+    "shareExpired": "Expired",
+    "shareRevoked": "Revoked",
+    "sharedComparisonTitle": "Shared comparison",
+    "sharedComparisonUnavailable": "This comparison link is unavailable.",
+    "sharedComparisonWarning": "Listing update",
+    "sourceAttribution": "Source"
+  },
+  "sharedComparison": {
+    "unavailable": "This comparison link is unavailable.",
+    "title": "Shared comparison"
   },
   "notifications": {
     "new_match": {

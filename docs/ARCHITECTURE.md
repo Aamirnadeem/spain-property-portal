@@ -208,7 +208,7 @@ GET  /api/v1/properties/{listingId}/price-history
 GET  /api/v1/properties/{listingId}/freshness
 POST /api/v1/search/parse-natural-language
 POST /api/v1/compare/preview
-GET  /api/v1/compare/shared/{token}    # Phase 4C — public share (rate-limited; planning complete, not implemented)
+GET  /api/v1/compare/shared/{token}    # Phase 4C — public share (rate-limited; implemented)
 ```
 
 ### 7.3 Account / workspace
@@ -232,7 +232,7 @@ GET /api/v1/me/notifications                            # Phase 4B
 POST /api/v1/me/notifications/{id}/read
 POST /api/v1/me/notifications/read-all
 POST /api/v1/me/notifications/{id}/dismiss
-GET/POST /api/v1/me/comparison-shares                   # Phase 4C (planning complete; not implemented)
+GET/POST /api/v1/me/comparison-shares                   # Phase 4C (implemented)
 GET /api/v1/me/comparison-shares/{id}                    # Phase 4C
 POST /api/v1/me/comparison-shares/{id}/revoke            # Phase 4C
 POST /api/v1/me/comparison-shares/{id}/replace           # Phase 4C
@@ -243,7 +243,7 @@ POST /api/v1/me/privacy/delete              # Phase 4.1+ deferred
 
 Public UI (Phase 4C): `/{locale}/shared-comparison/{token}` — read-only; noindex; rate-limited resolve.
 
-Phase 4 design: [`PHASE4_PLAN.md`](PHASE4_PLAN.md), [`BUYER_WORKSPACE_DESIGN.md`](BUYER_WORKSPACE_DESIGN.md), [`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md) (ADR-030b), [`PHASE4C_PLAN.md`](PHASE4C_PLAN.md) (ADR-030c — planning complete). Jobs remain inline (`InlineJobRunner` / `TestJobRunner`); notification providers `InAppNotificationProvider` / `TestNotificationProvider` only in 4B.
+Phase 4 design: [`PHASE4_PLAN.md`](PHASE4_PLAN.md), [`BUYER_WORKSPACE_DESIGN.md`](BUYER_WORKSPACE_DESIGN.md), [`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md) (ADR-030b), [`PHASE4C_IMPLEMENTATION.md`](PHASE4C_IMPLEMENTATION.md) (ADR-030c). Jobs remain inline (`InlineJobRunner` / `TestJobRunner`); notification providers `InAppNotificationProvider` / `TestNotificationProvider` only in 4B.
 
 ### 7.4 Leads and AI
 

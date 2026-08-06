@@ -802,12 +802,134 @@ async function main(): Promise<void> {
     );
     assert(merge4b.history.length >= 1, 'guest browsing history merged');
 
+    // ---- Phase 4C: secure comparison sharing + owner-only RLS ----
+    const {
+      createComparisonShare,
+      hashShareToken,
+      listComparisonShares,
+      resolvePublicComparisonShare,
+      revokeComparisonShare,
+    } = await import('../services/phase4c-comparison-shares');
+    const phase4c = await withAuthenticatedDb(testUrl, buyerA, async (authDb) => {
+      const publicListings = await authDb
+        .select({ id: schema.propertyListings.id })
+        .from(schema.propertyListings)
+        .where(eq(schema.propertyListings.isPublicBrowseable, true))
+        .limit(2);
+      assert(publicListings.length === 2, 'Phase 4C integration requires two public listings');
+      const listingIds = publicListings.map((listing) => listing.id);
+      const active = await createComparisonShare(authDb, buyerA, {
+        listingIds,
+        publicTitle: 'Buyer A comparison',
+      });
+      const revocable = await createComparisonShare(authDb, buyerA, {
+        listingIds,
+        expiryPreset: '30d',
+      });
+      return { active, revocable, listingIds };
+    });
+
+    const storedShare = await sql`
+      SELECT token_hash FROM comparison_shares WHERE id = ${phase4c.active.share.id}
+    `;
+    assert(
+      storedShare[0]?.token_hash === hashShareToken(phase4c.active.plaintextToken),
+      'stored comparison share token hash must match plaintext hash',
+    );
+    assert(
+      storedShare[0]?.token_hash !== phase4c.active.plaintextToken,
+      'comparison share plaintext token must not be stored',
+    );
+    const plaintextColumns = await sql`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND table_name = 'comparison_shares'
+        AND column_name IN ('token', 'plaintext_token', 'plaintextToken')
+    `;
+    assert(plaintextColumns.length === 0, 'comparison_shares must have no plaintext token column');
+
+    const { db: phase4cServiceDb, client: phase4cServiceClient } = createDb(testUrl);
+    try {
+      const resolved = await resolvePublicComparisonShare(
+        phase4cServiceDb,
+        phase4c.active.plaintextToken,
+        { uaCategory: 'browser' },
+      );
+      assert(resolved.status === 'ok', 'service-role comparison share resolve succeeds');
+      if (resolved.status === 'ok') {
+        assert(
+          resolved.dto.listings.length === phase4c.listingIds.length,
+          'public comparison preserves selected listing slots',
+        );
+        const serialized = JSON.stringify(resolved.dto);
+        assert(
+          !serialized.includes('private note A'),
+          'public comparison must exclude buyer notes',
+        );
+        assert(
+          !serialized.includes('buyer-a@example.com'),
+          'public comparison must exclude identity',
+        );
+      }
+
+      await sql`
+        UPDATE comparison_shares
+        SET expires_at = created_at + interval '1 millisecond'
+        WHERE id = ${phase4c.active.share.id}
+      `;
+      const expired = await resolvePublicComparisonShare(
+        phase4cServiceDb,
+        phase4c.active.plaintextToken,
+      );
+      assert(expired.status === 'unavailable', 'expired comparison share is unavailable');
+
+      await withAuthenticatedDb(testUrl, buyerA, (authDb) =>
+        revokeComparisonShare(authDb, buyerA, phase4c.revocable.share.id),
+      );
+      const revoked = await resolvePublicComparisonShare(
+        phase4cServiceDb,
+        phase4c.revocable.plaintextToken,
+      );
+      assert(revoked.status === 'unavailable', 'revoked comparison share is unavailable');
+    } finally {
+      await phase4cServiceClient.end({ timeout: 5 });
+    }
+
+    const buyerBShares = await withAuthenticatedDb(testUrl, buyerB, (authDb) =>
+      listComparisonShares(authDb, buyerB),
+    );
+    assert(
+      !buyerBShares.some((share) => share.id === phase4c.active.share.id),
+      'buyer B must not list buyer A comparison shares',
+    );
+
+    const agencyShares = await withRole(
+      sql,
+      'authenticated',
+      { 'request.jwt.claim.sub': ORG_AGENT_USER_ID },
+      () => sql`SELECT id FROM comparison_shares WHERE user_id = ${buyerA}`,
+    );
+    assert(agencyShares.length === 0, 'agency user must not select buyer comparison shares');
+
+    await sql.unsafe(
+      'REVOKE ALL ON comparison_shares, comparison_share_items, comparison_share_access_events FROM anon',
+    );
+    let anonShareSelectDenied = false;
+    try {
+      await withRole(sql, 'anon', {}, () => sql`SELECT id FROM comparison_shares`);
+    } catch {
+      anonShareSelectDenied = true;
+    }
+    assert(anonShareSelectDenied, 'anon role must not SELECT comparison_shares');
+
     console.log(
       'Phase 3 integration passed: partner CSV import idempotency, org RLS isolation, ' +
         'admin publish/withdraw, agency price update + self-withdraw, source permission gate, audit trail, ' +
         'Phase 3.1 withAuthenticatedDb claim writes + viewer read, ' +
         'Phase 4A shortlist/note RLS isolation + guest merge, ' +
-        'Phase 4B saved-search/history/notification RLS + merge + dedupe',
+        'Phase 4B saved-search/history/notification RLS + merge + dedupe, ' +
+        'Phase 4C secure comparison sharing + owner-only RLS',
     );
   } finally {
     await sql.end();

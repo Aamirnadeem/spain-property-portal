@@ -50,12 +50,12 @@ flowchart LR
 
 ## Authorization
 
-| Actor | Create / list / revoke / replace | Resolve public |
-| ----- | -------------------------------- | -------------- |
-| Share owner (verified session) | Yes | Yes (same as anon) |
-| Other authenticated user | No | Yes (if token valid) |
-| Anonymous | No | Yes (if token valid) |
-| Agency / platform admin (4C) | No ad-hoc UI | Via public path only |
+| Actor                          | Create / list / revoke / replace | Resolve public       |
+| ------------------------------ | -------------------------------- | -------------------- |
+| Share owner (verified session) | Yes                              | Yes (same as anon)   |
+| Other authenticated user       | No                               | Yes (if token valid) |
+| Anonymous                      | No                               | Yes (if token valid) |
+| Agency / platform admin (4C)   | No ad-hoc UI                     | Via public path only |
 
 Owner APIs use ADR-029 sessions + CSRF. Never trust `x-user-id`, `x-role`, `x-organization-id`, or ownership claims in bodies.
 
@@ -68,11 +68,11 @@ Owner APIs use ADR-029 sessions + CSRF. Never trust `x-user-id`, `x-role`, `x-or
 
 ## Rate limits and enumeration resistance
 
-| Action | Limit |
-| ------ | ----- |
-| `GET /api/v1/compare/shared/{token}` | 60/min/IP |
-| Create / replace share | 10/min/user |
-| Revoke | 30/min/user |
+| Action                               | Limit       |
+| ------------------------------------ | ----------- |
+| `GET /api/v1/compare/shared/{token}` | 60/min/IP   |
+| Create / replace share               | 10/min/user |
+| Revoke                               | 30/min/user |
 
 - Identical JSON/HTML unavailable payload for invalid, expired, and revoked tokens.
 - Do not reveal whether a user, comparison, or listing exists.

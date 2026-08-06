@@ -6,15 +6,15 @@ Parent: [`PHASE4C_PLAN.md`](PHASE4C_PLAN.md) · ADR-030c
 
 ## Already locked (do not re-open)
 
-| ID       | Topic           | Lock                                                                              |
-| -------- | --------------- | --------------------------------------------------------------------------------- |
-| ADR-027  | Jobs            | No durable queue required for 4C (share create/resolve are request-path)          |
-| ADR-029  | Sessions        | Verified sessions for all owner `/me/*` mutations; never trust `x-user-id` headers |
-| ADR-030  | Phase 4 scope   | Shareable comparisons in Phase 4; no prod email/SMS/WhatsApp for shares           |
-| ADR-030a | 4A              | Shortlists/notes/comparison `phase4a.v1` / guest merge shipped                    |
-| ADR-030b | 4B vs 4C        | **4C** = comparison share links only                                              |
-| D4       | Max listings    | **5** max / **2** min per comparison (and per share)                              |
-| 4A notes | Privacy         | Private notes never appear on public shares                                       |
+| ID       | Topic         | Lock                                                                               |
+| -------- | ------------- | ---------------------------------------------------------------------------------- |
+| ADR-027  | Jobs          | No durable queue required for 4C (share create/resolve are request-path)           |
+| ADR-029  | Sessions      | Verified sessions for all owner `/me/*` mutations; never trust `x-user-id` headers |
+| ADR-030  | Phase 4 scope | Shareable comparisons in Phase 4; no prod email/SMS/WhatsApp for shares            |
+| ADR-030a | 4A            | Shortlists/notes/comparison `phase4a.v1` / guest merge shipped                     |
+| ADR-030b | 4B vs 4C      | **4C** = comparison share links only                                               |
+| D4       | Max listings  | **5** max / **2** min per comparison (and per share)                               |
+| 4A notes | Privacy       | Private notes never appear on public shares                                        |
 
 ## Locked in this planning slice (ADR-030c)
 
@@ -89,23 +89,23 @@ Parent: [`PHASE4C_PLAN.md`](PHASE4C_PLAN.md) · ADR-030c
 
 ## Rate limits (app-level)
 
-| Action                         | Limit        |
-| ------------------------------ | ------------ |
-| Create / replace share         | 10/min/user  |
-| Revoke                         | 30/min/user  |
-| Public resolve                 | 60/min/IP    |
+| Action                 | Limit       |
+| ---------------------- | ----------- |
+| Create / replace share | 10/min/user |
+| Revoke                 | 30/min/user |
+| Public resolve         | 60/min/IP   |
 
 ## Explicitly deferred
 
-| Topic                                      | Where                          |
-| ------------------------------------------ | ------------------------------ |
-| Collaborator invites                       | Phase 6                        |
-| Recipient accounts / comments              | Later                          |
-| Lead capture from share                    | Phase 4.1+                     |
-| Email delivery of share links              | Later                          |
-| Searchable public comparison directory     | Never in 4C                    |
-| Permanent profile pages                    | Never in 4C                    |
-| Privacy export workers for shares          | Phase 4.1+ (CASCADE at delete) |
+| Topic                                  | Where                          |
+| -------------------------------------- | ------------------------------ |
+| Collaborator invites                   | Phase 6                        |
+| Recipient accounts / comments          | Later                          |
+| Lead capture from share                | Phase 4.1+                     |
+| Email delivery of share links          | Later                          |
+| Searchable public comparison directory | Never in 4C                    |
+| Permanent profile pages                | Never in 4C                    |
+| Privacy export workers for shares      | Phase 4.1+ (CASCADE at delete) |
 
 ## Sign-off
 

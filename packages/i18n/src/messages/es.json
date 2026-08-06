@@ -144,7 +144,33 @@
     "alertSettings": "Ajustes de alertas",
     "lastEvaluated": "Última evaluación",
     "openSearch": "Abrir en búsqueda",
-    "openProperty": "Ver propiedad"
+    "openProperty": "Ver propiedad",
+    "shareComparison": "Compartir comparación",
+    "createShare": "Crear enlace",
+    "copyLink": "Copiar enlace",
+    "revokeShare": "Revocar",
+    "shareExpiry": "Caducidad del enlace",
+    "shareTitle": "Título público",
+    "shareDescription": "Descripción pública",
+    "includeScores": "Incluir puntuaciones congeladas",
+    "includeWeights": "Incluir pesos congelados",
+    "shareCreated": "Enlace creado. Cópielo ahora: no se mostrará de nuevo.",
+    "shareList": "Sus enlaces compartidos",
+    "shareSignInRequired": "Inicie sesión para crear un enlace compartible.",
+    "expiry24h": "24 horas",
+    "expiry7d": "7 días",
+    "expiry30d": "30 días",
+    "shareActive": "Activo",
+    "shareExpired": "Caducado",
+    "shareRevoked": "Revocado",
+    "sharedComparisonTitle": "Comparación compartida",
+    "sharedComparisonUnavailable": "Este enlace de comparación no está disponible.",
+    "sharedComparisonWarning": "Actualización del anuncio",
+    "sourceAttribution": "Fuente"
+  },
+  "sharedComparison": {
+    "unavailable": "Este enlace de comparación no está disponible.",
+    "title": "Comparación compartida"
   },
   "notifications": {
     "new_match": {

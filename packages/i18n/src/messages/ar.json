@@ -144,7 +144,33 @@
     "alertSettings": "إعدادات التنبيهات",
     "lastEvaluated": "آخر تقييم",
     "openSearch": "فتح في البحث",
-    "openProperty": "عرض العقار"
+    "openProperty": "عرض العقار",
+    "shareComparison": "مشاركة المقارنة",
+    "createShare": "إنشاء رابط مشاركة",
+    "copyLink": "نسخ الرابط",
+    "revokeShare": "إلغاء",
+    "shareExpiry": "انتهاء صلاحية الرابط",
+    "shareTitle": "عنوان عام",
+    "shareDescription": "وصف عام",
+    "includeScores": "تضمين الدرجات المجمدة",
+    "includeWeights": "تضمين الأوزان المجمدة",
+    "shareCreated": "تم إنشاء الرابط. انسخه الآن — لن يُعرض مرة أخرى.",
+    "shareList": "روابط المشاركة الخاصة بك",
+    "shareSignInRequired": "سجّل الدخول لإنشاء رابط مقارنة قابل للمشاركة.",
+    "expiry24h": "24 ساعة",
+    "expiry7d": "7 أيام",
+    "expiry30d": "30 يومًا",
+    "shareActive": "نشط",
+    "shareExpired": "منتهٍ",
+    "shareRevoked": "ملغى",
+    "sharedComparisonTitle": "مقارنة مشتركة",
+    "sharedComparisonUnavailable": "رابط المقارنة هذا غير متاح.",
+    "sharedComparisonWarning": "تحديث الإعلان",
+    "sourceAttribution": "المصدر"
+  },
+  "sharedComparison": {
+    "unavailable": "رابط المقارنة هذا غير متاح.",
+    "title": "مقارنة مشتركة"
   },
   "notifications": {
     "new_match": {

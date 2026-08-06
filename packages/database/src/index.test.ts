@@ -29,6 +29,14 @@ describe('phase 4B schema', () => {
   });
 });
 
+describe('phase 4C schema', () => {
+  it('exports secure comparison share tables', () => {
+    expect(schema.comparisonShares).toBeTruthy();
+    expect(schema.comparisonShareItems).toBeTruthy();
+    expect(schema.comparisonShareAccessEvents).toBeTruthy();
+  });
+});
+
 describe('RLS policy catalogue', () => {
   it('enables RLS on sensitive tables', () => {
     expect(rlsEnabledTables).toContain('users');
@@ -87,5 +95,19 @@ describe('RLS policy catalogue', () => {
         expect(policy).not.toContain('admin_');
       }
     }
+  });
+
+  it('defines owner-only Phase 4C policies with no anon policy', () => {
+    expect(rlsEnabledTables).toContain('comparison_shares');
+    expect(rlsEnabledTables).toContain('comparison_share_items');
+    expect(rlsEnabledTables).toContain('comparison_share_access_events');
+    expect(implementedRlsPolicies).toContain('comparison_shares_owner_select');
+    expect(implementedRlsPolicies).toContain('comparison_share_items_owner_insert');
+    expect(implementedRlsPolicies).toContain('comparison_share_access_events_owner_select');
+    expect(
+      implementedRlsPolicies.some(
+        (policy) => policy.includes('comparison_share') && policy.includes('anon'),
+      ),
+    ).toBe(false);
   });
 });

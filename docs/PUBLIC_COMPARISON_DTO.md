@@ -103,21 +103,21 @@ type PublicListingWarningCode =
 
 ## Allowlist (potentially included)
 
-| Field | Notes |
-| ----- | ----- |
-| Public property title | From listing |
-| Asking price / €/m² | Live |
-| Approved location precision | `areaLabel` / coarse locality — not exact address |
-| Bedrooms / bathrooms | When available |
-| Built / usable area | When available |
-| Authorized images | Rights-checked URLs only; else empty |
-| Public features | Public feature catalogue only |
-| Environment classification | When present |
-| Transport / proximity | When present |
-| Freshness / status | Live + warning codes |
-| Source attribution / public source link | Required transparency |
-| Frozen scores / explanations | Only if `include_scores` |
-| Frozen weights | Only if `include_weights` (display of priorities, not live profile) |
+| Field                                   | Notes                                                               |
+| --------------------------------------- | ------------------------------------------------------------------- |
+| Public property title                   | From listing                                                        |
+| Asking price / €/m²                     | Live                                                                |
+| Approved location precision             | `areaLabel` / coarse locality — not exact address                   |
+| Bedrooms / bathrooms                    | When available                                                      |
+| Built / usable area                     | When available                                                      |
+| Authorized images                       | Rights-checked URLs only; else empty                                |
+| Public features                         | Public feature catalogue only                                       |
+| Environment classification              | When present                                                        |
+| Transport / proximity                   | When present                                                        |
+| Freshness / status                      | Live + warning codes                                                |
+| Source attribution / public source link | Required transparency                                               |
+| Frozen scores / explanations            | Only if `include_scores`                                            |
+| Frozen weights                          | Only if `include_weights` (display of priorities, not live profile) |
 
 ## Always exclude
 
@@ -132,16 +132,16 @@ type PublicListingWarningCode =
 
 ## Listing-change behaviour
 
-| Event | `slotStatus` / warnings | Substitution |
-| ----- | ----------------------- | ------------ |
-| Price change | `available` + optional `price_changed` | None |
-| Reserved / under offer | `warning` + status code | None |
-| Withdrawn / not browseable | `unavailable` or `warning` + `listing_withdrawn` / `not_publicly_browseable` | None |
-| Stale | `warning` + `listing_stale` | None |
-| Deleted | `unavailable` + `listing_deleted` | None |
-| Image rights lost | keep row; strip images + `image_authorization_lost` | None |
-| Physical property merge | `warning` + `physical_property_merged` | **Never** swap listing |
-| Different agency listing replaces marketing | `warning` + `listing_replaced` if detectable | **Never** auto-replace id |
+| Event                                       | `slotStatus` / warnings                                                      | Substitution              |
+| ------------------------------------------- | ---------------------------------------------------------------------------- | ------------------------- |
+| Price change                                | `available` + optional `price_changed`                                       | None                      |
+| Reserved / under offer                      | `warning` + status code                                                      | None                      |
+| Withdrawn / not browseable                  | `unavailable` or `warning` + `listing_withdrawn` / `not_publicly_browseable` | None                      |
+| Stale                                       | `warning` + `listing_stale`                                                  | None                      |
+| Deleted                                     | `unavailable` + `listing_deleted`                                            | None                      |
+| Image rights lost                           | keep row; strip images + `image_authorization_lost`                          | None                      |
+| Physical property merge                     | `warning` + `physical_property_merged`                                       | **Never** swap listing    |
+| Different agency listing replaces marketing | `warning` + `listing_replaced` if detectable                                 | **Never** auto-replace id |
 
 Whole-share failures (bad token, expired, revoked) do not return a DTO — generic unavailable page/API body only.
 

@@ -54,6 +54,9 @@ export const rlsEnabledTables = [
   'browsing_history',
   'in_app_notifications',
   'notification_deliveries',
+  'comparison_shares',
+  'comparison_share_items',
+  'comparison_share_access_events',
 ] as const;
 
 export const implementedRlsPolicies = [
@@ -162,4 +165,17 @@ export const implementedRlsPolicies = [
   'notification_deliveries_owner_insert',
   'notification_deliveries_owner_update',
   'notification_deliveries_owner_delete',
+  // Phase 4C — secure comparison sharing (0012_phase4c_comparison_shares_rls.sql)
+  'comparison_shares_owner_select',
+  'comparison_shares_owner_insert',
+  'comparison_shares_owner_update',
+  'comparison_shares_owner_delete',
+  'comparison_share_items_owner_select',
+  'comparison_share_items_owner_insert',
+  'comparison_share_items_owner_update',
+  'comparison_share_items_owner_delete',
+  'comparison_share_access_events_owner_select',
+  'comparison_share_access_events_owner_insert',
+  'comparison_share_access_events_owner_update',
+  'comparison_share_access_events_owner_delete',
 ] as const;

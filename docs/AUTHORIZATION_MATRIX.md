@@ -1,10 +1,10 @@
 # Authorization matrix — Phase 3.1 (+ Phase 4)
 
 Date: 2026-08-06  
-Status: Phase 3.1 **Implemented**; Phase 4A buyer routes **Implemented**; Phase 4B **Implemented** (ADR-030b); Phase 4C shares **Planning complete** (ADR-030c; not implemented)  
-Related: [`PHASE3_1_AUTH_PLAN.md`](PHASE3_1_AUTH_PLAN.md), [`PHASE4A_IMPLEMENTATION.md`](PHASE4A_IMPLEMENTATION.md), [`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md), [`PHASE4C_PLAN.md`](PHASE4C_PLAN.md)
+Status: Phase 3.1 **Implemented**; Phase 4A buyer routes **Implemented**; Phase 4B **Implemented** (ADR-030b); Phase 4C shares **Implemented** (ADR-030c)  
+Related: [`PHASE3_1_AUTH_PLAN.md`](PHASE3_1_AUTH_PLAN.md), [`PHASE4A_IMPLEMENTATION.md`](PHASE4A_IMPLEMENTATION.md), [`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md), [`PHASE4C_IMPLEMENTATION.md`](PHASE4C_IMPLEMENTATION.md)
 
-Legend: **Y** = allow · **N** = deny · **—** = not applicable · **S** = session required · **P** = planned Phase 4C (docs locked; code not started)
+Legend: **Y** = allow · **N** = deny · **—** = not applicable · **S** = session required · **P** = planned (unused for 4C — now shipped)
 
 Role keys: `anon`, `buyer` (authenticated, no org/platform role), `org_viewer`, `org_agent` (editor), `org_admin`/`org_owner` (agency admin), `listing_reviewer`, `platform_admin`.
 
@@ -47,15 +47,15 @@ Role keys: `anon`, `buyer` (authenticated, no org/platform role), `org_viewer`, 
 | `GET /api/v1/me/notifications`                                   | N    | Y (S) | N     | In-app only                            |
 | `POST /api/v1/me/notifications/{id}/read` / `read-all` / dismiss | N    | Y (S) | N     |                                        |
 
-### Phase 4C comparison shares (planning complete — ADR-030c; not implemented)
+### Phase 4C comparison shares (implemented — ADR-030c)
 
-| Route                                            | anon    | buyer       | org_* | Notes                                                                |
-| ------------------------------------------------ | ------- | ----------- | ----- | -------------------------------------------------------------------- |
-| `GET /api/v1/compare/shared/{token}`             | Y **P** | Y **P**     | Y **P** | Public DTO allowlist only; rate-limited; generic unavailable on fail |
-| `GET/POST /api/v1/me/comparison-shares`          | N       | Y (S) **P** | N     | Owner create/list; CSRF on POST                                      |
-| `GET /api/v1/me/comparison-shares/{id}`          | N       | Y (S) **P** | N     | Metadata only; never re-returns plaintext token                      |
-| `POST /api/v1/me/comparison-shares/{id}/revoke`  | N       | Y (S) **P** | N     | CSRF                                                                 |
-| `POST /api/v1/me/comparison-shares/{id}/replace` | N       | Y (S) **P** | N     | CSRF; new token                                                      |
+| Route                                            | anon | buyer | org_* | Notes                                                                |
+| ------------------------------------------------ | ---- | ----- | ----- | -------------------------------------------------------------------- |
+| `GET /api/v1/compare/shared/{token}`             | Y    | Y     | Y     | Public DTO allowlist only; rate-limited; generic unavailable on fail |
+| `GET/POST /api/v1/me/comparison-shares`          | N    | Y (S) | N     | Owner create/list; CSRF on POST                                      |
+| `GET /api/v1/me/comparison-shares/{id}`          | N    | Y (S) | N     | Metadata only; never re-returns plaintext token                      |
+| `POST /api/v1/me/comparison-shares/{id}/revoke`  | N    | Y (S) | N     | CSRF                                                                 |
+| `POST /api/v1/me/comparison-shares/{id}/replace` | N    | Y (S) | N     | CSRF; new token                                                      |
 
 ---
 
@@ -101,7 +101,7 @@ All require **verified session** + platform role.
 | `/{locale}/search`, property detail        | Y               | Y     | Y                       | Y                     |
 | `/{locale}/favourites`                     | Y (guest local) | Y (S) | Y                       | Y                     |
 | `/{locale}/workspace/**` (Phase 4)         | Y (guest local) | Y (S) | Y (own buyer data only) | Y                     |
-| `/{locale}/shared-comparison/{token}` (4C) | Y **P**         | Y     | Y                       | Y                     |
+| `/{locale}/shared-comparison/{token}` (4C) | Y               | Y     | Y                       | Y                     |
 | `/{locale}/partner/**`                     | N → login       | N     | Y (S + membership)      | N\*                   |
 | `/{locale}/admin/**`                       | N → login       | N     | N                       | Y (S + platform role) |
 | `DevIdentitySwitcher`                      | —               | —     | Dev/fake only           | Dev/fake only         |
@@ -110,21 +110,21 @@ All require **verified session** + platform role.
 
 ## Negative cases (must deny)
 
-| Attack                                                  | Expected                            |
-| ------------------------------------------------------- | ----------------------------------- |
-| Call partner API without session                        | 401                                 |
-| Session user, not in org, hits partner                  | 403                                 |
-| Org A session, org B listing UUID                       | 403 / empty                         |
-| Org viewer CSV upload                                   | 403                                 |
-| Org editor source permission change                     | 403                                 |
-| `x-user-id` of admin without session (prod)             | 401 (ignored)                       |
-| Body `actorUserId` spoof on audit write                 | Ignored; session actor used         |
-| Role string in body/query                               | Ignored                             |
-| Buyer A reads Buyer B shortlist/notes/history (Phase 4) | 403 / empty                         |
-| Agency role lists another buyer’s `/me/*` (Phase 4)     | Denied                              |
-| Public share returns notes or identity (Phase 4C)       | Must not                            |
-| Invalid / expired / revoked share token (Phase 4C)      | Generic unavailable (identical)     |
-| Anon SELECT on `comparison_shares*` (Phase 4C)          | Denied (no RLS policy)              |
+| Attack                                                  | Expected                        |
+| ------------------------------------------------------- | ------------------------------- |
+| Call partner API without session                        | 401                             |
+| Session user, not in org, hits partner                  | 403                             |
+| Org A session, org B listing UUID                       | 403 / empty                     |
+| Org viewer CSV upload                                   | 403                             |
+| Org editor source permission change                     | 403                             |
+| `x-user-id` of admin without session (prod)             | 401 (ignored)                   |
+| Body `actorUserId` spoof on audit write                 | Ignored; session actor used     |
+| Role string in body/query                               | Ignored                         |
+| Buyer A reads Buyer B shortlist/notes/history (Phase 4) | 403 / empty                     |
+| Agency role lists another buyer’s `/me/*` (Phase 4)     | Denied                          |
+| Public share returns notes or identity (Phase 4C)       | Must not                        |
+| Invalid / expired / revoked share token (Phase 4C)      | Generic unavailable (identical) |
+| Anon SELECT on `comparison_shares*` (Phase 4C)          | Denied (no RLS policy)          |
 
 ---
 

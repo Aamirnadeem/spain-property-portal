@@ -8,9 +8,9 @@ Parent: [`PHASE4C_PLAN.md`](PHASE4C_PLAN.md) · Builds on Phase 4B migrations `0
 
 Apply after 4B:
 
-| Migration | Purpose |
-| --------- | ------- |
-| `0011_phase4c_comparison_shares.sql` | Tables, indexes, FKs |
+| Migration                                | Purpose               |
+| ---------------------------------------- | --------------------- |
+| `0011_phase4c_comparison_shares.sql`     | Tables, indexes, FKs  |
 | `0012_phase4c_comparison_shares_rls.sql` | RLS policies + grants |
 
 Exact filenames follow the package migrator convention at implementation time.
@@ -19,26 +19,26 @@ Exact filenames follow the package migrator convention at implementation time.
 
 ### `comparison_shares`
 
-| Column | Type | Notes |
-| ------ | ---- | ----- |
-| `id` | uuid PK | Default `gen_random_uuid()` |
-| `user_id` | uuid NOT NULL | Owner; FK `users(id)` ON DELETE CASCADE |
-| `comparison_set_id` | uuid NULL | Optional provenance; FK `comparison_sets(id)` ON DELETE SET NULL |
-| `token_hash` | varchar(64) NOT NULL UNIQUE | SHA-256 hex of plaintext token |
-| `public_title` | varchar(120) NULL | Length-capped |
-| `public_description` | varchar(500) NULL | Neutral copy only |
-| `expires_at` | timestamptz NOT NULL | ≤ created_at + 90 days |
-| `revoked_at` | timestamptz NULL | Set on revoke/replace-of-old |
-| `replaced_by_share_id` | uuid NULL | Self-FK to successor share |
-| `manifest` | jsonb NOT NULL | `phase4c.v1` envelope |
-| `include_weights` | boolean NOT NULL DEFAULT false | |
-| `include_scores` | boolean NOT NULL DEFAULT false | |
-| `score_model_version` | varchar(32) NULL | e.g. `phase4a.v1` when scores included |
-| `weight_snapshot` | jsonb NULL | Frozen when weights/scores included |
-| `access_count` | integer NOT NULL DEFAULT 0 | Aggregate |
-| `last_accessed_at` | timestamptz NULL | Aggregate |
-| `created_at` | timestamptz NOT NULL | |
-| `updated_at` | timestamptz NOT NULL | |
+| Column                 | Type                           | Notes                                                            |
+| ---------------------- | ------------------------------ | ---------------------------------------------------------------- |
+| `id`                   | uuid PK                        | Default `gen_random_uuid()`                                      |
+| `user_id`              | uuid NOT NULL                  | Owner; FK `users(id)` ON DELETE CASCADE                          |
+| `comparison_set_id`    | uuid NULL                      | Optional provenance; FK `comparison_sets(id)` ON DELETE SET NULL |
+| `token_hash`           | varchar(64) NOT NULL UNIQUE    | SHA-256 hex of plaintext token                                   |
+| `public_title`         | varchar(120) NULL              | Length-capped                                                    |
+| `public_description`   | varchar(500) NULL              | Neutral copy only                                                |
+| `expires_at`           | timestamptz NOT NULL           | ≤ created_at + 90 days                                           |
+| `revoked_at`           | timestamptz NULL               | Set on revoke/replace-of-old                                     |
+| `replaced_by_share_id` | uuid NULL                      | Self-FK to successor share                                       |
+| `manifest`             | jsonb NOT NULL                 | `phase4c.v1` envelope                                            |
+| `include_weights`      | boolean NOT NULL DEFAULT false |                                                                  |
+| `include_scores`       | boolean NOT NULL DEFAULT false |                                                                  |
+| `score_model_version`  | varchar(32) NULL               | e.g. `phase4a.v1` when scores included                           |
+| `weight_snapshot`      | jsonb NULL                     | Frozen when weights/scores included                              |
+| `access_count`         | integer NOT NULL DEFAULT 0     | Aggregate                                                        |
+| `last_accessed_at`     | timestamptz NULL               | Aggregate                                                        |
+| `created_at`           | timestamptz NOT NULL           |                                                                  |
+| `updated_at`           | timestamptz NOT NULL           |                                                                  |
 
 Constraints:
 
@@ -55,13 +55,13 @@ Indexes:
 
 ### `comparison_share_items`
 
-| Column | Type | Notes |
-| ------ | ---- | ----- |
-| `id` | uuid PK | |
-| `share_id` | uuid NOT NULL | FK CASCADE → `comparison_shares` |
-| `listing_id` | uuid NOT NULL | FK → listings (ON DELETE behaviour: prefer RESTRICT or SET NULL + service warning — document at impl: **keep row, allow listing hard-delete only if FK SET NULL**; recommended: FK without CASCADE delete of share; on listing delete keep item with warning via nullable FK or soft status) |
-| `position` | smallint NOT NULL | 0-based or 1-based; consistent with 4A |
-| `physical_property_id` | uuid NULL | Snapshot for merge/withdraw diagnostics |
+| Column                 | Type              | Notes                                                                                                                                                                                                                                                                                        |
+| ---------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                   | uuid PK           |                                                                                                                                                                                                                                                                                              |
+| `share_id`             | uuid NOT NULL     | FK CASCADE → `comparison_shares`                                                                                                                                                                                                                                                             |
+| `listing_id`           | uuid NOT NULL     | FK → listings (ON DELETE behaviour: prefer RESTRICT or SET NULL + service warning — document at impl: **keep row, allow listing hard-delete only if FK SET NULL**; recommended: FK without CASCADE delete of share; on listing delete keep item with warning via nullable FK or soft status) |
+| `position`             | smallint NOT NULL | 0-based or 1-based; consistent with 4A                                                                                                                                                                                                                                                       |
+| `physical_property_id` | uuid NULL         | Snapshot for merge/withdraw diagnostics                                                                                                                                                                                                                                                      |
 
 Constraints:
 
@@ -80,13 +80,13 @@ Indexes:
 
 Privacy-minimal optional audit of resolve attempts for **known** share rows (lookup succeeded by hash).
 
-| Column | Type | Notes |
-| ------ | ---- | ----- |
-| `id` | uuid PK | |
-| `share_id` | uuid NOT NULL | FK CASCADE |
-| `accessed_at` | timestamptz NOT NULL DEFAULT now() | |
-| `result` | text/enum NOT NULL | `ok` \| `not_found` \| `expired` \| `revoked` — for rows that resolved to a share id; pure unknown tokens may skip insert |
-| `ua_category` | text NULL | `browser` \| `bot` \| `preview` \| `other` |
+| Column        | Type                               | Notes                                                                                                                     |
+| ------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `id`          | uuid PK                            |                                                                                                                           |
+| `share_id`    | uuid NOT NULL                      | FK CASCADE                                                                                                                |
+| `accessed_at` | timestamptz NOT NULL DEFAULT now() |                                                                                                                           |
+| `result`      | text/enum NOT NULL                 | `ok` \| `not_found` \| `expired` \| `revoked` — for rows that resolved to a share id; pure unknown tokens may skip insert |
+| `ua_category` | text NULL                          | `browser` \| `bot` \| `preview` \| `other`                                                                                |
 
 **Deferred (D23):** truncated/hashed network identifier — not in 4C schema unless abuse evidence requires an ADR amendment.
 
@@ -122,15 +122,15 @@ Canonical listing membership also lives in `comparison_share_items` (source of t
 
 Enable RLS; revoke broad anon grants.
 
-| Policy (illustrative) | Table | Role | Rule |
-| --------------------- | ----- | ---- | ---- |
-| `comparison_shares_owner_select` | comparison_shares | authenticated | `user_id = request.jwt.claim.sub` |
-| `comparison_shares_owner_insert` | comparison_shares | authenticated | same + insert check |
-| `comparison_shares_owner_update` | comparison_shares | authenticated | same (revoke/replace metadata) |
-| `comparison_shares_owner_delete` | comparison_shares | authenticated | same (optional; soft revoke preferred) |
-| `comparison_share_items_owner_*` | comparison_share_items | authenticated | via parent share ownership |
-| `comparison_share_access_events_owner_select` | events | authenticated | via parent share ownership (aggregates preferred for UI) |
-| *(none)* | all three | anon | **No SELECT/INSERT/UPDATE/DELETE** |
+| Policy (illustrative)                         | Table                  | Role          | Rule                                                     |
+| --------------------------------------------- | ---------------------- | ------------- | -------------------------------------------------------- |
+| `comparison_shares_owner_select`              | comparison_shares      | authenticated | `user_id = request.jwt.claim.sub`                        |
+| `comparison_shares_owner_insert`              | comparison_shares      | authenticated | same + insert check                                      |
+| `comparison_shares_owner_update`              | comparison_shares      | authenticated | same (revoke/replace metadata)                           |
+| `comparison_shares_owner_delete`              | comparison_shares      | authenticated | same (optional; soft revoke preferred)                   |
+| `comparison_share_items_owner_*`              | comparison_share_items | authenticated | via parent share ownership                               |
+| `comparison_share_access_events_owner_select` | events                 | authenticated | via parent share ownership (aggregates preferred for UI) |
+| _(none)_                                      | all three              | anon          | **No SELECT/INSERT/UPDATE/DELETE**                       |
 
 Service-role connection used only for:
 
