@@ -1,10 +1,10 @@
 # Authorization matrix — Phase 3.1 (+ Phase 4)
 
 Date: 2026-08-06  
-Status: Phase 3.1 **Implemented**; Phase 4A buyer routes **Implemented**; Phase 4B **Planned** (ADR-030b); Phase 4C shares **Planned**  
-Related: [`PHASE3_1_AUTH_PLAN.md`](PHASE3_1_AUTH_PLAN.md), [`PHASE4A_IMPLEMENTATION.md`](PHASE4A_IMPLEMENTATION.md), [`PHASE4B_PLAN.md`](PHASE4B_PLAN.md)
+Status: Phase 3.1 **Implemented**; Phase 4A buyer routes **Implemented**; Phase 4B **Implemented** (ADR-030b); Phase 4C shares **Planned**  
+Related: [`PHASE3_1_AUTH_PLAN.md`](PHASE3_1_AUTH_PLAN.md), [`PHASE4A_IMPLEMENTATION.md`](PHASE4A_IMPLEMENTATION.md), [`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md)
 
-Legend: **Y** = allow · **N** = deny · **—** = not applicable · **S** = session required · **P** = planned Phase 4B/4C
+Legend: **Y** = allow · **N** = deny · **—** = not applicable · **S** = session required · **P** = planned Phase 4C
 
 Role keys: `anon`, `buyer` (authenticated, no org/platform role), `org_viewer`, `org_agent` (editor), `org_admin`/`org_owner` (agency admin), `listing_reviewer`, `platform_admin`.
 
@@ -31,21 +31,21 @@ Role keys: `anon`, `buyer` (authenticated, no org/platform role), `org_viewer`, 
 | `GET/PUT/DELETE /api/v1/me/notes/properties/{id}` | N    | Y (S) | N     |                                    |
 | `POST /api/v1/me/comparisons` / `preview`         | N    | Y (S) | N     |                                    |
 | `GET/PUT /api/v1/me/preference-profiles`          | N    | Y (S) | N     |                                    |
-| `POST /api/v1/me/workspace/merge`                 | N    | Y (S) | N     | Extends in 4B for searches/history |
+| `POST /api/v1/me/workspace/merge`                 | N    | Y (S) | N     | Includes 4B searches/history merge |
 | `GET/PUT /api/v1/guest/workspace`                 | Y    | Y     | Y     | Cookie-scoped guest session        |
 
-### Phase 4B buyer APIs (planned — ADR-030b)
+### Phase 4B buyer APIs (implemented — ADR-030b)
 
-| Route                                                            | anon | buyer       | org_* | Notes                                  |
-| ---------------------------------------------------------------- | ---- | ----------- | ----- | -------------------------------------- |
-| `GET/POST/PATCH/DELETE /api/v1/me/saved-searches`                | N    | Y (S) **P** | N     | Owner only; criteria never to agencies |
-| `POST /api/v1/me/saved-searches/{id}/run`                        | N    | Y (S) **P** | N     | Manual evaluation                      |
-| `PATCH /api/v1/me/saved-searches/{id}/alerts`                    | N    | Y (S) **P** | N     | Opt-in alerts                          |
-| `GET/DELETE /api/v1/me/history`                                  | N    | Y (S) **P** | N     | Browsing history                       |
-| `POST /api/v1/me/history/views`                                  | N    | Y (S) **P** | N     | Rate-limited                           |
-| `DELETE /api/v1/me/history/{listingId}`                          | N    | Y (S) **P** | N     | Clear one                              |
-| `GET /api/v1/me/notifications`                                   | N    | Y (S) **P** | N     | In-app only                            |
-| `POST /api/v1/me/notifications/{id}/read` / `read-all` / dismiss | N    | Y (S) **P** | N     |                                        |
+| Route                                                            | anon | buyer | org_* | Notes                                  |
+| ---------------------------------------------------------------- | ---- | ----- | ----- | -------------------------------------- |
+| `GET/POST/PATCH/DELETE /api/v1/me/saved-searches`                | N    | Y (S) | N     | Owner only; criteria never to agencies |
+| `POST /api/v1/me/saved-searches/{id}/run`                        | N    | Y (S) | N     | Manual evaluation                      |
+| `PATCH /api/v1/me/saved-searches/{id}/alerts`                    | N    | Y (S) | N     | Opt-in alerts                          |
+| `GET/DELETE /api/v1/me/history`                                  | N    | Y (S) | N     | Browsing history                       |
+| `POST /api/v1/me/history/views`                                  | N    | Y (S) | N     | Rate-limited                           |
+| `DELETE /api/v1/me/history/{listingId}`                          | N    | Y (S) | N     | Clear one                              |
+| `GET /api/v1/me/notifications`                                   | N    | Y (S) | N     | In-app only                            |
+| `POST /api/v1/me/notifications/{id}/read` / `read-all` / dismiss | N    | Y (S) | N     |                                        |
 
 Phase 4C (comparison shares): still **P**lanned separately.
 
@@ -88,15 +88,15 @@ All require **verified session** + platform role.
 
 ## UI route access
 
-| UI                                  | anon                  | buyer       | org member              | platform              |
-| ----------------------------------- | --------------------- | ----------- | ----------------------- | --------------------- |
-| `/{locale}/search`, property detail | Y                     | Y           | Y                       | Y                     |
-| `/{locale}/favourites`              | Y (guest local)       | Y (S)       | Y                       | Y                     |
-| `/{locale}/workspace/**` (Phase 4)  | Y (guest local) **P** | Y (S) **P** | Y (own buyer data only) | Y                     |
-| `/{locale}/compare/shared/{token}`  | Y **P**               | Y           | Y                       | Y                     |
-| `/{locale}/partner/**`              | N → login             | N           | Y (S + membership)      | N\*                   |
-| `/{locale}/admin/**`                | N → login             | N           | N                       | Y (S + platform role) |
-| `DevIdentitySwitcher`               | —                     | —           | Dev/fake only           | Dev/fake only         |
+| UI                                  | anon            | buyer | org member              | platform              |
+| ----------------------------------- | --------------- | ----- | ----------------------- | --------------------- |
+| `/{locale}/search`, property detail | Y               | Y     | Y                       | Y                     |
+| `/{locale}/favourites`              | Y (guest local) | Y (S) | Y                       | Y                     |
+| `/{locale}/workspace/**` (Phase 4)  | Y (guest local) | Y (S) | Y (own buyer data only) | Y                     |
+| `/{locale}/compare/shared/{token}`  | Y **P**         | Y     | Y                       | Y                     |
+| `/{locale}/partner/**`              | N → login       | N     | Y (S + membership)      | N\*                   |
+| `/{locale}/admin/**`                | N → login       | N     | N                       | Y (S + platform role) |
+| `DevIdentitySwitcher`               | —               | —     | Dev/fake only           | Dev/fake only         |
 
 ---
 

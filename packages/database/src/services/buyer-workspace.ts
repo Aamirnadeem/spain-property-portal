@@ -5,8 +5,12 @@ import {
   COMPARISON_MIN_ITEMS,
   MAX_ITEMS_PER_SHORTLIST,
   MAX_SHORTLISTS_PER_USER,
+  SAVED_SEARCH_CRITERIA_VERSION,
   SCORE_MODEL_VERSION,
+  defaultAlertTypesOnEnable,
+  indexedColumnsFromCriteria,
   mergeGuestWorkspace,
+  normalizeSavedSearchCriteria,
   scoreComparisonSet,
   validateComparisonWeights,
   type ComparisonListingFacts,
@@ -689,6 +693,14 @@ export async function mergeGuestWorkspaceIntoUser(
         ),
       )
       .limit(1);
+    const savedSearchRows = await tx
+      .select()
+      .from(schema.savedSearches)
+      .where(eq(schema.savedSearches.userId, userId));
+    const historyRows = await tx
+      .select()
+      .from(schema.browsingHistory)
+      .where(eq(schema.browsingHistory.userId, userId));
 
     const guestSnap: GuestWorkspaceSnapshot = {
       guestSessionId: guestRow?.id ?? input.guestSessionId ?? 'client-fallback',
@@ -699,6 +711,8 @@ export async function mergeGuestWorkspaceIntoUser(
       shortlists: payload.shortlists,
       preferenceWeights: payload.preferenceWeights,
       propertyNotes: payload.propertyNotes,
+      savedSearches: payload.savedSearches,
+      browsingHistory: payload.browsingHistory,
     };
 
     const plan = mergeGuestWorkspace(guestSnap, {
@@ -710,6 +724,17 @@ export async function mergeGuestWorkspaceIntoUser(
       shortlistNames: shortlistRows.map((s) => s.name),
       hasActivePreferenceProfile: Boolean(activeProfile),
       propertyNoteListingIds: noteRows.map((n) => n.listingId),
+      savedSearchHashes: savedSearchRows.map((s) => s.criteriaHash),
+      savedSearchNames: savedSearchRows.map((s) => s.name),
+      browsingHistory: historyRows.map((h) => ({
+        listingId: h.listingId,
+        physicalPropertyId: h.physicalPropertyId ?? undefined,
+        firstViewedAt: h.firstViewedAt.toISOString(),
+        lastViewedAt: h.lastViewedAt.toISOString(),
+        viewCount: h.viewCount,
+        channel: h.channel,
+        context: h.context ?? undefined,
+      })),
     });
 
     for (const listingId of plan.favouriteListingIds) {
@@ -794,6 +819,62 @@ export async function mergeGuestWorkspaceIntoUser(
       }
     }
 
+    for (const entry of plan.savedSearchesToInsert) {
+      const normalized = normalizeSavedSearchCriteria(entry.criteria);
+      const idx = indexedColumnsFromCriteria(normalized);
+      const alertTypes =
+        entry.alertsEnabled && entry.alertTypes.length === 0
+          ? defaultAlertTypesOnEnable()
+          : entry.alertTypes;
+      await tx
+        .insert(schema.savedSearches)
+        .values({
+          userId,
+          name: entry.name,
+          criteria: normalized,
+          criteriaVersion: SAVED_SEARCH_CRITERIA_VERSION,
+          criteriaHash: entry.criteriaHash,
+          sort: normalized.sort,
+          idxMinPrice: idx.idxMinPrice,
+          idxMaxPrice: idx.idxMaxPrice,
+          idxMinBedrooms: idx.idxMinBedrooms,
+          idxMunicipality: idx.idxMunicipality,
+          idxProvince: idx.idxProvince,
+          idxPropertyType: idx.idxPropertyType,
+          idxOffPlan: idx.idxOffPlan,
+          alertsEnabled: entry.alertsEnabled,
+          alertTypes,
+          consentedAt: entry.alertsEnabled ? new Date() : null,
+        })
+        .onConflictDoNothing();
+    }
+
+    for (const h of plan.browsingHistoryMerged) {
+      const firstIso = new Date(h.firstViewedAt).toISOString();
+      const lastIso = new Date(h.lastViewedAt).toISOString();
+      await tx
+        .insert(schema.browsingHistory)
+        .values({
+          userId,
+          listingId: h.listingId,
+          physicalPropertyId: h.physicalPropertyId ?? null,
+          firstViewedAt: new Date(firstIso),
+          lastViewedAt: new Date(lastIso),
+          viewCount: h.viewCount,
+          channel: h.channel ?? 'web',
+          context: h.context ?? null,
+        })
+        .onConflictDoUpdate({
+          target: [schema.browsingHistory.userId, schema.browsingHistory.listingId],
+          set: {
+            firstViewedAt: sql`LEAST(${schema.browsingHistory.firstViewedAt}, ${firstIso}::timestamptz)`,
+            lastViewedAt: sql`GREATEST(${schema.browsingHistory.lastViewedAt}, ${lastIso}::timestamptz)`,
+            viewCount: h.viewCount,
+            updatedAt: new Date(),
+          },
+        });
+    }
+
     if (guestRow) {
       await tx
         .update(schema.guestSessions)
@@ -810,6 +891,8 @@ export async function mergeGuestWorkspaceIntoUser(
       guestSessionId: guestRow?.id ?? null,
       favouriteCount: plan.favouriteListingIds.length,
       shortlistsMerged: plan.shortlists.length,
+      savedSearchesMerged: plan.savedSearchesToInsert.length,
+      browsingHistoryMerged: plan.browsingHistoryMerged.length,
     };
   });
 }

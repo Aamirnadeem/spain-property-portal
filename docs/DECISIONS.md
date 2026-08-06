@@ -87,7 +87,7 @@ This is the implementation-facing decision log. The broader planning register re
 - **Phase 4** = Buyer workspace remainder (shortlists, comparison, alerts, leads, privacy workflows) beyond Phase 2 favourites.
 - Former documentation that labelled live inventory as Phase 4 and buyer workspace as Phase 3 is superseded by this ADR and [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md).
 - Phase 5+ (AI chat, etc.) keep their phase numbers.
-- **Status:** implemented — see [`PHASE3_IMPLEMENTATION.md`](PHASE3_IMPLEMENTATION.md). Phase 4 **planning** complete ([`PHASE4_PLAN.md`](PHASE4_PLAN.md)); Phase 4A **implemented**; Phase 4B **planning** complete ([`PHASE4B_PLAN.md`](PHASE4B_PLAN.md), ADR-030b); Phase 4C (shares) not started.
+- **Status:** implemented — see [`PHASE3_IMPLEMENTATION.md`](PHASE3_IMPLEMENTATION.md). Phase 4 **planning** complete ([`PHASE4_PLAN.md`](PHASE4_PLAN.md)); Phase 4A **implemented**; Phase 4B **implemented** ([`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md), ADR-030b); Phase 4C (shares) not started.
 
 ### ADR-023 — Phase 3 first vertical slice
 
@@ -153,7 +153,7 @@ This is the implementation-facing decision log. The broader planning register re
 - Favourites remain a separate Phase 2 heart bookmark; named shortlists do not auto-sync from favourites.
 - Alert evaluation uses **inline** hooks (ADR-027); no pg-boss required for Phase 4.
 - Planning docs: [`PHASE4_PLAN.md`](PHASE4_PLAN.md), [`BUYER_WORKSPACE_DESIGN.md`](BUYER_WORKSPACE_DESIGN.md), [`PROPERTY_COMPARISON_MODEL.md`](PROPERTY_COMPARISON_MODEL.md), [`SAVED_SEARCH_AND_ALERT_MODEL.md`](SAVED_SEARCH_AND_ALERT_MODEL.md), [`PHASE4_DATABASE_CHANGES.md`](PHASE4_DATABASE_CHANGES.md), [`PHASE4_SECURITY_REVIEW.md`](PHASE4_SECURITY_REVIEW.md), [`PHASE4_ACCEPTANCE_CRITERIA.md`](PHASE4_ACCEPTANCE_CRITERIA.md), [`PHASE4_DECISIONS_REQUIRED.md`](PHASE4_DECISIONS_REQUIRED.md).
-- **Status:** **planning complete** — Phase 4A implemented (ADR-030a); Phase 4B planning complete (ADR-030b); implementation of 4B/4C awaits explicit approval.
+- **Status:** **planning complete** — Phase 4A implemented (ADR-030a); Phase 4B implemented (ADR-030b); Phase 4C (shares) not started.
 
 ### ADR-030a — Phase 4A vertical slice shipped
 
@@ -173,4 +173,5 @@ This is the implementation-facing decision log. The broader planning register re
 - Alert defaults: legacy snapshots **disabled**; `price_reduction` **on**; `price_increase` **off**; status/withdrawal for **shortlisted or saved-match** listings (D13/D16/D17).
 - Evaluation: **manual + test-triggered** initially; provider-neutral scheduler seam for later automation (D14).
 - Planning docs: [`PHASE4B_PLAN.md`](PHASE4B_PLAN.md), [`SAVED_SEARCH_CRITERIA_SPEC.md`](SAVED_SEARCH_CRITERIA_SPEC.md), [`BROWSING_HISTORY_DESIGN.md`](BROWSING_HISTORY_DESIGN.md), [`IN_APP_NOTIFICATION_DESIGN.md`](IN_APP_NOTIFICATION_DESIGN.md), [`ALERT_MATCHING_ENGINE.md`](ALERT_MATCHING_ENGINE.md), [`PHASE4B_DATABASE_CHANGES.md`](PHASE4B_DATABASE_CHANGES.md), [`PHASE4B_SECURITY_REVIEW.md`](PHASE4B_SECURITY_REVIEW.md), [`PHASE4B_ACCEPTANCE_CRITERIA.md`](PHASE4B_ACCEPTANCE_CRITERIA.md), [`PHASE4B_DECISIONS_REQUIRED.md`](PHASE4B_DECISIONS_REQUIRED.md).
-- **Status:** **planning complete** (2026-08-06). Implementation not started until explicit approval.
+- Implementation: [`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md).
+- **Status:** **implemented** (2026-08-06).

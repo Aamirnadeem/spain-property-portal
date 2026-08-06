@@ -2,8 +2,21 @@ import { and, desc, eq } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as schema from '../schema/index';
 import { recordAuditEvent } from './audit';
+import { generateListingChangeNotifications, type ListingChangeEvent } from './phase4b-workspace';
+import { withServiceRoleDb } from './service-role-db';
 
 type Db = PostgresJsDatabase<typeof schema>;
+
+/** Fan-out uses service-role so partner sessions can notify eligible buyers (B14). */
+async function fanOutListingChange(event: ListingChangeEvent): Promise<void> {
+  try {
+    await withServiceRoleDb(process.env.DATABASE_URL, (serviceDb) =>
+      generateListingChangeNotifications(serviceDb, event),
+    );
+  } catch (error) {
+    console.error('generateListingChangeNotifications failed', error);
+  }
+}
 
 export class NotFoundError extends Error {
   constructor(message = 'not_found') {
@@ -53,13 +66,26 @@ export async function updateOrgListingPrice(
     .where(eq(schema.propertyListings.id, listing.id));
 
   if (previousPrice !== input.priceAmount) {
-    await db.insert(schema.listingPriceHistory).values({
-      listingId: listing.id,
-      currency: listing.currency,
-      priceAmount: String(input.priceAmount),
-      recordedAt: now,
-      source: 'partner_update',
-    });
+    const [historyRow] = await db
+      .insert(schema.listingPriceHistory)
+      .values({
+        listingId: listing.id,
+        currency: listing.currency,
+        priceAmount: String(input.priceAmount),
+        recordedAt: now,
+        source: 'partner_update',
+      })
+      .returning();
+
+    if (historyRow && previousPrice != null) {
+      await fanOutListingChange({
+        listingId: listing.id,
+        type: input.priceAmount < previousPrice ? 'price_reduction' : 'price_increase',
+        sourceEventId: historyRow.id,
+        priceFrom: previousPrice,
+        priceTo: input.priceAmount,
+      });
+    }
   }
 
   await recordAuditEvent(db, {
@@ -87,17 +113,32 @@ export async function withdrawOrgListing(
   const previousStatus = listing.operationalStatus;
   const now = new Date();
 
+  // Write status history before flipping browse/status flags so the INSERT WITH CHECK
+  // subquery can still see the org-owned listing under RLS.
+  const [historyRow] = await db
+    .insert(schema.listingStatusHistory)
+    .values({
+      listingId: listing.id,
+      status: 'withdrawn',
+      recordedAt: now,
+      note: input.note ?? 'Withdrawn by agency',
+    })
+    .returning();
+
   await db
     .update(schema.propertyListings)
     .set({ operationalStatus: 'withdrawn', isPublicBrowseable: false, updatedAt: now })
     .where(eq(schema.propertyListings.id, listing.id));
 
-  await db.insert(schema.listingStatusHistory).values({
-    listingId: listing.id,
-    status: 'withdrawn',
-    recordedAt: now,
-    note: input.note ?? 'Withdrawn by agency',
-  });
+  if (historyRow) {
+    await fanOutListingChange({
+      listingId: listing.id,
+      type: 'listing_withdrawn',
+      sourceEventId: historyRow.id,
+      statusFrom: previousStatus,
+      statusTo: 'withdrawn',
+    });
+  }
 
   await recordAuditEvent(db, {
     actorUserId: input.actorUserId,

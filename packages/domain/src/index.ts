@@ -2,6 +2,7 @@ export * from './guest-workspace';
 export * from './property';
 export * from './favourites';
 export * from './comparison-scoring';
+export * from './saved-search';
 
 export const ORGANIZATION_ROLES = ['org_owner', 'org_admin', 'org_agent', 'org_viewer'] as const;
 

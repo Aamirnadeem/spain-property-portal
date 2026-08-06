@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { formatPriceEur, type ListingDetailDto } from '@spain/domain';
+import { hasSession, recordGuestPropertyView, syncGuestPhase4bToServer } from '@/lib/guest-phase4b';
 import { AddToShortlistControl } from './AddToShortlistControl';
 
 const FAV_KEY = 'spain_guest_favourites';
@@ -17,6 +18,24 @@ function readGuestFavs(): string[] {
 
 function writeGuestFavs(ids: string[]) {
   window.localStorage.setItem(FAV_KEY, JSON.stringify(ids));
+}
+
+async function recordView(listingId: string, title?: string) {
+  try {
+    if (await hasSession()) {
+      await fetch('/api/v1/me/history/views', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ listingId, channel: 'web' }),
+      });
+      return;
+    }
+    const next = recordGuestPropertyView(listingId, { title });
+    void syncGuestPhase4bToServer({ browsingHistory: next });
+  } catch {
+    /* non-blocking analytics */
+  }
 }
 
 export function PropertyDetailClient({
@@ -42,6 +61,7 @@ export function PropertyDetailClient({
       const data = (await res.json()) as ListingDetailDto;
       setDetail(data);
       setFavourited(readGuestFavs().includes(listingId));
+      void recordView(listingId, data.title);
     })();
   }, [listingId]);
 

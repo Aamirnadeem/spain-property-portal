@@ -6,6 +6,7 @@
     "search": "بحث",
     "favourites": "المفضلة",
     "workspace": "مساحة العمل",
+    "notifications": "الإشعارات",
     "account": "الحساب",
     "signIn": "تسجيل الدخول",
     "partnerPortal": "بوابة الشركاء",
@@ -58,7 +59,10 @@
     "snapshotBadge": "لقطة قديمة",
     "page": "صفحة",
     "previous": "السابق",
-    "next": "التالي"
+    "next": "التالي",
+    "saveSearch": "حفظ البحث",
+    "searchSaved": "تم حفظ البحث",
+    "saveSearchName": "اسم هذا البحث"
   },
   "property": {
     "back": "العودة إلى البحث",
@@ -118,7 +122,63 @@
     "guestLocal": "وضع الضيف — تبقى البيانات هنا حتى تسجيل الدخول.",
     "explanation": "شرح الدرجة",
     "noScore": "لا توجد بيانات كافية للتقييم",
-    "saveWeights": "حفظ الأوزان"
+    "saveWeights": "حفظ الأوزان",
+    "searches": "عمليات البحث المحفوظة",
+    "history": "سجل التصفح",
+    "notifications": "الإشعارات",
+    "createSavedSearch": "إنشاء بحث محفوظ",
+    "emptySearches": "لا توجد عمليات بحث محفوظة بعد.",
+    "matchCount": "المطابقات",
+    "saveSearch": "حفظ البحث",
+    "alertsEnabled": "التنبيهات مفعّلة",
+    "runEvaluation": "تشغيل التقييم",
+    "markRead": "تعليم كمقروء",
+    "markAllRead": "تعليم الكل كمقروء",
+    "dismiss": "تجاهل",
+    "recentlyViewed": "شوهدت مؤخرًا",
+    "clearHistory": "مسح السجل",
+    "clearOne": "إزالة",
+    "unread": "غير مقروء",
+    "emptyHistory": "لا توجد عقارات شوهدت مؤخرًا.",
+    "emptyNotifications": "لا توجد إشعارات بعد.",
+    "alertSettings": "إعدادات التنبيهات",
+    "lastEvaluated": "آخر تقييم",
+    "openSearch": "فتح في البحث",
+    "openProperty": "عرض العقار"
+  },
+  "notifications": {
+    "new_match": {
+      "title": "مطابقة جديدة",
+      "body": "إعلان جديد يطابق بحثك المحفوظ."
+    },
+    "price_reduction": {
+      "title": "انخفاض السعر",
+      "body": "انخفض سعر إعلان تتابعه."
+    },
+    "price_increase": {
+      "title": "ارتفاع السعر",
+      "body": "ارتفع سعر إعلان تتابعه."
+    },
+    "status_reserved": {
+      "title": "تم حجز الإعلان",
+      "body": "إعلان تتابعه أصبح محجوزًا."
+    },
+    "status_under_offer": {
+      "title": "قيد العرض",
+      "body": "إعلان تتابعه قيد العرض."
+    },
+    "listing_withdrawn": {
+      "title": "تم سحب الإعلان",
+      "body": "تم سحب إعلان كنت تتابعه."
+    },
+    "listing_stale": {
+      "title": "قد يكون الإعلان قديمًا",
+      "body": "لم يتم تحديث إعلان تتابعه مؤخرًا."
+    },
+    "saved_property_updated": {
+      "title": "تم تحديث عقار محفوظ",
+      "body": "تغيّر عقار حفظته."
+    }
   },
   "partner": {
     "dashboardTitle": "لوحة الوكالة",

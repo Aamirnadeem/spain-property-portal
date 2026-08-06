@@ -1,4 +1,4 @@
-# Guest workspace merge (Phase 4A)
+# Guest workspace merge (Phase 4A + 4B)
 
 ## Identity
 
@@ -20,7 +20,9 @@ Single DB transaction:
 8. Insert property notes **only** for listing IDs without an authenticated note
 9. Apply guest weights only if user has no active preference profile
 10. Optionally create comparison set from guest comparison ids
-11. Mark guest session merged
+11. Insert saved searches with `onConflictDoNothing` on `(user_id, criteria_hash)`; rename on name clash (`Guest —`); never overwrite auth rows or re-enable alerts from a disabled guest search
+12. Upsert `browsing_history` by listing (merge first/last/count); truncate to 50
+13. Mark guest session merged
 
 ## Conflict rules
 
@@ -30,6 +32,9 @@ Single DB transaction:
 | Same property in shortlist  | Unique constraint / onConflictDoNothing |
 | Existing auth property note | **Keep auth; skip guest**               |
 | Existing default shortlist  | Guest lists never steal default         |
+| Duplicate saved-search hash | **Skip guest** (auth preserved)         |
+| Saved-search name clash     | Prefix `Guest —`                        |
+| Guest disabled alerts       | Do not re-enable auth alerts            |
 | Repeated verify/merge       | Idempotent via `merged_at` / onConflict |
 | Partial prior merge         | Retry safe; favourites/items de-duped   |
 
@@ -42,11 +47,6 @@ Single DB transaction:
 
 Guest payloads are size-bounded. Notes never appear in agency/admin APIs, public listing APIs, or audit event bodies.
 
-## Phase 4B extension (planned — ADR-030b)
+## Phase 4B extension (implemented — ADR-030b)
 
-Domain already returns `savedSearchCriteria` / `recentViewListingIds` (and will gain typed `savedSearches` / `browsingHistory`). **DB persist is not yet implemented** — `mergeGuestWorkspaceIntoUser` must gain steps:
-
-12. Insert saved searches with `onConflictDoNothing` on `(user_id, criteria_hash)`; rename on name clash; never overwrite auth rows or re-enable alerts from a disabled guest search
-13. Upsert `browsing_history` by listing (merge first/last/count); truncate to 50
-
-See [`PHASE4B_PLAN.md`](PHASE4B_PLAN.md) and [`PHASE4B_DECISIONS_REQUIRED.md`](PHASE4B_DECISIONS_REQUIRED.md) D11.
+Steps 11–12 above ship in Phase 4B. See [`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md) and [`PHASE4B_DECISIONS_REQUIRED.md`](PHASE4B_DECISIONS_REQUIRED.md) D11.

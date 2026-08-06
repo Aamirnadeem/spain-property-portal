@@ -1,10 +1,10 @@
 # Phase 4B database changes
 
 Date: 2026-08-06  
-Status: Phase 4B planning (not applied)  
-Parent: [`PHASE4B_PLAN.md`](PHASE4B_PLAN.md) · ADR-030b
+Status: **Applied** (migrations `0009` / `0010`)  
+Parent: [`PHASE4B_PLAN.md`](PHASE4B_PLAN.md) · [`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md) · ADR-030b
 
-## Migration files (illustrative)
+## Migration files
 
 | File                                                                       | Contents                                                   |
 | -------------------------------------------------------------------------- | ---------------------------------------------------------- |
@@ -156,9 +156,9 @@ Child tables (`evaluation_runs`, `last_matches`, `notification_deliveries`): own
 
 **No** organization/agency SELECT policies.
 
-Service-role: evaluation jobs / expire jobs use existing service DB path (document exception; not buyer `/me` routes).
+Service-role: listing-change fan-out / expire helpers may use `withServiceRoleDb` (document exception; not buyer `/me` routes).
 
-Catalogue: update [`packages/database/src/rls/policies.ts`](../packages/database/src/rls/policies.ts) when implementing.
+Catalogue: [`packages/database/src/rls/policies.ts`](../packages/database/src/rls/policies.ts) updated for 4B tables/policies.
 
 ---
 

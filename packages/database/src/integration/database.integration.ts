@@ -607,11 +607,207 @@ async function main(): Promise<void> {
       'notes merge keep-auth rule',
     );
 
+    // ---- Phase 4B: saved searches / history / notifications RLS + merge + matching ----
+    const {
+      createSavedSearch,
+      listSavedSearches,
+      setSavedSearchAlerts,
+      evaluateSavedSearch,
+      recordPropertyView,
+      listRecentlyViewed,
+      clearBrowsingHistory,
+      listNotifications,
+      unreadCount,
+      markNotificationRead,
+      generateListingChangeNotifications,
+      InAppNotificationProvider,
+    } = await import('../services/phase4b-workspace');
+    const { createDb } = await import('../index');
+
+    // Prefer a non-legacy public listing for alert fan-out (legacy snapshots are excluded).
+    const liveListingRows = await sql`
+      SELECT id FROM property_listings
+      WHERE is_public_browseable = true
+        AND COALESCE(is_legacy_snapshot, false) = false
+        AND operational_status <> 'legacy_snapshot'
+      LIMIT 1
+    `;
+    const liveListingId = (liveListingRows[0]?.id as string | undefined) ?? shortlistA.listingId;
+
+    const phase4b = await withAuthenticatedDb(testUrl, buyerA, async (authDb) => {
+      const search = await createSavedSearch(authDb, buyerA, {
+        name: 'Coastal watch',
+        criteria: { sort: 'newest' },
+      });
+      await setSavedSearchAlerts(authDb, buyerA, search.id, {
+        enabled: true,
+        alertTypes: ['new_match', 'price_reduction'],
+      });
+      const first = await evaluateSavedSearch(authDb, buyerA, search.id, 'test');
+      const second = await evaluateSavedSearch(authDb, buyerA, search.id, 'test');
+      await recordPropertyView(authDb, buyerA, { listingId: shortlistA.listingId });
+      await recordPropertyView(authDb, buyerA, { listingId: shortlistA.listingId });
+      const history = await listRecentlyViewed(authDb, buyerA);
+      return { searchId: search.id, first, second, history };
+    });
+    assert(phase4b.first.status === 'completed', 'first evaluation completes');
+    assert(
+      phase4b.first.newMatchCount === 0,
+      'first evaluation must not notify all existing matches',
+    );
+    assert(phase4b.second.newMatchCount === 0, 'idempotent re-eval without inventory change');
+    assert(phase4b.history.length >= 1, 'browsing history recorded');
+    assert(phase4b.history[0]!.viewCount >= 2, 'repeated views increment view_count');
+
+    const crossSearch = await withRole(
+      sql,
+      'authenticated',
+      { 'request.jwt.claim.sub': buyerB },
+      () => sql`SELECT id FROM saved_searches WHERE id = ${phase4b.searchId}`,
+    );
+    assert(crossSearch.length === 0, 'buyer B must not read buyer A saved search');
+
+    const crossHistory = await withRole(
+      sql,
+      'authenticated',
+      { 'request.jwt.claim.sub': buyerB },
+      () =>
+        sql`SELECT id FROM browsing_history WHERE user_id = ${buyerA} AND listing_id = ${shortlistA.listingId}`,
+    );
+    assert(crossHistory.length === 0, 'buyer B must not read buyer A browsing history');
+
+    const agencyHistory = await withRole(
+      sql,
+      'authenticated',
+      { 'request.jwt.claim.sub': ORG_AGENT_USER_ID },
+      () => sql`SELECT id FROM browsing_history WHERE user_id = ${buyerA}`,
+    );
+    assert(agencyHistory.length === 0, 'agency must not read buyer browsing history');
+
+    // Service-role fan-out creates at most one notification per source event (dedupe).
+    const sourceEventId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+    const { db: serviceDb, client: serviceClient } = createDb(testUrl);
+    try {
+      const provider = new InAppNotificationProvider();
+      const n1 = await generateListingChangeNotifications(
+        serviceDb,
+        {
+          listingId: liveListingId,
+          type: 'price_reduction',
+          sourceEventId,
+          priceFrom: 500000,
+          priceTo: 450000,
+        },
+        provider,
+      );
+      const n2 = await generateListingChangeNotifications(
+        serviceDb,
+        {
+          listingId: liveListingId,
+          type: 'price_reduction',
+          sourceEventId,
+          priceFrom: 500000,
+          priceTo: 450000,
+        },
+        provider,
+      );
+      assert(n1.notified >= 1, 'eligible buyer notified for price reduction');
+      assert(n2.notified === 0, 'same source_event_id must not notify twice');
+    } finally {
+      await serviceClient.end({ timeout: 5 });
+    }
+
+    const notifState = await withAuthenticatedDb(testUrl, buyerA, async (authDb) => {
+      const items = await listNotifications(authDb, buyerA);
+      const unread = await unreadCount(authDb, buyerA);
+      if (items[0]) await markNotificationRead(authDb, buyerA, items[0].id);
+      const unreadAfter = await unreadCount(authDb, buyerA);
+      await clearBrowsingHistory(authDb, buyerA);
+      const historyAfter = await listRecentlyViewed(authDb, buyerA);
+      return { items, unread, unreadAfter, historyAfter };
+    });
+    assert(notifState.items.length >= 1, 'buyer sees in-app notification');
+    assert(notifState.unread >= 1, 'unread count reflects new notification');
+    assert(notifState.unreadAfter === notifState.unread - 1, 'mark read decrements unread');
+    assert(notifState.historyAfter.length === 0, 'clear all history empties list');
+
+    const merge4b = await withAuthenticatedDb(testUrl, buyerB, async (authDb) => {
+      const { mergeGuestWorkspaceIntoUser } = await import('../services/buyer-workspace');
+      const r1 = await mergeGuestWorkspaceIntoUser(authDb, buyerB, {
+        fallbackPayload: {
+          favouriteListingIds: [],
+          comparisonListingIds: [],
+          recentViewListingIds: [shortlistA.listingId],
+          savedSearchCriteria: [],
+          savedSearches: [
+            {
+              name: 'Guest Sitges',
+              criteria: { q: 'sitges', sort: 'newest' },
+              alertsEnabled: false,
+              alertTypes: [],
+            },
+          ],
+          browsingHistory: [
+            {
+              listingId: shortlistA.listingId,
+              firstViewedAt: new Date().toISOString(),
+              lastViewedAt: new Date().toISOString(),
+              viewCount: 2,
+              channel: 'web',
+            },
+          ],
+        },
+      });
+      const r2 = await mergeGuestWorkspaceIntoUser(authDb, buyerB, {
+        fallbackPayload: {
+          favouriteListingIds: [],
+          comparisonListingIds: [],
+          recentViewListingIds: [],
+          savedSearchCriteria: [],
+          savedSearches: [
+            {
+              name: 'Guest Sitges',
+              criteria: { q: 'sitges', sort: 'newest' },
+              alertsEnabled: true,
+              alertTypes: ['price_increase'],
+            },
+          ],
+          browsingHistory: [
+            {
+              listingId: shortlistA.listingId,
+              firstViewedAt: new Date().toISOString(),
+              lastViewedAt: new Date().toISOString(),
+              viewCount: 1,
+              channel: 'web',
+            },
+          ],
+        },
+      });
+      const searches = await listSavedSearches(authDb, buyerB);
+      const history = await listRecentlyViewed(authDb, buyerB);
+      return { r1, r2, searches, history };
+    });
+    assert(
+      merge4b.searches.filter((s) => s.name.includes('Sitges') || s.name.includes('Guest'))
+        .length >= 1,
+      'guest saved search merged',
+    );
+    assert(
+      merge4b.r2.savedSearchesMerged === 0 ||
+        merge4b.searches.filter((s) => {
+          const c = s.criteria as { q?: string };
+          return c.q === 'sitges';
+        }).length === 1,
+      'duplicate guest saved search merge is idempotent',
+    );
+    assert(merge4b.history.length >= 1, 'guest browsing history merged');
+
     console.log(
       'Phase 3 integration passed: partner CSV import idempotency, org RLS isolation, ' +
         'admin publish/withdraw, agency price update + self-withdraw, source permission gate, audit trail, ' +
         'Phase 3.1 withAuthenticatedDb claim writes + viewer read, ' +
-        'Phase 4A shortlist/note RLS isolation + guest merge',
+        'Phase 4A shortlist/note RLS isolation + guest merge, ' +
+        'Phase 4B saved-search/history/notification RLS + merge + dedupe',
     );
   } finally {
     await sql.end();

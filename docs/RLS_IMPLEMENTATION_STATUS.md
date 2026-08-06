@@ -1,8 +1,8 @@
 # RLS implementation status
 
-Date: 2026-08-06 (Phase 4A policies **implemented**; Phase 4B/4C **planned**)  
-Migrations: `0001_phase1_rls.sql`, `0003_phase2_rls.sql`, `0005_phase3_rls.sql`, `0006_phase3_1_rls.sql`  
-Planned: `0007_phase4_buyer_workspace.sql`, `0008_phase4_rls.sql` ([`PHASE4_DATABASE_CHANGES.md`](PHASE4_DATABASE_CHANGES.md))
+Date: 2026-08-06 (Phase 4A + Phase 4B policies **implemented**; Phase 4C **planned**)  
+Migrations: `0001_phase1_rls.sql`, `0003_phase2_rls.sql`, `0005_phase3_rls.sql`, `0006_phase3_1_rls.sql`, `0008_phase4a_rls.sql`, `0010_phase4b_rls.sql`  
+Phase 4C planned: `comparison_shares` ([`PHASE4_DATABASE_CHANGES.md`](PHASE4_DATABASE_CHANGES.md))
 
 Status meanings:
 
@@ -54,16 +54,19 @@ Owner-scoped policies via `request.jwt.claim.sub` + `withAuthenticatedDb` on `/a
 | `user_preference_profiles`             | **Implemented** (migration + grants; profile path covered via services) |
 | `comparison_sets` / `comparison_items` | **Implemented** (migration + grants)                                    |
 
-Phase 4B/4C tables:
+Phase 4B tables (ADR-030b — [`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md)):
 
-| Table                                             | Status                                                                          |
-| ------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `saved_searches`, evaluation runs, last matches   | **Planned** (4B — [`PHASE4B_DATABASE_CHANGES.md`](PHASE4B_DATABASE_CHANGES.md)) |
-| `browsing_history`                                | **Planned** (4B)                                                                |
-| `in_app_notifications`, `notification_deliveries` | **Planned** (4B)                                                                |
-| `comparison_shares`                               | **Planned** (4C only)                                                           |
+| Table                          | Status                                                                   |
+| ------------------------------ | ------------------------------------------------------------------------ |
+| `saved_searches`               | **Implemented / tested** (`0010_phase4b_rls.sql`, catalogue + `test:db`) |
+| `saved_search_evaluation_runs` | **Implemented / tested** (owner via parent EXISTS)                       |
+| `saved_search_last_matches`    | **Implemented / tested**                                                 |
+| `browsing_history`             | **Implemented / tested**                                                 |
+| `in_app_notifications`         | **Implemented / tested**                                                 |
+| `notification_deliveries`      | **Implemented / tested** (owner via parent EXISTS)                       |
+| `comparison_shares`            | **Planned** (4C only)                                                    |
 
-Mark **implemented** only after SQL RLS migration + `test:db` coverage.
+Service-role exception: listing-change fan-out after partner/admin mutations uses `withServiceRoleDb` (same class as workers/CLI), not buyer `/me` routes.
 
 ## Authorization / deferred
 

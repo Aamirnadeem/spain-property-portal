@@ -291,7 +291,7 @@ Also: partner onboarding; API/webhook interfaces; authorized-crawl framework (no
 
 ### Phase 4 — Buyer workspace / Slice 4 (M)
 
-> Favourites already shipped in Phase 2. **Planning:** [`PHASE4_PLAN.md`](PHASE4_PLAN.md) (ADR-030). **Phase 4A implemented** ([`PHASE4A_IMPLEMENTATION.md`](PHASE4A_IMPLEMENTATION.md)). **Phase 4B planning complete** ([`PHASE4B_PLAN.md`](PHASE4B_PLAN.md), ADR-030b). **Do not implement 4B/4C until explicitly approved.**
+> Favourites already shipped in Phase 2. **Planning:** [`PHASE4_PLAN.md`](PHASE4_PLAN.md) (ADR-030). **Phase 4A implemented** ([`PHASE4A_IMPLEMENTATION.md`](PHASE4A_IMPLEMENTATION.md)). **Phase 4B implemented** ([`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md), ADR-030b). **Phase 4C** (comparison shares) not started.
 
 **Deliver (Phase 4 scope lock)**
 

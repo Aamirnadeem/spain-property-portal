@@ -1,8 +1,8 @@
 # Alert matching engine
 
 Date: 2026-08-06  
-Status: Phase 4B planning  
-Parent: [`PHASE4B_PLAN.md`](PHASE4B_PLAN.md) · ADR-030b · Lock D13 / D14
+Status: **Implemented** (Phase 4B — ADR-030b)  
+Parent: [`PHASE4B_PLAN.md`](PHASE4B_PLAN.md) · [`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md) · ADR-030b · Lock D13 / D14
 
 ## Purpose
 
@@ -42,6 +42,8 @@ Table `saved_search_last_matches (saved_search_id, listing_id, first_matched_at)
 3. Remove last_matches \ M (listing left the set) — no “left set” notification in 4B unless product adds later.
 4. Price/status events use history rows even if listing was already in last_matches → `price_*` / `status_*` types (not another `new_match`).
 
+**First evaluation:** when `last_evaluated_at` is null, step 2 seeds last_matches for the full match set but **does not** emit `new_match` notifications (baseline seed).
+
 ## Evaluation runs
 
 `saved_search_evaluation_runs`: `trigger` ∈ `manual` \| `test` \| `inline_mutation` \| `scheduled`; `status` ∈ `succeeded` \| `failed`; `match_count`; `error_code`; timestamps.
@@ -77,7 +79,7 @@ For withdrawal/stale after a listing leaves the public browse set, still notify 
 ## Job hooks (4B)
 
 - **Manual / test:** `evaluateSavedSearch` / `evaluateAllDueSavedSearches` via UI API and Playwright harness.
-- **Inline mutation (optional fan-out):** after admin/partner/ingest writes price or status history, call `generateListingChangeNotifications` (does **not** require a full automated due-scan of all saved searches).
+- **Inline mutation fan-out:** after partner/admin price or status history writes, call `generateListingChangeNotifications` via `withServiceRoleDb` (does **not** require a full automated due-scan of all saved searches). Buyer `/me` routes continue to use `withAuthenticatedDb`.
 - **Scheduler:** provider-neutral interface only; **not** production-wired in 4B.
 
 No durable queue in 4B. Playwright uses FakeAuth + explicit evaluate after seeding a price/status change.

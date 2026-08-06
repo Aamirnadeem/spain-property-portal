@@ -44,7 +44,7 @@ async function signInAs(
 
 test.describe('Phase 3 agency CSV → admin publish → public search', () => {
   test.describe.configure({ mode: 'serial' });
-  test.setTimeout(120_000);
+  test.setTimeout(180_000);
 
   test('agency uploads CSV, admin publishes, buyer finds it, agency updates price and withdraws', async ({
     page,

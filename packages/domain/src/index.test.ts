@@ -30,6 +30,101 @@ describe('mergeGuestWorkspace', () => {
     expect(result.mergedFromGuestSessionId).toBe('g1');
     expect(result.savedSearchCriteria).toHaveLength(1);
   });
+
+  it('skips duplicate saved-search hashes and merges browsing history', () => {
+    const result = mergeGuestWorkspace(
+      {
+        guestSessionId: 'g2',
+        favouriteListingIds: [],
+        comparisonListingIds: [],
+        recentViewListingIds: [],
+        savedSearchCriteria: [],
+        savedSearches: [
+          {
+            name: 'Sitges',
+            criteria: { q: 'sitges', sort: 'newest' },
+            alertsEnabled: true,
+            alertTypes: ['price_reduction'],
+          },
+          {
+            name: 'Sitges duplicate',
+            criteria: { sort: 'newest', q: 'sitges' },
+            alertsEnabled: false,
+          },
+        ],
+        browsingHistory: [
+          {
+            listingId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+            firstViewedAt: '2026-01-01T00:00:00.000Z',
+            lastViewedAt: '2026-01-02T00:00:00.000Z',
+            viewCount: 2,
+          },
+        ],
+      },
+      {
+        userId: 'u1',
+        favouriteListingIds: [],
+        comparisonListingIds: [],
+        recentViewListingIds: [],
+        savedSearchCriteria: [],
+        savedSearchHashes: [],
+        browsingHistory: [
+          {
+            listingId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+            firstViewedAt: '2026-01-01T12:00:00.000Z',
+            lastViewedAt: '2026-01-03T00:00:00.000Z',
+            viewCount: 1,
+          },
+        ],
+      },
+    );
+    expect(result.savedSearchesToInsert).toHaveLength(1);
+    expect(result.savedSearchesToInsert[0]?.alertsEnabled).toBe(true);
+    expect(result.browsingHistoryMerged).toHaveLength(1);
+    expect(result.browsingHistoryMerged[0]?.viewCount).toBe(3);
+    expect(result.browsingHistoryMerged[0]?.lastViewedAt).toBe('2026-01-03T00:00:00.000Z');
+  });
+
+  it('does not re-insert when auth already has the criteria hash', () => {
+    const guestCriteria = { q: 'sitges', sort: 'newest' as const };
+    const first = mergeGuestWorkspace(
+      {
+        guestSessionId: 'g3',
+        favouriteListingIds: [],
+        comparisonListingIds: [],
+        recentViewListingIds: [],
+        savedSearchCriteria: [],
+        savedSearches: [{ name: 'A', criteria: guestCriteria }],
+      },
+      {
+        userId: 'u1',
+        favouriteListingIds: [],
+        comparisonListingIds: [],
+        recentViewListingIds: [],
+        savedSearchCriteria: [],
+      },
+    );
+    const hash = first.savedSearchesToInsert[0]!.criteriaHash;
+    const second = mergeGuestWorkspace(
+      {
+        guestSessionId: 'g3',
+        favouriteListingIds: [],
+        comparisonListingIds: [],
+        recentViewListingIds: [],
+        savedSearchCriteria: [],
+        savedSearches: [{ name: 'A', criteria: guestCriteria, alertsEnabled: true }],
+      },
+      {
+        userId: 'u1',
+        favouriteListingIds: [],
+        comparisonListingIds: [],
+        recentViewListingIds: [],
+        savedSearchCriteria: [],
+        savedSearchHashes: [hash],
+      },
+    );
+    expect(second.savedSearchesToInsert).toHaveLength(0);
+  });
 });
 
 describe('favourites authorization', () => {

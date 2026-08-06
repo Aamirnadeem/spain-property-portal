@@ -31,6 +31,11 @@ export function toSearchParams(criteria: PropertySearchCriteria): URLSearchParam
     const value = parsed[key];
     if (value === undefined) continue;
     if (key in DEFAULTS && DEFAULTS[key as keyof typeof DEFAULTS] === value) continue;
+    if (Array.isArray(value)) {
+      if (value.length === 0) continue;
+      params.set(key, value.join(','));
+      continue;
+    }
     params.set(key, String(value));
   }
   return params;

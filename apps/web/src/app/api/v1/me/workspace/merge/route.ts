@@ -37,6 +37,33 @@ const bodySchema = z
       )
       .max(100)
       .optional(),
+    savedSearches: z
+      .array(
+        z.object({
+          name: z.string().max(120),
+          criteria: z.unknown(),
+          criteriaHash: z.string().max(64).optional(),
+          alertsEnabled: z.boolean().optional(),
+          alertTypes: z.array(z.string().max(64)).max(10).optional(),
+          disabled: z.boolean().optional(),
+        }),
+      )
+      .max(5)
+      .optional(),
+    browsingHistory: z
+      .array(
+        z.object({
+          listingId: z.string().uuid(),
+          physicalPropertyId: z.string().uuid().optional(),
+          firstViewedAt: z.string(),
+          lastViewedAt: z.string(),
+          viewCount: z.number().int().positive(),
+          channel: z.string().max(32).optional(),
+          context: z.record(z.string(), z.unknown()).optional(),
+        }),
+      )
+      .max(50)
+      .optional(),
   })
   .optional();
 
@@ -62,6 +89,8 @@ export async function POST(request: Request) {
               shortlists: fallback.shortlists,
               preferenceWeights: fallback.preferenceWeights,
               propertyNotes: fallback.propertyNotes,
+              savedSearches: fallback.savedSearches,
+              browsingHistory: fallback.browsingHistory,
             }
           : null,
       });

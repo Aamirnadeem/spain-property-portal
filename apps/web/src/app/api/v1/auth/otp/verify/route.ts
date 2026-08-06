@@ -41,6 +41,33 @@ const bodySchema = z.object({
         )
         .max(100)
         .optional(),
+      savedSearches: z
+        .array(
+          z.object({
+            name: z.string().max(120),
+            criteria: z.unknown(),
+            criteriaHash: z.string().max(64).optional(),
+            alertsEnabled: z.boolean().optional(),
+            alertTypes: z.array(z.string().max(64)).max(10).optional(),
+            disabled: z.boolean().optional(),
+          }),
+        )
+        .max(5)
+        .optional(),
+      browsingHistory: z
+        .array(
+          z.object({
+            listingId: z.string(),
+            physicalPropertyId: z.string().optional(),
+            firstViewedAt: z.string(),
+            lastViewedAt: z.string(),
+            viewCount: z.number().int().positive(),
+            channel: z.string().max(32).optional(),
+            context: z.record(z.string(), z.unknown()).optional(),
+          }),
+        )
+        .max(50)
+        .optional(),
     })
     .optional(),
 });
@@ -75,6 +102,8 @@ export async function POST(request: Request) {
               shortlists: body.guestPayload.shortlists,
               preferenceWeights: body.guestPayload.preferenceWeights,
               propertyNotes: body.guestPayload.propertyNotes,
+              savedSearches: body.guestPayload.savedSearches,
+              browsingHistory: body.guestPayload.browsingHistory,
             }
           : null,
       });

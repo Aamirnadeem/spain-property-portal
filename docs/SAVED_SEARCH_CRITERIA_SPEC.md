@@ -1,8 +1,8 @@
 # Saved search criteria specification (`phase4b.v1`)
 
 Date: 2026-08-06  
-Status: Phase 4B planning  
-Parent: [`PHASE4B_PLAN.md`](PHASE4B_PLAN.md) · ADR-030b · Locks D8
+Status: **Implemented** (Phase 4B — ADR-030b)  
+Parent: [`PHASE4B_PLAN.md`](PHASE4B_PLAN.md) · [`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md) · ADR-030b · Locks D8
 
 ## Purpose
 

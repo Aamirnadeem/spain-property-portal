@@ -6,6 +6,7 @@
     "search": "Cerca",
     "favourites": "Preferits",
     "workspace": "Espai",
+    "notifications": "Notificacions",
     "account": "Compte",
     "signIn": "Entrar",
     "partnerPortal": "Portal de socis",
@@ -58,7 +59,10 @@
     "snapshotBadge": "Snapshot llegat",
     "page": "Pàgina",
     "previous": "Anterior",
-    "next": "Següent"
+    "next": "Següent",
+    "saveSearch": "Desar cerca",
+    "searchSaved": "Cerca desada",
+    "saveSearchName": "Nom de la cerca"
   },
   "property": {
     "back": "Tornar a la cerca",
@@ -118,7 +122,63 @@
     "guestLocal": "Mode invitat — les dades romanen aquí fins que iniciïs sessió.",
     "explanation": "Explicació de la puntuació",
     "noScore": "Dades insuficients per puntuar",
-    "saveWeights": "Desar pesos"
+    "saveWeights": "Desar pesos",
+    "searches": "Cerques desades",
+    "history": "Historial",
+    "notifications": "Notificacions",
+    "createSavedSearch": "Crear cerca desada",
+    "emptySearches": "Encara no hi ha cerques desades.",
+    "matchCount": "Coincidències",
+    "saveSearch": "Desar cerca",
+    "alertsEnabled": "Alertes actives",
+    "runEvaluation": "Executar avaluació",
+    "markRead": "Marcar com a llegida",
+    "markAllRead": "Marcar totes com a llegides",
+    "dismiss": "Descartar",
+    "recentlyViewed": "Vistos recentment",
+    "clearHistory": "Esborrar historial",
+    "clearOne": "Treure",
+    "unread": "No llegides",
+    "emptyHistory": "No hi ha propietats vistes recentment.",
+    "emptyNotifications": "Encara no hi ha notificacions.",
+    "alertSettings": "Configuració d'alertes",
+    "lastEvaluated": "Última avaluació",
+    "openSearch": "Obrir a la cerca",
+    "openProperty": "Veure propietat"
+  },
+  "notifications": {
+    "new_match": {
+      "title": "Nova coincidència",
+      "body": "Un nou anunci coincideix amb la teva cerca desada."
+    },
+    "price_reduction": {
+      "title": "Preu reduït",
+      "body": "Un anunci seguit ha baixat de preu."
+    },
+    "price_increase": {
+      "title": "Preu augmentat",
+      "body": "Un anunci seguit ha pujat de preu."
+    },
+    "status_reserved": {
+      "title": "Anunci reservat",
+      "body": "Un anunci seguit ara està reservat."
+    },
+    "status_under_offer": {
+      "title": "En oferta",
+      "body": "Un anunci seguit està en oferta."
+    },
+    "listing_withdrawn": {
+      "title": "Anunci retirat",
+      "body": "Un anunci seguit ha estat retirat."
+    },
+    "listing_stale": {
+      "title": "Anunci possiblement desactualitzat",
+      "body": "Un anunci seguit no s'ha actualitzat recentment."
+    },
+    "saved_property_updated": {
+      "title": "Propietat desada actualitzada",
+      "body": "Una propietat que vas desar ha canviat."
+    }
   },
   "partner": {
     "dashboardTitle": "Tauler de l'agència",

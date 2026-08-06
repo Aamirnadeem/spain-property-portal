@@ -1,8 +1,8 @@
 # In-app notification design
 
 Date: 2026-08-06  
-Status: Phase 4B planning  
-Parent: [`PHASE4B_PLAN.md`](PHASE4B_PLAN.md) · ADR-030b · Lock D13 / D14
+Status: **Implemented** (Phase 4B — ADR-030b)  
+Parent: [`PHASE4B_PLAN.md`](PHASE4B_PLAN.md) · [`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md) · ADR-030b · Lock D13 / D14
 
 ## Purpose
 
@@ -70,11 +70,11 @@ interface NotificationProvider {
 }
 ```
 
-| Provider                      | 4B                                                 |
-| ----------------------------- | -------------------------------------------------- |
-| `InAppNotificationProvider`   | **Implement** — insert notification + delivery row |
-| `TestNotificationProvider`    | **Implement** — capture for unit/e2e               |
-| Email / SMS / WhatsApp / Push | Document stubs only                                |
+| Provider                      | 4B                                               |
+| ----------------------------- | ------------------------------------------------ |
+| `InAppNotificationProvider`   | **Shipped** — insert notification + delivery row |
+| `TestNotificationProvider`    | **Shipped** — capture for unit/e2e               |
+| Email / SMS / WhatsApp / Push | Document stubs only                              |
 
 ## Services / API
 

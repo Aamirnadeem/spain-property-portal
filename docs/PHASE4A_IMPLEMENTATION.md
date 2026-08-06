@@ -22,7 +22,6 @@ Phase 2 `favourites` table **unchanged**. Hearts remain separate from shortlists
 
 ## Deferred
 
-- **Phase 4B** (planning done — ADR-030b): saved searches, browsing history, in-app alerts — [`PHASE4B_PLAN.md`](PHASE4B_PLAN.md)
 - **Phase 4C:** comparison share links
 - Production email/SMS/WhatsApp, collaboration, leads, privacy workers
 

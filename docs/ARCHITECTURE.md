@@ -222,7 +222,7 @@ PUT /api/v1/me/shortlists/{id}/note
 GET/PUT/DELETE /api/v1/me/notes/properties/{listingId}
 POST /api/v1/me/comparisons/preview
 GET/PUT /api/v1/me/preference-profiles
-GET/POST/PUT/DELETE /api/v1/me/saved-searches          # Phase 4B (planned)
+GET/POST/PUT/DELETE /api/v1/me/saved-searches          # Phase 4B
 POST /api/v1/me/saved-searches/{id}/run                 # Phase 4B
 PATCH /api/v1/me/saved-searches/{id}/alerts             # Phase 4B
 GET/DELETE /api/v1/me/history                           # Phase 4B
@@ -238,7 +238,7 @@ POST /api/v1/me/privacy/export              # Phase 4.1+ deferred
 POST /api/v1/me/privacy/delete              # Phase 4.1+ deferred
 ```
 
-Phase 4 design: [`PHASE4_PLAN.md`](PHASE4_PLAN.md), [`BUYER_WORKSPACE_DESIGN.md`](BUYER_WORKSPACE_DESIGN.md), [`PHASE4B_PLAN.md`](PHASE4B_PLAN.md) (ADR-030b). Jobs remain inline (`InlineJobRunner` / `TestJobRunner`); notification providers `InAppNotificationProvider` / `TestNotificationProvider` only in 4B.
+Phase 4 design: [`PHASE4_PLAN.md`](PHASE4_PLAN.md), [`BUYER_WORKSPACE_DESIGN.md`](BUYER_WORKSPACE_DESIGN.md), [`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md) (ADR-030b). Jobs remain inline (`InlineJobRunner` / `TestJobRunner`); notification providers `InAppNotificationProvider` / `TestNotificationProvider` only in 4B.
 
 ### 7.4 Leads and AI
 

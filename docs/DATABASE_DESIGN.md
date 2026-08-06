@@ -156,12 +156,12 @@ Spain
 | `property_notes`                                             | Personal notes, labels, scores                                                 |
 | `comparison_sets`                                            | Comparison sessions                                                            |
 | `comparison_items`                                           | Properties in a comparison                                                     |
-| `saved_searches`                                             | Persisted versioned `PropertySearchCriteria` (`phase4b.v1`) — **4B planned**   |
+| `saved_searches`                                             | Persisted versioned `PropertySearchCriteria` (`phase4b.v1`) — **4B shipped**   |
 | `search_runs`                                                | Optional executed search analytics (not required for 4B MVP)                   |
-| `browsing_history`                                           | Recent property views (replaces draft name `recently_viewed`) — **4B planned** |
+| `browsing_history`                                           | Recent property views (replaces draft name `recently_viewed`) — **4B shipped** |
 | `user_preference_profiles`                                   | Weighted preference profiles — **4A implemented**                              |
-| `saved_search_evaluation_runs` / `saved_search_last_matches` | Alert evaluation — **4B planned**                                              |
-| `in_app_notifications` / `notification_deliveries`           | In-app alerts — **4B planned**                                                 |
+| `saved_search_evaluation_runs` / `saved_search_last_matches` | Alert evaluation — **4B shipped**                                              |
+| `in_app_notifications` / `notification_deliveries`           | In-app alerts — **4B shipped**                                                 |
 | `alerts` / `alert_subscriptions`                             | Prefer columns on `saved_searches` in 4B; legacy name deprecated               |
 
 Purchase stages (on notes/items or dedicated field): researching, viewing requested, viewed, offer considered, rejected (extendable).

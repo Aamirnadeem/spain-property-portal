@@ -1,8 +1,8 @@
 # Phase 4B security review
 
 Date: 2026-08-06  
-Status: Phase 4B planning  
-Parent: [`PHASE4B_PLAN.md`](PHASE4B_PLAN.md) · ADR-030b
+Status: Phase 4B **implemented** (review baseline; residual notes in [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md))  
+Parent: [`PHASE4B_PLAN.md`](PHASE4B_PLAN.md) · [`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md) · ADR-030b
 
 ## Scope
 

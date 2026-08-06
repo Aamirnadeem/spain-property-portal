@@ -43,10 +43,30 @@ export const propertySearchCriteriaSchema = z
     maxPrice: optionalNonNegativeNumber,
     minBedrooms: optionalNonNegativeInt,
     maxBedrooms: optionalNonNegativeInt,
+    minBathrooms: optionalNonNegativeInt,
+    maxBathrooms: optionalNonNegativeInt,
     minSizeSqm: optionalNonNegativeNumber,
     maxSizeSqm: optionalNonNegativeNumber,
     area: optionalTrimmedString,
+    autonomousCommunity: optionalTrimmedString,
+    province: optionalTrimmedString,
+    municipality: optionalTrimmedString,
+    districtOrLocality: optionalTrimmedString,
+    propertyType: optionalTrimmedString,
     environmentType: z.enum(ENVIRONMENT_TYPES).optional(),
+    listingStatuses: z
+      .union([
+        z.array(z.string().trim().min(1)),
+        z.string().transform((s) =>
+          s
+            .split(',')
+            .map((x) => x.trim())
+            .filter(Boolean),
+        ),
+      ])
+      .optional(),
+    offPlan: z.enum(['any', 'only', 'exclude']).optional(),
+    freshness: z.enum(['any', 'current_only']).optional(),
     sort: z.enum(SEARCH_SORT_OPTIONS).default('newest'),
     page: z.coerce.number().int().min(1).default(1),
     pageSize: z.coerce.number().int().min(1).max(MAX_PAGE_SIZE).default(DEFAULT_PAGE_SIZE),
@@ -76,6 +96,17 @@ export const propertySearchCriteriaSchema = z
       });
     }
     if (
+      value.minBathrooms !== undefined &&
+      value.maxBathrooms !== undefined &&
+      value.minBathrooms > value.maxBathrooms
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'minBathrooms must not exceed maxBathrooms',
+        path: ['minBathrooms'],
+      });
+    }
+    if (
       value.minSizeSqm !== undefined &&
       value.maxSizeSqm !== undefined &&
       value.minSizeSqm > value.maxSizeSqm
@@ -96,10 +127,20 @@ export const PROPERTY_SEARCH_CRITERIA_KEYS = [
   'maxPrice',
   'minBedrooms',
   'maxBedrooms',
+  'minBathrooms',
+  'maxBathrooms',
   'minSizeSqm',
   'maxSizeSqm',
   'area',
+  'autonomousCommunity',
+  'province',
+  'municipality',
+  'districtOrLocality',
+  'propertyType',
   'environmentType',
+  'listingStatuses',
+  'offPlan',
+  'freshness',
   'sort',
   'page',
   'pageSize',

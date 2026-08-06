@@ -1,6 +1,12 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import {
+  GUEST_BROWSING_HISTORY_KEY,
+  GUEST_SAVED_SEARCHES_KEY,
+  readGuestBrowsingHistory,
+  readGuestSavedSearches,
+} from '@/lib/guest-phase4b';
 
 type Labels = {
   emailOtp: string;
@@ -63,12 +69,32 @@ export function AuthPanel({ locale, labels }: { locale: string; labels: Labels }
     const guestPayload = JSON.parse(
       window.localStorage.getItem('spain_guest_payload') ??
         '{"favouriteListingIds":[],"comparisonListingIds":[],"recentViewListingIds":[],"savedSearchCriteria":[]}',
-    );
+    ) as Record<string, unknown>;
+    const savedSearches = readGuestSavedSearches().map((s) => ({
+      name: s.name,
+      criteria: s.criteria,
+      criteriaHash: s.criteriaHash,
+      alertsEnabled: s.alertsEnabled,
+      alertTypes: s.alertTypes,
+      disabled: s.disabled,
+    }));
+    const browsingHistory = readGuestBrowsingHistory();
     const res = await fetch('/api/v1/auth/otp/verify', {
       method: 'POST',
       credentials: 'same-origin',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ challengeId, code, guestKey, guestPayload }),
+      body: JSON.stringify({
+        challengeId,
+        code,
+        guestKey,
+        guestPayload: {
+          ...guestPayload,
+          savedSearches,
+          browsingHistory,
+          recentViewListingIds: browsingHistory.map((h) => h.listingId),
+          savedSearchCriteria: savedSearches.map((s) => s.criteria),
+        },
+      }),
     });
     const data = await res.json();
     if (!res.ok) {
@@ -94,6 +120,8 @@ export function AuthPanel({ locale, labels }: { locale: string; labels: Labels }
         }),
       });
     }
+    window.localStorage.removeItem(GUEST_SAVED_SEARCHES_KEY);
+    window.localStorage.removeItem(GUEST_BROWSING_HISTORY_KEY);
   }
 
   return (

@@ -31,7 +31,7 @@ export const consentPurposeEnum = pgEnum('consent_purpose', [
   'call_recording',
 ]);
 
-/** Guest workspace JSON stored on guest_sessions (Phase 4A). */
+/** Guest workspace JSON stored on guest_sessions (Phase 4A + 4B). */
 export type GuestWorkspacePayload = {
   favouriteListingIds: string[];
   comparisonListingIds: string[];
@@ -50,6 +50,24 @@ export type GuestWorkspacePayload = {
     positives?: string[];
     negatives?: string[];
   }>;
+  savedSearches?: Array<{
+    name: string;
+    criteria?: unknown;
+    criteriaHash?: string;
+    alertsEnabled?: boolean;
+    alertTypes?: string[];
+    disabled?: boolean;
+  }>;
+  browsingHistory?: Array<{
+    listingId: string;
+    physicalPropertyId?: string;
+    firstViewedAt: string;
+    lastViewedAt: string;
+    viewCount: number;
+    channel?: string;
+    context?: Record<string, unknown>;
+  }>;
+  historyRecordingEnabled?: boolean;
 };
 
 const timestamps = {
@@ -221,6 +239,7 @@ export const notificationPreferences = pgTable('notification_preferences', {
   emailAlerts: boolean('email_alerts').default(true).notNull(),
   smsAlerts: boolean('sms_alerts').default(false).notNull(),
   whatsappAlerts: boolean('whatsapp_alerts').default(false).notNull(),
+  historyRecordingEnabled: boolean('history_recording_enabled').default(true).notNull(),
   quietHoursStart: integer('quiet_hours_start'),
   quietHoursEnd: integer('quiet_hours_end'),
   ...timestamps,
@@ -837,3 +856,119 @@ export const comparisonItems = pgTable(
   },
   (t) => [uniqueIndex('comparison_items_set_listing_uidx').on(t.comparisonSetId, t.listingId)],
 );
+
+/* ─── Phase 4B saved searches, history, notifications ──────────────────── */
+
+export const savedSearches = pgTable(
+  'saved_searches',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    name: varchar('name', { length: 120 }).notNull(),
+    criteria: jsonb('criteria').$type<Record<string, unknown>>().notNull(),
+    criteriaVersion: varchar('criteria_version', { length: 32 }).notNull(),
+    criteriaHash: varchar('criteria_hash', { length: 64 }).notNull(),
+    sort: varchar('sort', { length: 64 }).notNull().default('newest'),
+    idxMinPrice: numeric('idx_min_price', { precision: 14, scale: 2 }),
+    idxMaxPrice: numeric('idx_max_price', { precision: 14, scale: 2 }),
+    idxMinBedrooms: integer('idx_min_bedrooms'),
+    idxMunicipality: varchar('idx_municipality', { length: 120 }),
+    idxProvince: varchar('idx_province', { length: 120 }),
+    idxPropertyType: varchar('idx_property_type', { length: 64 }),
+    idxOffPlan: varchar('idx_off_plan', { length: 16 }),
+    alertsEnabled: boolean('alerts_enabled').notNull().default(false),
+    alertTypes: text('alert_types').array().notNull().default([]),
+    consentedAt: timestamp('consented_at', { withTimezone: true }),
+    lastEvaluatedAt: timestamp('last_evaluated_at', { withTimezone: true }),
+    lastMatchCount: integer('last_match_count'),
+    lastEvaluationStatus: varchar('last_evaluation_status', { length: 32 }),
+    disabledAt: timestamp('disabled_at', { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex('saved_searches_user_hash_uidx').on(t.userId, t.criteriaHash)],
+);
+
+export const savedSearchEvaluationRuns = pgTable('saved_search_evaluation_runs', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  savedSearchId: uuid('saved_search_id')
+    .notNull()
+    .references(() => savedSearches.id, { onDelete: 'cascade' }),
+  startedAt: timestamp('started_at', { withTimezone: true }).defaultNow().notNull(),
+  finishedAt: timestamp('finished_at', { withTimezone: true }),
+  status: varchar('status', { length: 32 }).notNull(),
+  matchCount: integer('match_count'),
+  errorCode: varchar('error_code', { length: 64 }),
+  trigger: varchar('trigger', { length: 32 }).notNull(),
+});
+
+export const savedSearchLastMatches = pgTable(
+  'saved_search_last_matches',
+  {
+    savedSearchId: uuid('saved_search_id')
+      .notNull()
+      .references(() => savedSearches.id, { onDelete: 'cascade' }),
+    listingId: uuid('listing_id')
+      .notNull()
+      .references(() => propertyListings.id, { onDelete: 'cascade' }),
+    firstMatchedAt: timestamp('first_matched_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex('saved_search_last_matches_uidx').on(t.savedSearchId, t.listingId)],
+);
+
+export const browsingHistory = pgTable(
+  'browsing_history',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    listingId: uuid('listing_id')
+      .notNull()
+      .references(() => propertyListings.id, { onDelete: 'cascade' }),
+    physicalPropertyId: uuid('physical_property_id'),
+    firstViewedAt: timestamp('first_viewed_at', { withTimezone: true }).defaultNow().notNull(),
+    lastViewedAt: timestamp('last_viewed_at', { withTimezone: true }).defaultNow().notNull(),
+    viewCount: integer('view_count').notNull().default(1),
+    channel: varchar('channel', { length: 32 }).notNull().default('web'),
+    context: jsonb('context').$type<Record<string, unknown> | null>(),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex('browsing_history_user_listing_uidx').on(t.userId, t.listingId)],
+);
+
+export const inAppNotifications = pgTable(
+  'in_app_notifications',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    type: varchar('type', { length: 64 }).notNull(),
+    titleKey: varchar('title_key', { length: 128 }).notNull(),
+    bodyKey: varchar('body_key', { length: 128 }).notNull(),
+    payload: jsonb('payload').$type<Record<string, unknown>>().notNull().default({}),
+    dedupeKey: varchar('dedupe_key', { length: 64 }).notNull(),
+    listingId: uuid('listing_id').references(() => propertyListings.id, { onDelete: 'set null' }),
+    savedSearchId: uuid('saved_search_id').references(() => savedSearches.id, {
+      onDelete: 'set null',
+    }),
+    sourceEventId: uuid('source_event_id'),
+    readAt: timestamp('read_at', { withTimezone: true }),
+    archivedAt: timestamp('archived_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex('in_app_notifications_dedupe_uidx').on(t.dedupeKey)],
+);
+
+export const notificationDeliveries = pgTable('notification_deliveries', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  notificationId: uuid('notification_id')
+    .notNull()
+    .references(() => inAppNotifications.id, { onDelete: 'cascade' }),
+  provider: varchar('provider', { length: 32 }).notNull(),
+  status: varchar('status', { length: 32 }).notNull(),
+  errorCode: varchar('error_code', { length: 64 }),
+  attemptedAt: timestamp('attempted_at', { withTimezone: true }).defaultNow().notNull(),
+});

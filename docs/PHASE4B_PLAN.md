@@ -1,7 +1,7 @@
 # Phase 4B plan — Saved searches, browsing history, and in-app alerts
 
 Date: 2026-08-06  
-Status: **Planning complete** (implementation not started)  
+Status: **Implemented** — see [`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md)  
 ADR: [`ADR-030b`](DECISIONS.md) · Parent: [`PHASE4_PLAN.md`](PHASE4_PLAN.md) · Builds on: [`PHASE4A_IMPLEMENTATION.md`](PHASE4A_IMPLEMENTATION.md)
 
 ## Objective
