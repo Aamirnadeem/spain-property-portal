@@ -24,5 +24,7 @@ export * from './services/admin';
 export * from './services/audit';
 export * from './services/authz-roles';
 export * from './services/buyer-workspace';
+export * from './services/phase4b-workspace';
+export * from './jobs/index';
 export * from './auth/with-authenticated-db';
 export * from './seed-constants';

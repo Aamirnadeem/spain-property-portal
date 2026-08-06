@@ -6,6 +6,7 @@
     "search": "Search",
     "favourites": "Favourites",
     "workspace": "Workspace",
+    "notifications": "Notifications",
     "account": "Account",
     "signIn": "Sign in",
     "partnerPortal": "Partner portal",
@@ -58,7 +59,10 @@
     "snapshotBadge": "Legacy snapshot",
     "page": "Page",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "saveSearch": "Save search",
+    "searchSaved": "Search saved",
+    "saveSearchName": "Name this search"
   },
   "property": {
     "back": "Back to search",
@@ -118,7 +122,63 @@
     "guestLocal": "Guest mode — data stays in this browser and guest session until you sign in.",
     "explanation": "Score explanation",
     "noScore": "Not enough data to score",
-    "saveWeights": "Save weights"
+    "saveWeights": "Save weights",
+    "searches": "Saved searches",
+    "history": "Browsing history",
+    "notifications": "Notifications",
+    "createSavedSearch": "Create saved search",
+    "emptySearches": "No saved searches yet.",
+    "matchCount": "Matches",
+    "saveSearch": "Save search",
+    "alertsEnabled": "Alerts on",
+    "runEvaluation": "Run evaluation",
+    "markRead": "Mark read",
+    "markAllRead": "Mark all read",
+    "dismiss": "Dismiss",
+    "recentlyViewed": "Recently viewed",
+    "clearHistory": "Clear history",
+    "clearOne": "Remove",
+    "unread": "Unread",
+    "emptyHistory": "No recently viewed properties.",
+    "emptyNotifications": "No notifications yet.",
+    "alertSettings": "Alert settings",
+    "lastEvaluated": "Last evaluated",
+    "openSearch": "Open in search",
+    "openProperty": "View property"
+  },
+  "notifications": {
+    "new_match": {
+      "title": "New match",
+      "body": "A new listing matches your saved search."
+    },
+    "price_reduction": {
+      "title": "Price reduced",
+      "body": "A watched listing has a lower price."
+    },
+    "price_increase": {
+      "title": "Price increased",
+      "body": "A watched listing has a higher price."
+    },
+    "status_reserved": {
+      "title": "Listing reserved",
+      "body": "A watched listing is now reserved."
+    },
+    "status_under_offer": {
+      "title": "Under offer",
+      "body": "A watched listing is under offer."
+    },
+    "listing_withdrawn": {
+      "title": "Listing withdrawn",
+      "body": "A watched listing was withdrawn."
+    },
+    "listing_stale": {
+      "title": "Listing may be stale",
+      "body": "A watched listing has not been refreshed recently."
+    },
+    "saved_property_updated": {
+      "title": "Saved property updated",
+      "body": "A property you saved has changed."
+    }
   },
   "partner": {
     "dashboardTitle": "Agency dashboard",

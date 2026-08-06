@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState, useTransition } from 'react';
 import { formatPriceEur, type ListingCardDto } from '@spain/domain';
 import { parseSearchParams, toSearchParams, type PropertySearchCriteria } from '@spain/search';
+import { SaveSearchControl } from './SaveSearchControl';
 
 type SearchLabels = {
   filters: string;
@@ -36,6 +37,9 @@ type SearchLabels = {
   page: string;
   previous: string;
   next: string;
+  saveSearch?: string;
+  searchSaved?: string;
+  saveSearchName?: string;
 };
 
 export function PropertySearchClient({ locale, labels }: { locale: string; labels: SearchLabels }) {
@@ -216,6 +220,15 @@ export function PropertySearchClient({ locale, labels }: { locale: string; label
             {total} {labels.results}
             {pending ? '…' : ''}
           </p>
+          <SaveSearchControl
+            criteria={criteria as unknown as Record<string, unknown>}
+            labels={{
+              saveSearch: labels.saveSearch ?? 'Save search',
+              saveSearchName: labels.saveSearchName ?? 'Name this search',
+              searchSaved: labels.searchSaved ?? 'Search saved',
+              error: labels.error,
+            }}
+          />
           <div className="view-toggle" role="group" aria-label="View">
             <button
               type="button"

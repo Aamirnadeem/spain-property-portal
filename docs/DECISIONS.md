@@ -87,7 +87,7 @@ This is the implementation-facing decision log. The broader planning register re
 - **Phase 4** = Buyer workspace remainder (shortlists, comparison, alerts, leads, privacy workflows) beyond Phase 2 favourites.
 - Former documentation that labelled live inventory as Phase 4 and buyer workspace as Phase 3 is superseded by this ADR and [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md).
 - Phase 5+ (AI chat, etc.) keep their phase numbers.
-- **Status:** implemented — see [`PHASE3_IMPLEMENTATION.md`](PHASE3_IMPLEMENTATION.md). Phase 4 **planning** complete ([`PHASE4_PLAN.md`](PHASE4_PLAN.md)); Phase 4 **implementation** not started.
+- **Status:** implemented — see [`PHASE3_IMPLEMENTATION.md`](PHASE3_IMPLEMENTATION.md). Phase 4 **planning** complete ([`PHASE4_PLAN.md`](PHASE4_PLAN.md)); Phase 4A **implemented**; Phase 4B **implemented** ([`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md), ADR-030b); Phase 4C (shares) not started.
 
 ### ADR-023 — Phase 3 first vertical slice
 
@@ -153,10 +153,25 @@ This is the implementation-facing decision log. The broader planning register re
 - Favourites remain a separate Phase 2 heart bookmark; named shortlists do not auto-sync from favourites.
 - Alert evaluation uses **inline** hooks (ADR-027); no pg-boss required for Phase 4.
 - Planning docs: [`PHASE4_PLAN.md`](PHASE4_PLAN.md), [`BUYER_WORKSPACE_DESIGN.md`](BUYER_WORKSPACE_DESIGN.md), [`PROPERTY_COMPARISON_MODEL.md`](PROPERTY_COMPARISON_MODEL.md), [`SAVED_SEARCH_AND_ALERT_MODEL.md`](SAVED_SEARCH_AND_ALERT_MODEL.md), [`PHASE4_DATABASE_CHANGES.md`](PHASE4_DATABASE_CHANGES.md), [`PHASE4_SECURITY_REVIEW.md`](PHASE4_SECURITY_REVIEW.md), [`PHASE4_ACCEPTANCE_CRITERIA.md`](PHASE4_ACCEPTANCE_CRITERIA.md), [`PHASE4_DECISIONS_REQUIRED.md`](PHASE4_DECISIONS_REQUIRED.md).
-- **Status:** **planning complete** — implementation not started until explicit approval.
+- **Status:** **planning complete** — Phase 4A implemented (ADR-030a); Phase 4B implemented (ADR-030b); Phase 4C (shares) not started.
 
 ### ADR-030a — Phase 4A vertical slice shipped
 
 - **Decision:** Phase 4A delivers shortlists, notes, explainable comparison (`phase4a.v1`), guest cookie + transactional merge; favourites remain separate (preserve-in-place).
 - Implementation: [`PHASE4A_IMPLEMENTATION.md`](PHASE4A_IMPLEMENTATION.md), [`COMPARISON_SCORING_SPECIFICATION.md`](COMPARISON_SCORING_SPECIFICATION.md), [`GUEST_WORKSPACE_MERGE.md`](GUEST_WORKSPACE_MERGE.md).
-- **Status:** **implemented** (2026-08-06). Phase 4B/4C deferred.
+- **Status:** **implemented** (2026-08-06).
+
+### ADR-030b — Phase 4B scope: saved searches, browsing history, in-app alerts
+
+- **Decision:** Phase **4B** implements saved searches (auth + guest merge), browsing history, in-app notification centre, alert matching engine, price/status event derivation, and provider-neutral job + notification interfaces (`InlineJobRunner` / `TestJobRunner`; `InAppNotificationProvider` / `TestNotificationProvider` only).
+- **Phase 4C** is narrowed to **comparison share links** only (collaborators remain Phase 6 / 4.1+ as before).
+- **Supersedes** the earlier `IMPLEMENTATION_STATUS.md` split that placed in-app alerts under 4C.
+- Channel lock from ADR-030 unchanged: **no** production email/SMS/WhatsApp/push in 4B.
+- Jobs lock from ADR-027 unchanged: **no** pg-boss / Inngest / Trigger.dev in 4B; inline + test runners only.
+- Criteria: extend `@spain/search` with versioned envelope `criteriaVersion: 'phase4b.v1'`; persist **normalized JSON + selected indexed columns** (D8/D15).
+- History retention: **90 days**, **user-clearable** (D5).
+- Alert defaults: legacy snapshots **disabled**; `price_reduction` **on**; `price_increase` **off**; status/withdrawal for **shortlisted or saved-match** listings (D13/D16/D17).
+- Evaluation: **manual + test-triggered** initially; provider-neutral scheduler seam for later automation (D14).
+- Planning docs: [`PHASE4B_PLAN.md`](PHASE4B_PLAN.md), [`SAVED_SEARCH_CRITERIA_SPEC.md`](SAVED_SEARCH_CRITERIA_SPEC.md), [`BROWSING_HISTORY_DESIGN.md`](BROWSING_HISTORY_DESIGN.md), [`IN_APP_NOTIFICATION_DESIGN.md`](IN_APP_NOTIFICATION_DESIGN.md), [`ALERT_MATCHING_ENGINE.md`](ALERT_MATCHING_ENGINE.md), [`PHASE4B_DATABASE_CHANGES.md`](PHASE4B_DATABASE_CHANGES.md), [`PHASE4B_SECURITY_REVIEW.md`](PHASE4B_SECURITY_REVIEW.md), [`PHASE4B_ACCEPTANCE_CRITERIA.md`](PHASE4B_ACCEPTANCE_CRITERIA.md), [`PHASE4B_DECISIONS_REQUIRED.md`](PHASE4B_DECISIONS_REQUIRED.md).
+- Implementation: [`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md).
+- **Status:** **implemented** (2026-08-06).

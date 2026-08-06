@@ -1,4 +1,17 @@
-import { and, asc, count, desc, eq, gte, ilike, lte, or, type SQL } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  gte,
+  ilike,
+  inArray,
+  lte,
+  notInArray,
+  or,
+  type SQL,
+} from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import {
   computePricePerSqm,
@@ -55,6 +68,12 @@ function buildFilters(criteria: PropertySearchCriteria): SQL[] {
   if (criteria.maxBedrooms != null) {
     filters.push(lte(schema.propertyListings.bedrooms, criteria.maxBedrooms));
   }
+  if (criteria.minBathrooms != null) {
+    filters.push(gte(schema.propertyListings.bathrooms, criteria.minBathrooms));
+  }
+  if (criteria.maxBathrooms != null) {
+    filters.push(lte(schema.propertyListings.bathrooms, criteria.maxBathrooms));
+  }
   if (criteria.minSizeSqm != null) {
     filters.push(gte(schema.propertyListings.builtAreaSqm, String(criteria.minSizeSqm)));
   }
@@ -62,7 +81,40 @@ function buildFilters(criteria: PropertySearchCriteria): SQL[] {
     filters.push(lte(schema.propertyListings.builtAreaSqm, String(criteria.maxSizeSqm)));
   }
   if (criteria.area) {
-    filters.push(ilike(schema.propertyListings.areaLabel, criteria.area));
+    filters.push(ilike(schema.propertyListings.areaLabel, `%${criteria.area}%`));
+  }
+  const geoNeedles = [
+    criteria.municipality,
+    criteria.province,
+    criteria.autonomousCommunity,
+    criteria.districtOrLocality,
+  ].filter(Boolean) as string[];
+  for (const needle of geoNeedles) {
+    filters.push(
+      or(
+        ilike(schema.propertyListings.areaLabel, `%${needle}%`),
+        ilike(schema.propertyListings.addressText, `%${needle}%`),
+      )!,
+    );
+  }
+  if (criteria.propertyType) {
+    filters.push(ilike(schema.propertyListings.propertyTypeKey, criteria.propertyType));
+  }
+  if (criteria.listingStatuses && criteria.listingStatuses.length > 0) {
+    filters.push(
+      inArray(schema.propertyListings.operationalStatus, criteria.listingStatuses as never[]),
+    );
+  }
+  if (criteria.freshness === 'current_only') {
+    filters.push(
+      notInArray(schema.propertyListings.operationalStatus, [
+        'stale',
+        'withdrawn',
+        'sold',
+        'rejected',
+        'legacy_snapshot',
+      ] as never[]),
+    );
   }
   if (criteria.environmentType) {
     filters.push(eq(schema.propertyListings.environmentType, criteria.environmentType));

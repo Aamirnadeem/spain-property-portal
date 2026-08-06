@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getDirection, getMessages, isLocale, locales, type Locale } from '@spain/i18n';
+import { NotificationBadge } from '@/components/NotificationBadge';
 import '@spain/ui/styles.css';
 import './phase2.css';
 
@@ -48,6 +49,10 @@ export default async function LocaleLayout({
             <Link href={`/${locale}/search`}>{messages.nav.search}</Link>
             <Link href={`/${locale}/favourites`}>{messages.nav.favourites}</Link>
             <Link href={`/${locale}/workspace`}>{messages.nav.workspace}</Link>
+            <NotificationBadge
+              locale={locale}
+              label={messages.nav.notifications ?? messages.workspace.notifications}
+            />
             <Link href={`/${locale}/partner`}>{messages.nav.partnerPortal}</Link>
             <Link href={`/${locale}/admin`}>{messages.nav.adminPortal}</Link>
             {locales.map((l) => (

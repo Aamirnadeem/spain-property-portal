@@ -52,13 +52,13 @@ Locked default **5** in plan. Confirm if product wants 4 or 6.
 
 ### D5 — History retention days
 
-Locked default **90**. Confirm env override and whether guest local history uses same cap (50 items).
+**Locked in ADR-030b / [`PHASE4B_DECISIONS_REQUIRED.md`](PHASE4B_DECISIONS_REQUIRED.md):** 90 days (`BUYER_HISTORY_RETENTION_DAYS`); guest local same **50**-item cap.
 
-**Owner:** Product / Privacy
+**Owner:** Product / Privacy — **locked**.
 
 ### D6 — Public share includes frozen scores?
 
-Plan default: **no** scores on public share unless user opts in at creation.
+Plan default: **no** scores on public share unless user opts in at creation. (**Phase 4C**)
 
 **Owner:** Product
 
@@ -66,13 +66,13 @@ Plan default: **no** scores on public share unless user opts in at creation.
 
 Plan default: **do not** auto-promote. Confirm.
 
-**Owner:** Product
+**Owner:** Product — **locked in 4A**
 
 ### D8 — Extend `PropertySearchCriteria` for status / off-plan
 
-May require small `@spain/search` schema extension. Confirm field names before migration of saved_searches examples.
+**Locked in ADR-030b:** versioned `phase4b.v1` envelope including bathrooms, property type, listing statuses, off-plan, freshness, structured geo — see [`SAVED_SEARCH_CRITERIA_SPEC.md`](SAVED_SEARCH_CRITERIA_SPEC.md).
 
-**Owner:** Engineering
+**Owner:** Engineering — **locked**.
 
 ### D9 — Phase 4.1 backlog naming
 

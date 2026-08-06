@@ -2,9 +2,21 @@ import { desc, eq } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as schema from '../schema/index';
 import { recordAuditEvent } from './audit';
+import { generateListingChangeNotifications, type ListingChangeEvent } from './phase4b-workspace';
 import { NotFoundError } from './partner';
+import { withServiceRoleDb } from './service-role-db';
 
 type Db = PostgresJsDatabase<typeof schema>;
+
+async function fanOutListingChange(event: ListingChangeEvent): Promise<void> {
+  try {
+    await withServiceRoleDb(process.env.DATABASE_URL, (serviceDb) =>
+      generateListingChangeNotifications(serviceDb, event),
+    );
+  } catch (error) {
+    console.error('generateListingChangeNotifications failed', error);
+  }
+}
 
 export async function listPendingReviewListings(db: Db) {
   return db
@@ -83,17 +95,31 @@ export async function adminWithdrawListing(
   const previousStatus = listing.operationalStatus;
   const now = new Date();
 
+  // History first — INSERT WITH CHECK must still see the listing under RLS.
+  const [historyRow] = await db
+    .insert(schema.listingStatusHistory)
+    .values({
+      listingId: listing.id,
+      status: 'withdrawn',
+      recordedAt: now,
+      note: input.note ?? 'Withdrawn by admin',
+    })
+    .returning();
+
   await db
     .update(schema.propertyListings)
     .set({ operationalStatus: 'withdrawn', isPublicBrowseable: false, updatedAt: now })
     .where(eq(schema.propertyListings.id, listing.id));
 
-  await db.insert(schema.listingStatusHistory).values({
-    listingId: listing.id,
-    status: 'withdrawn',
-    recordedAt: now,
-    note: input.note ?? 'Withdrawn by admin',
-  });
+  if (historyRow) {
+    await fanOutListingChange({
+      listingId: listing.id,
+      type: 'listing_withdrawn',
+      sourceEventId: historyRow.id,
+      statusFrom: previousStatus,
+      statusTo: 'withdrawn',
+    });
+  }
 
   await recordAuditEvent(db, {
     actorUserId: input.actorUserId,

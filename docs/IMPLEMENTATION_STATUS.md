@@ -1,6 +1,6 @@
 # Implementation status
 
-Date: 2026-08-06 (Phase 4A buyer workspace implemented)
+Date: 2026-08-06 (Phase 4B implemented — ADR-030b)
 
 ## Completed
 
@@ -18,24 +18,22 @@ Date: 2026-08-06 (Phase 4A buyer workspace implemented)
 - **Phase 3.1 verified session auth (ADR-029)** — FakeAuth sealed / Supabase sessions replace `x-user-id`; org/platform roles from DB; `withAuthenticatedDb` RLS claim wiring. See [`PHASE3_1_IMPLEMENTATION.md`](PHASE3_1_IMPLEMENTATION.md)
 - **Phase 4 planning documentation (ADR-030)** — see [`PHASE4_PLAN.md`](PHASE4_PLAN.md)
 - **Phase 4A implementation** — shortlists, notes, explainable comparison, guest merge. See [`PHASE4A_IMPLEMENTATION.md`](PHASE4A_IMPLEMENTATION.md)
+- **Phase 4B implementation** — saved searches, browsing history, in-app alerts / matching engine. See [`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md)
 
 ## Credential-gated
 
 - Live Supabase Auth OTP delivery/verification
 - Live Supabase Storage uploads
-- Hosted production database (local PostGIS used for Phase 2/3/3.1/4A verification)
+- Hosted production database (local PostGIS used for Phase 2/3/3.1/4A/4B verification)
 - Real partner HTTP feeds (require written permission + registry approval)
 
 ## Not started (implementation)
 
 - JSON/XML partner adapters (Spain Partner CSV v1 only in Phase 3 slice)
-- pg-boss / background job runner
+- pg-boss / background job runner (4B ships InlineJobRunner + TestJobRunner only; `evaluateAllDueSavedSearches` is a scheduler seam, not production-wired)
 - Rights-checked media pipeline / authorized listing photographs
 - Multi-partner / nationwide rollout
-- **Phase 4B** — saved searches, browsing history
-- **Phase 4C** — in-app alerts foundation, comparison share links
+- **Phase 4C** — comparison share links only
 - Phase 4.1+ — leads, privacy export/delete workers, production email digests
 - Phase 5+ AI assistant, WhatsApp, voice
 - Map distance enrichment
-
-**Phase 4B/4C have not been started.**
