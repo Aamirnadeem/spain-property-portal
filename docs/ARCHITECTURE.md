@@ -187,7 +187,7 @@ Approved documents, jurisdiction metadata, review dates, chunks, citations, regi
 
 ### 6.3 Map
 
-MapLibre GL JS with licensed tile and geocoding providers. Clustering, list synchronization, draw-a-polygon and bounding-box search. Commute-time search from one or more destinations (deterministic calculation layers). Always provide a non-map accessible alternative.
+MapLibre GL JS with licensed tile and geocoding providers (Phase **5**, ADR-031). Clustering, list synchronization, draw-a-polygon and bounding-box search. Store shapes as PostGIS `geometry` 4326 (GiST); metre distances via `geography`. Map markers = minimal DTO. Commute destinations private (encrypted or access-restricted); routing via provider-neutral adapters with mocked local/test providers. Public coordinates approximate unless exact publication authorized. Controlled canonical URLs for map SEO (no unlimited geometry indexing). Always provide a non-map accessible alternative. Planning: [`PHASE5_PLAN.md`](PHASE5_PLAN.md), [`MAP_SEARCH_ARCHITECTURE.md`](MAP_SEARCH_ARCHITECTURE.md).
 
 ---
 
@@ -200,15 +200,20 @@ Versioned HTTP APIs with generated types. Prefer REST or typed RPC with explicit
 ### 7.2 Public search
 
 ```text
-GET  /api/v1/geography/search
+GET  /api/v1/geography/search                    # Phase 5 (planned)
+GET  /api/v1/geography/areas/{id}                # Phase 5 (planned)
 GET  /api/v1/properties
+GET  /api/v1/properties/map                      # Phase 5 markers/clusters (planned)
+POST /api/v1/properties/within                   # Phase 5 polygon/rectangle (planned)
 GET  /api/v1/properties/{listingId}
+GET  /api/v1/properties/{listingId}/location-context  # Phase 5 (planned)
+GET  /api/v1/properties/{listingId}/nearby            # Phase 5 (planned)
 GET  /api/v1/properties/{listingId}/alternatives
 GET  /api/v1/properties/{listingId}/price-history
 GET  /api/v1/properties/{listingId}/freshness
-POST /api/v1/search/parse-natural-language
+POST /api/v1/search/parse-natural-language       # Phase 6+ AI
 POST /api/v1/compare/preview
-GET  /api/v1/compare/shared/{token}    # Phase 4C — public share (rate-limited; implemented)
+GET  /api/v1/compare/shared/{token}              # Phase 4C — public share (rate-limited; implemented)
 ```
 
 ### 7.3 Account / workspace
@@ -236,6 +241,8 @@ GET/POST /api/v1/me/comparison-shares                   # Phase 4C (implemented)
 GET /api/v1/me/comparison-shares/{id}                    # Phase 4C
 POST /api/v1/me/comparison-shares/{id}/revoke            # Phase 4C
 POST /api/v1/me/comparison-shares/{id}/replace           # Phase 4C
+GET/POST /api/v1/me/commute-destinations                 # Phase 5 (planned)
+POST /api/v1/me/commute/estimate                         # Phase 5 (planned)
 POST /api/v1/me/workspace/merge
 POST /api/v1/me/privacy/export              # Phase 4.1+ deferred
 POST /api/v1/me/privacy/delete              # Phase 4.1+ deferred
@@ -243,7 +250,7 @@ POST /api/v1/me/privacy/delete              # Phase 4.1+ deferred
 
 Public UI (Phase 4C): `/{locale}/shared-comparison/{token}` — read-only; noindex; rate-limited resolve.
 
-Phase 4 design: [`PHASE4_PLAN.md`](PHASE4_PLAN.md), [`BUYER_WORKSPACE_DESIGN.md`](BUYER_WORKSPACE_DESIGN.md), [`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md) (ADR-030b), [`PHASE4C_IMPLEMENTATION.md`](PHASE4C_IMPLEMENTATION.md) (ADR-030c). Jobs remain inline (`InlineJobRunner` / `TestJobRunner`); notification providers `InAppNotificationProvider` / `TestNotificationProvider` only in 4B.
+Phase 4 design: [`PHASE4_PLAN.md`](PHASE4_PLAN.md), [`BUYER_WORKSPACE_DESIGN.md`](BUYER_WORKSPACE_DESIGN.md), [`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md) (ADR-030b), [`PHASE4C_IMPLEMENTATION.md`](PHASE4C_IMPLEMENTATION.md) (ADR-030c). Phase 5 map design: [`PHASE5_PLAN.md`](PHASE5_PLAN.md) (ADR-031 — planning complete). Jobs remain inline (`InlineJobRunner` / `TestJobRunner`); notification providers `InAppNotificationProvider` / `TestNotificationProvider` only in 4B.
 
 ### 7.4 Leads and AI
 
@@ -443,11 +450,11 @@ retention_class
 
 | Channel         | Schema / interface    | Operational activation                   |
 | --------------- | --------------------- | ---------------------------------------- |
-| Website chat    | Phase 5               | MVP                                      |
+| Website chat    | Phase 6+              | After Phase 5 maps (ADR-031)             |
 | Email           | Phase 1+              | MVP (alerts, OTP)                        |
 | SMS             | Phase 1 interface     | OTP MVP; marketing SMS later with opt-in |
-| WhatsApp        | Phase 6 interface     | Phase 7 after prerequisites              |
-| Browser voice   | Phase 6 interface     | Phase 8a                                 |
+| WhatsApp        | Phase 8 interface     | After AI chat prerequisites              |
+| Browser voice   | Phase 9 interface     | After WhatsApp                           |
 | Telephone voice | Call tables Phase 1/6 | Phase 8b after demand                    |
 
 ---

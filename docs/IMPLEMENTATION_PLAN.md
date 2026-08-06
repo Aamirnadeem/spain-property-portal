@@ -215,10 +215,10 @@ Relative complexity: S = small, M = medium, L = large, XL = extra-large.
 - Deterministic importer for [`data/legacy/barcelona_property_explorer_legacy_60.json`](../data/legacy/barcelona_property_explorer_legacy_60.json) (file **present**); field mapping in [`DATABASE_DESIGN.md`](DATABASE_DESIGN.md); synthetic fixtures for CI edge cases
 - Imported records marked `legacy_snapshot`; original source URLs preserved; normalize inconsistent `property_type` while keeping source claims; no invented images; do not scrape Idealista/Fotocasa/etc. from stored URLs
 - Manual listing workflow and authorized media upload
-- Responsive card, list, table and map views with URL-backed search state
+- Responsive card, list, table and map views with URL-backed search state — **map view deferred from Phase 2 slice; planned under Phase 5 (ADR-031)**
 - Rebuild (not lift) legacy UX: filter sidebar, cards/compare toggle, KPI strip, Mediterranean tokens — plus list + map + in-app detail
 - Filters: geography, price, beds, area, property type, lifestyle classifications (advertiser vs derived provenance); City Center / Coastal / Hillside as lifestyle/derived, not admin geography
-- Synchronized map/list and accessible non-map alternative
+- Synchronized map/list and accessible non-map alternative — **Phase 5**
 - Property detail: gallery when rights exist, source, freshness, price history, verification explanations, energy fields
 - KPI summaries that avoid misleading averages on tiny samples (improve on legacy means-only strip)
 - SEO metadata, canonical/localized routes, structured data where appropriate
@@ -226,19 +226,19 @@ Relative complexity: S = small, M = medium, L = large, XL = extra-large.
 
 **Acceptance criteria**
 
-- [ ] Anonymous users can browse legacy-marked inventory; images only when rights-cleared (legacy 60 has none — text-first / non-photo placeholders only)
-- [ ] List, card, table and map views work responsively
-- [ ] Location and lifestyle filters work; provenance labels distinguish claim vs derived
-- [ ] Property pages show source, rights, freshness and energy-state fields
-- [ ] All 60 legacy records import idempotently and are visibly marked as snapshots until verified
-- [ ] Alcaraz seeded under Castilla-La Mancha / Albacete, not Catalonia (not present in the 60 JSON; still required in geography seeds)
-- [ ] Approximate locations are not displayed as exact
-- [ ] Accessibility: keyboard access, focus management, map alternative; pinch-zoom allowed
-- [ ] No invented property images; no unauthorized portal scraping
+- [x] Anonymous users can browse legacy-marked inventory; images only when rights-cleared (legacy 60 has none — text-first / non-photo placeholders only)
+- [ ] List, card, table and map views work responsively — **cards/table done; map → Phase 5**
+- [x] Location and lifestyle filters work (text/area + environment); richer hierarchy/map filters → Phase 5
+- [x] Property pages show source, rights, freshness and energy-state fields
+- [x] All 60 legacy records import idempotently and are visibly marked as snapshots until verified
+- [x] Alcaraz seeded under Castilla-La Mancha / Albacete, not Catalonia (not present in the 60 JSON; still required in geography seeds)
+- [ ] Approximate locations are not displayed as exact — **enforced when map/coords ship (Phase 5)**
+- [x] Accessibility: keyboard access, focus management; map alternative (list) exists; pinch-zoom allowed
+- [x] No invented property images; no unauthorized portal scraping
 
 **Can proceed without external credentials:** mostly yes (legacy JSON + fixtures, OSM-dev or mock map tiles). Licensed production tiles need keys later.
 
-**Unblocked:** real 60-record file is present. **Still restricted:** treat as snapshot/demo until rights/freshness review; Idealista/Fotocasa URLs are not a live-licence path.
+**Unblocked:** real 60-record file is present. **Still restricted:** treat as snapshot/demo until rights/freshness review; Idealista/Fotocasa URLs are not a live-licence path. **Map UX:** see Phase 5 (ADR-031).
 
 ---
 
@@ -327,7 +327,33 @@ Also: partner onboarding; API/webhook interfaces; authorized-crawl framework (no
 
 ---
 
-### Phase 5 — Website AI chat MVP / Slice 6 (L)
+### Phase 5 — Map search and geospatial intelligence (ADR-031)
+
+> **Renumber (ADR-031):** Phase **5** is Map Search / Geospatial (absorbs deferred Phase 2 map UX and former Phase 6 commute/amenity enrichment). Website AI chat moves to **Phase 6+**. Planning: [`PHASE5_PLAN.md`](PHASE5_PLAN.md). **Planning complete; implementation not started.**
+
+**Deliver**
+
+- Geographic hierarchy with official codes, multilingual aliases, boundaries/centroids (`geometry` 4326 + GiST), dataset provenance
+- Property coordinates with source/confidence/precision; no invented coordinates
+- Location privacy: public **approximate unless exact publication authorized**; projection to map/APIs/shares
+- MapLibre GL JS map/list synchronization, clustering, viewport search, draw-polygon, accessible non-map alternative; **minimal map marker DTO**
+- Geographic filters + `phase5.v1` saved-search spatial envelope (versioned GeoJSON + validated PostGIS geometry)
+- Environmental classifications calculated / explainable / versioned (sea view advertiser-declared only)
+- Amenities/transit proximity (Barcelona-first; permissioned data); metre distances via geography
+- Private commute destinations (encrypted or access-restricted) + guest merge; provider-neutral routing with mocked local/test providers
+- Geocoding quarantine for low confidence; enrichment pipeline with provenance
+- Controlled canonical URLs for map/search SEO (no indexing of unlimited geometry variants)
+- Typed map search services; security/RLS; Playwright journey
+
+**First vertical slice:** Barcelona published markers → map/list sync → viewport search → one polygon → nearby transit/beach/park straight-line → privacy → save geographic search.
+
+**Acceptance criteria:** see [`PHASE5_ACCEPTANCE_CRITERIA.md`](PHASE5_ACCEPTANCE_CRITERIA.md).
+
+**Can proceed without external credentials:** yes with Fake routing/geocode providers + OSM/demo tiles. Licensed tiles, amenity licenses, and live routing need keys/acks later.
+
+---
+
+### Phase 6 — Website AI chat MVP (was Phase 5; ADR-031)
 
 **Deliver**
 
@@ -339,6 +365,7 @@ Also: partner onboarding; API/webhook interfaces; authorized-crawl framework (no
 - Human handoff
 - Rate limits, token/cost budgets, prompt-injection isolation, PII minimization
 - AI evaluation suite: hallucinated facts, citations, jurisdiction, safe escalation
+- Uses Phase 5 `get_location_context` / map tools where applicable — must respect location privacy projection
 
 **Required typed tools (all must exist)**
 
@@ -354,19 +381,21 @@ Also: partner onboarding; API/webhook interfaces; authorized-crawl framework (no
 - [ ] Evaluation suite passes critical cases
 - [ ] Visible AI identity and limitations in UI
 - [ ] Human handoff creates assignable handoff records
+- [ ] Location tools never return exact coordinates when policy forbids
 
 **Can proceed without external credentials:** orchestration, tool contracts, eval harness with mocked LLM. Live chat quality needs LLM API keys.
 
 ---
 
-### Phase 6 — Buyer intelligence + omnichannel foundations / Slices 7–8 (L)
+### Phase 7 — Buyer intelligence + omnichannel foundations (was Phase 6; ADR-031)
+
+> Commute profiles and amenity/terrain derivation moved to **Phase 5**. This phase retains cost rules, checklists, risk overlays, off-plan workflows, collaborative shortlists, and omnichannel **interfaces**.
 
 **Deliver — buyer intelligence**
 
 - Versioned regional acquisition-cost rules engine (no single hardcoded Spain percentage)
 - Document-readiness checklist templates (never claim to prove title/compliance)
-- Commute profiles; amenity and terrain derivation from licensed/open data
-- Selected authoritative risk overlays
+- Selected authoritative risk overlays (beyond Phase 5 Barcelona amenity slice)
 - Off-plan development/unit workflows with auditable evidence states
 - Collaborative shortlists and export
 
@@ -393,7 +422,7 @@ Also: partner onboarding; API/webhook interfaces; authorized-crawl framework (no
 
 ---
 
-### Phase 7 — WhatsApp commercial upgrade (M after prerequisites)
+### Phase 8 — WhatsApp commercial upgrade (was Phase 7; ADR-031)
 
 **Prerequisites (all required)**
 
@@ -427,16 +456,16 @@ Also: partner onboarding; API/webhook interfaces; authorized-crawl framework (no
 
 ---
 
-### Phase 8 — Voice upgrade (L)
+### Phase 9 — Voice upgrade (was Phase 8; ADR-031)
 
-**8a Browser voice** after text chat stable.  
-**8b Telephony** after demand validation.
+**9a Browser voice** after text chat stable.  
+**9b Telephony** after demand validation.
 
 **Deliver**
 
 - Speech adapters; explicit AI and recording disclosure
 - Numeric confirmation and error recovery for prices, dates, phones, addresses
-- Phone call sessions (8b); human transfer
+- Phone call sessions (9b); human transfer
 - Transcript, summary and lead attachment
 - Send selected properties through opted-in email/WhatsApp
 - Recording retention and deletion
@@ -455,7 +484,7 @@ Also: partner onboarding; API/webhook interfaces; authorized-crawl framework (no
 
 ---
 
-### Phase 9 — Scale and expansion (ongoing)
+### Phase 10 — Scale and expansion (was Phase 9; ADR-031)
 
 - Additional regions and partners
 - Typesense/OpenSearch only when measurements justify it

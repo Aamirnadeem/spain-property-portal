@@ -1,8 +1,9 @@
 # RLS implementation status
 
-Date: 2026-08-06 (Phase 4A + Phase 4B + Phase 4C policies **implemented**)  
+Date: 2026-08-07 (Phase 4A–4C policies **implemented**; Phase 5 geospatial **planned**)  
 Migrations: `0001_phase1_rls.sql`, `0003_phase2_rls.sql`, `0005_phase3_rls.sql`, `0006_phase3_1_rls.sql`, `0008_phase4a_rls.sql`, `0010_phase4b_rls.sql`, `0012_phase4c_comparison_shares_rls.sql`  
-Phase 4C schema: [`PHASE4C_DATABASE_CHANGES.md`](PHASE4C_DATABASE_CHANGES.md) / [`PHASE4C_IMPLEMENTATION.md`](PHASE4C_IMPLEMENTATION.md)
+Phase 4C schema: [`PHASE4C_DATABASE_CHANGES.md`](PHASE4C_DATABASE_CHANGES.md) / [`PHASE4C_IMPLEMENTATION.md`](PHASE4C_IMPLEMENTATION.md)  
+Phase 5 planned: [`PHASE5_DATABASE_CHANGES.md`](PHASE5_DATABASE_CHANGES.md) (illustrative `0013`–`0015`)
 
 Status meanings:
 
@@ -77,6 +78,18 @@ Service-role exceptions:
 
 - Listing-change fan-out after partner/admin mutations uses `withServiceRoleDb` (4B; same class as workers/CLI), not buyer `/me` routes.
 - Public comparison share resolve + access recording (4C): service-role after API rate limit; returns PublicComparisonDto only — see [`COMPARISON_SHARE_SECURITY_MODEL.md`](COMPARISON_SHARE_SECURITY_MODEL.md).
+
+## Phase 5 geospatial (ADR-031 — planning complete / not migrated)
+
+| Table / concern | Status |
+| --------------- | ------ |
+| Geography boundaries / aliases extensions | **Planned only** |
+| `property_locations` PostGIS geom + projection | **Planned only** — anon never reads raw exact when policy forbids |
+| `amenities` / `transport_stops` / classifications | **Planned only** — public read of published catalogues |
+| `commute_destinations` / profiles | **Planned only** — owner `user_id = jwt.sub`; encrypted or access-restricted; **no agency** |
+| `geocode_jobs` / `geocode_reviews` | **Planned only** — platform roles |
+
+Service-role: enrichment + geocode workers; public map search uses projected DTOs only ([`LOCATION_PRIVACY_MODEL.md`](LOCATION_PRIVACY_MODEL.md)).
 
 ## Authorization / deferred
 

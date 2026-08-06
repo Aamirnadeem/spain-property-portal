@@ -104,6 +104,26 @@ See [`ALERT_MATCHING_ENGINE.md`](ALERT_MATCHING_ENGINE.md):
 - Max 25 searches / authenticated user; 5 guest.
 - Rate limit save/update: 20/min/user.
 
+## Phase 5 extension — `phase5.v1` spatial envelope (planned)
+
+Status: **Planning complete / not implemented** (ADR-031). See [`PHASE5_PLAN.md`](PHASE5_PLAN.md) · [`MAP_SEARCH_ARCHITECTURE.md`](MAP_SEARCH_ARCHITECTURE.md).
+
+`phase5.v1` **extends** `phase4b.v1`: all 4B fields remain valid. Optional `spatial` block:
+
+| Field | Type | Notes |
+| ----- | ---- | ----- |
+| `criteriaVersion` | `'phase5.v1'` | When spatial present, writers emit 5.v1; readers accept 4b.v1 without spatial |
+| `spatial.hierarchyIds` | object? | Official entity UUIDs (AC, province, municipality, …) |
+| `spatial.viewport` | bbox? | west/south/east/north |
+| `spatial.radius` | `{ lat, lng, meters }`? | Point + metres; metre distance via PostGIS geography |
+| `spatial.polygon` | Versioned GeoJSON Polygon? | Max 100 vertices; stored in criteria jsonb; validated/normalized to PostGIS `geometry(Polygon,4326)` before query |
+| `spatial.rectangle` | bbox? | Axis-aligned; same validation path |
+| `spatial.travelTime` | `{ destinationId?, mode, maxMinutes }`? | Commute filter |
+
+Matching: fail closed when spatial filter present but listing lacks usable projected/admin geography. Drawn areas: **versioned GeoJSON + validated PostGIS geometry** — never trust client GeoJSON alone; never invent coordinates for unmatched listings.
+
+Hash includes the spatial block when present (canonical GeoJSON coordinate precision documented at impl).
+
 ## Tests required
 
 - Equal criteria → equal hash (determinism)
@@ -112,3 +132,4 @@ See [`ALERT_MATCHING_ENGINE.md`](ALERT_MATCHING_ENGINE.md):
 - Invalid ranges rejected
 - Version unknown rejected or migrated
 - Duplicate `(user_id, criteria_hash)` rejected on create
+- Phase 5: polygon vertex/extent rejection; spatial hash stability (when implemented)

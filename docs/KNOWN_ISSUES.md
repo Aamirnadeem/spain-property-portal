@@ -1,6 +1,6 @@
 # Known issues
 
-Date: 2026-08-06 (Phase 2 + Phase 3 + Phase 3.1 + Phase 4A + Phase 4B + Phase 4C)
+Date: 2026-08-07 (Phase 2–4C + Phase 5 planning)
 
 ## Phase 2
 
@@ -9,7 +9,7 @@ Date: 2026-08-06 (Phase 2 + Phase 3 + Phase 3.1 + Phase 4A + Phase 4B + Phase 4C
 3. **Some source URLs are portal search pages** (Idealista/Fotocasa). Stored as-is; weak listing identity flagged via snapshot provenance.
 4. **Fake auth user rows** are created lazily when favourites are persisted; production will use Supabase Auth UUIDs as `users.id`.
 5. ~~**Playwright e2e** requires a manually migrated/seeded/imported local database~~ — **Resolved in Phase 3.1**: `pnpm test:e2e` provisions its own `spain_properties_e2e` database via `globalSetup` (`pnpm db:reset:e2e`) and serves the app on port 3100, so it never reads or resets a developer's `spain_properties`.
-6. **Map view** is deferred (not required for this Phase 2 slice); card and table views are implemented.
+6. ~~**Map view** is deferred (not required for this Phase 2 slice)~~ — **Superseded by ADR-031:** map search and geospatial intelligence are **Phase 5** (planning complete; implementation not started). Card and table views remain the Phase 2 public search UX until Phase 5 ships.
 7. ~~**Favourites authorization** via browser `x-user-id`~~ — **Resolved in Phase 3.1**: favourites use verified session cookies; guest local favourites remain for anonymous users.
 
 ## Phase 3 vertical slice
@@ -52,3 +52,10 @@ Date: 2026-08-06 (Phase 2 + Phase 3 + Phase 3.1 + Phase 4A + Phase 4B + Phase 4C
 31. ~~**Phase 4C implementation not started**~~ — **Resolved:** migrations, APIs, UI, RLS, and Playwright journey shipped ([`PHASE4C_IMPLEMENTATION.md`](PHASE4C_IMPLEMENTATION.md)).
 32. **Capability-URL model** — anyone with a valid link can view approved public comparison fields until expiry/revoke; clipboard/chat leakage is outside server control (accepted; documented in [`PHASE4C_SECURITY_REVIEW.md`](PHASE4C_SECURITY_REVIEW.md)).
 33. **Truncated/hashed network ids for share access events** deferred (D23) unless abuse requires an ADR amendment.
+
+## Phase 5 residual (planning)
+
+34. **Phase 5 implementation not started** — planning locked in ADR-031 / [`PHASE5_PLAN.md`](PHASE5_PLAN.md); PostGIS extension installed but unused; no MapLibre UI; no spatial criteria in saved searches yet.
+35. **Legacy browseable listings lack coordinates** — must not invent pins; Barcelona map demo requires published partner/verified coords.
+36. **Production tile vendor, amenity licenses, and live routing provider** remain residual product acks ([`PHASE5_DECISIONS_REQUIRED.md`](PHASE5_DECISIONS_REQUIRED.md)).
+37. Website AI chat renumbered to **Phase 6+** (ADR-031); not started.

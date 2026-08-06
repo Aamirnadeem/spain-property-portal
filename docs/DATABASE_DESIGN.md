@@ -110,13 +110,15 @@ Spain
 
 **Seed rule:** Alcaraz must be under Albacete / Castilla-La Mancha, never Catalonia.
 
+Phase 5 extends this model with PostGIS **`geometry` SRID 4326** columns + **GiST** indexes (metre calcs via **`geography`**), comarca/district/postal-code depth, dataset versions, amenities/transit, environmental classifications, and commute destinations — see [`GEOSPATIAL_DATA_MODEL.md`](GEOSPATIAL_DATA_MODEL.md) and [`PHASE5_DATABASE_CHANGES.md`](PHASE5_DATABASE_CHANGES.md) (**planning complete / not migrated**).
+
 ### 3.3 Inventory
 
 | Entity                   | Purpose                                               |
 | ------------------------ | ----------------------------------------------------- |
 | `physical_properties`    | Durable physical asset when confidence sufficient     |
 | `property_addresses`     | Structured address parts                              |
-| `property_locations`     | Coordinates, accuracy, display policy                 |
+| `property_locations`     | Coordinates, accuracy, display policy; Phase 5 adds PostGIS geom + provenance |
 | `property_listings`      | Source-specific commercial listing                    |
 | `listing_status_history` | Append-only status changes                            |
 | `listing_price_history`  | Append-only price changes                             |
@@ -325,23 +327,24 @@ Migrations are ordered and additive. Never edit production schema manually.
 | M02  | AuthZ: organizations, members, verifications, roles, permissions, consents, notification_preferences, privacy_requests                       | 1                                                                                                                                                                                              |
 | M03  | Channel identity stubs: `user_channel_identities`                                                                                            | 1                                                                                                                                                                                              |
 | M04  | Geography hierarchy + geo_aliases + places                                                                                                   | 1–2                                                                                                                                                                                            |
-| M05  | Amenities, transport_stops, environmental_layers (schema; data later)                                                                        | 2–6                                                                                                                                                                                            |
+| M05  | Amenities, transport_stops, environmental classifications (schema + Barcelona-first data in P5) | **5** ([`PHASE5_DATABASE_CHANGES.md`](PHASE5_DATABASE_CHANGES.md)) — was 2–6 sketch |
 | M06  | Inventory core: physical_properties, addresses, locations, listings, types, features, source_claims, derived_attributes, provenance          | 2                                                                                                                                                                                              |
 | M07  | Histories: listing_status_history, listing_price_history, verification_events                                                                | 2                                                                                                                                                                                              |
 | M08  | Media: media_assets, media_rights, listing_media                                                                                             | 2                                                                                                                                                                                              |
-| M09  | Off-plan: developments, development_units, offplan_milestones, property_documents, document_verifications                                    | 2 / 6                                                                                                                                                                                          |
-| M10  | Buyer workspace: favourites (P2); shortlists/notes/comparisons/prefs (P4A); shares (P4C planned); `saved_searches`, `browsing_history` (P4B) | **4** ([`PHASE4_DATABASE_CHANGES.md`](PHASE4_DATABASE_CHANGES.md), [`PHASE4B_DATABASE_CHANGES.md`](PHASE4B_DATABASE_CHANGES.md), [`PHASE4C_DATABASE_CHANGES.md`](PHASE4C_DATABASE_CHANGES.md)) |
+| M09  | Off-plan: developments, development_units, offplan_milestones, property_documents, document_verifications                                    | 2 / 7                                                                                                                                                                                          |
+| M10  | Buyer workspace: favourites (P2); shortlists/notes/comparisons/prefs (P4A); shares (P4C shipped); `saved_searches`, `browsing_history` (P4B) | **4** ([`PHASE4_DATABASE_CHANGES.md`](PHASE4_DATABASE_CHANGES.md), [`PHASE4B_DATABASE_CHANGES.md`](PHASE4B_DATABASE_CHANGES.md), [`PHASE4C_DATABASE_CHANGES.md`](PHASE4C_DATABASE_CHANGES.md)) |
 | M11  | Alerts: evaluation runs, last matches, `in_app_notifications`, `notification_deliveries` (P4B); email deliveries later                       | **4B** foundation / 4.1+ channels                                                                                                                                                              |
 | M12  | Leads: leads, links, viewing_requests, assignments, status history                                                                           | **4.1+** (deferred from Phase 4 scope lock)                                                                                                                                                    |
+| M12b | Geospatial: PostGIS geom on locations, commute destinations, geocode jobs, proximity (P5 planned)                                            | **5** ([`PHASE5_DATABASE_CHANGES.md`](PHASE5_DATABASE_CHANGES.md))                                                                                                                             |
 
-| M13 | Conversations: conversations, participants, messages, attachments, property links, channel_threads, handoffs, summaries | 5–6 |
-| M14 | AI: ai_runs, ai_tool_calls, ai_feedback, evaluation tables | 5 |
-| M15 | Communications: communication_deliveries; call_sessions, call_recordings, call_consents (disabled in app config) | 6 |
+| M13 | Conversations: conversations, participants, messages, attachments, property links, channel_threads, handoffs, summaries | 6–7 (ADR-031: AI = Phase 6) |
+| M14 | AI: ai_runs, ai_tool_calls, ai_feedback, evaluation tables | **6** (was 5) |
+| M15 | Communications: communication_deliveries; call_sessions, call_recordings, call_consents (disabled in app config) | 7–8 |
 | M16 | Ingestion: data_sources through source_takedown_requests, duplicate_candidates | 3 (ADR-022; was 4) |
-| M17 | Knowledge and rules: knowledge__, jurisdictions, rule__, calculator_runs, document_checklist_templates, legal_content_reviews | 5–6 |
+| M17 | Knowledge and rules: knowledge__, jurisdictions, rule__, calculator_runs, document_checklist_templates, legal_content_reviews | 6–7 |
 | M18 | RLS policies for all user/partner-scoped tables; service roles for workers | 1+ incremental |
-| M19 | Seeds: Spain geography (full hierarchy capability), Catalonia focus depth, Alcaraz correctness check, fixture listings | 2 |
-| M20 | Indexes: GiST/Geog for locations, GIN for FTS/trgm, unique (source_id, external_listing_id), price/status history | ongoing |
+| M19 | Seeds: Spain geography (full hierarchy capability), Catalonia focus depth, Alcaraz correctness check, fixture listings | 2 / **5** deepen Barcelona |
+| M20 | Indexes: GiST on geometry (4326) for locations; GIN for FTS/trgm; unique (source_id, external_listing_id); price/status history | ongoing / **5** spatial |
 
 ---
 

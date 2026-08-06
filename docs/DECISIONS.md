@@ -86,8 +86,8 @@ This is the implementation-facing decision log. The broader planning register re
 - **Decision:** **Phase 3** = Live Property Inventory and Agency/Admin Operations.
 - **Phase 4** = Buyer workspace remainder (shortlists, comparison, alerts, leads, privacy workflows) beyond Phase 2 favourites.
 - Former documentation that labelled live inventory as Phase 4 and buyer workspace as Phase 3 is superseded by this ADR and [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md).
-- Phase 5+ (AI chat, etc.) keep their phase numbers.
-- **Status:** implemented — see [`PHASE3_IMPLEMENTATION.md`](PHASE3_IMPLEMENTATION.md). Phase 4 **planning** complete ([`PHASE4_PLAN.md`](PHASE4_PLAN.md)); Phase 4A **implemented**; Phase 4B **implemented** ([`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md), ADR-030b); Phase 4C **implemented** (ADR-030c).
+- Phase 5+ (AI chat, etc.) keep their phase numbers — **amended by ADR-031**: Phase 5 is now Map Search / Geospatial; AI chat moves to Phase 6+.
+- **Status:** implemented — see [`PHASE3_IMPLEMENTATION.md`](PHASE3_IMPLEMENTATION.md). Phase 4 complete through 4C; Phase 5 **planning complete** (ADR-031); 5 implementation not started.
 
 ### ADR-023 — Phase 3 first vertical slice
 
@@ -184,3 +184,11 @@ This is the implementation-facing decision log. The broader planning register re
 - Live resolve refreshes public listing facts for selected IDs only; never silently substitutes another property.
 - Planning docs: [`PHASE4C_PLAN.md`](PHASE4C_PLAN.md), [`COMPARISON_SHARE_SECURITY_MODEL.md`](COMPARISON_SHARE_SECURITY_MODEL.md), [`PUBLIC_COMPARISON_DTO.md`](PUBLIC_COMPARISON_DTO.md), [`PHASE4C_DATABASE_CHANGES.md`](PHASE4C_DATABASE_CHANGES.md), [`PHASE4C_SECURITY_REVIEW.md`](PHASE4C_SECURITY_REVIEW.md), [`PHASE4C_ACCEPTANCE_CRITERIA.md`](PHASE4C_ACCEPTANCE_CRITERIA.md), [`PHASE4C_DECISIONS_REQUIRED.md`](PHASE4C_DECISIONS_REQUIRED.md).
 - **Status:** **implemented** (2026-08-06). See [`PHASE4C_IMPLEMENTATION.md`](PHASE4C_IMPLEMENTATION.md).
+
+### ADR-031 — Phase 5 scope: map search and geospatial intelligence
+
+- **Decision:** Phase **5** implements Map Search and Geospatial Intelligence for Spain: geographic hierarchy, PostGIS-backed search, MapLibre map/list UX, location privacy projection, environmental classifications, amenities/transit proximity, private commute profiles, and provider-neutral geocoding/routing.
+- **Supersedes sequencing:** Former Phase 5 (Website AI chat) moves to **Phase 6+**. Deferred Phase 2 map UI and former Phase 6 commute/amenity enrichment are absorbed into Phase 5.
+- **Locks:** MapLibre GL JS client; PostgreSQL + PostGIS; store searchable shapes as **`geometry` SRID 4326** with **GiST** indexes; metre distances via PostGIS **`geography`**; map markers as minimal DTO only; drawn areas as versioned GeoJSON + validated PostGIS geometry; saved-search **`phase5.v1`**; Barcelona-first vertical slice; never invent legacy coordinates; public display **approximate unless exact publication authorized**; Fake/Test routing behind provider-neutral adapter; commute destinations private (encrypted or access-restricted); environmental classifications calculated / explainable / versioned; map query SEO via controlled canonical URLs (no indexing of unlimited geometry variants); polygon max 100 vertices / ~50 km extent; sea view never inferred from coast proximity alone.
+- Planning docs: [`PHASE5_PLAN.md`](PHASE5_PLAN.md), [`GEOSPATIAL_DATA_MODEL.md`](GEOSPATIAL_DATA_MODEL.md), [`MAP_SEARCH_ARCHITECTURE.md`](MAP_SEARCH_ARCHITECTURE.md), [`LOCATION_PRIVACY_MODEL.md`](LOCATION_PRIVACY_MODEL.md), [`ENVIRONMENT_CLASSIFICATION_SPEC.md`](ENVIRONMENT_CLASSIFICATION_SPEC.md), [`AMENITY_AND_TRANSIT_MODEL.md`](AMENITY_AND_TRANSIT_MODEL.md), [`ROUTING_PROVIDER_INTERFACE.md`](ROUTING_PROVIDER_INTERFACE.md), [`PHASE5_DATABASE_CHANGES.md`](PHASE5_DATABASE_CHANGES.md), [`PHASE5_SECURITY_REVIEW.md`](PHASE5_SECURITY_REVIEW.md), [`PHASE5_ACCEPTANCE_CRITERIA.md`](PHASE5_ACCEPTANCE_CRITERIA.md), [`PHASE5_DECISIONS_REQUIRED.md`](PHASE5_DECISIONS_REQUIRED.md).
+- **Status:** **planning complete** — implementation not started.

@@ -1,10 +1,10 @@
-# Authorization matrix — Phase 3.1 (+ Phase 4)
+# Authorization matrix — Phase 3.1 (+ Phase 4 + Phase 5 planned)
 
-Date: 2026-08-06  
-Status: Phase 3.1 **Implemented**; Phase 4A buyer routes **Implemented**; Phase 4B **Implemented** (ADR-030b); Phase 4C shares **Implemented** (ADR-030c)  
-Related: [`PHASE3_1_AUTH_PLAN.md`](PHASE3_1_AUTH_PLAN.md), [`PHASE4A_IMPLEMENTATION.md`](PHASE4A_IMPLEMENTATION.md), [`PHASE4B_IMPLEMENTATION.md`](PHASE4B_IMPLEMENTATION.md), [`PHASE4C_IMPLEMENTATION.md`](PHASE4C_IMPLEMENTATION.md)
+Date: 2026-08-07  
+Status: Phase 3.1 **Implemented**; Phase 4A–4C **Implemented**; Phase 5 map/geo **Planning complete** (ADR-031; not implemented)  
+Related: [`PHASE3_1_AUTH_PLAN.md`](PHASE3_1_AUTH_PLAN.md), [`PHASE4C_IMPLEMENTATION.md`](PHASE4C_IMPLEMENTATION.md), [`PHASE5_PLAN.md`](PHASE5_PLAN.md)
 
-Legend: **Y** = allow · **N** = deny · **—** = not applicable · **S** = session required · **P** = planned (unused for 4C — now shipped)
+Legend: **Y** = allow · **N** = deny · **—** = not applicable · **S** = session required · **P** = planned Phase 5
 
 Role keys: `anon`, `buyer` (authenticated, no org/platform role), `org_viewer`, `org_agent` (editor), `org_admin`/`org_owner` (agency admin), `listing_reviewer`, `platform_admin`.
 
@@ -57,6 +57,18 @@ Role keys: `anon`, `buyer` (authenticated, no org/platform role), `org_viewer`, 
 | `POST /api/v1/me/comparison-shares/{id}/revoke`  | N    | Y (S) | N     | CSRF                                                                 |
 | `POST /api/v1/me/comparison-shares/{id}/replace` | N    | Y (S) | N     | CSRF; new token                                                      |
 
+### Phase 5 map / geospatial (planning complete — ADR-031; not implemented)
+
+| Route                                            | anon    | buyer       | org_* | Notes                                      |
+| ------------------------------------------------ | ------- | ----------- | ----- | ------------------------------------------ |
+| `GET /api/v1/geography/search`                   | Y **P** | Y **P**     | Y     | Hierarchy typeahead                        |
+| `GET /api/v1/properties/map`                     | Y **P** | Y **P**     | Y     | Projected markers only; rate-limited       |
+| `POST /api/v1/properties/within`                 | Y **P** | Y **P**     | Y     | Polygon validation + rate limits           |
+| `GET /api/v1/properties/{id}/location-context`   | Y **P** | Y **P**     | Y     | Public precision only                      |
+| `GET /api/v1/properties/{id}/nearby`             | Y **P** | Y **P**     | Y     | Straight-line / labeled routes             |
+| `GET/POST /api/v1/me/commute-destinations`       | N       | Y (S) **P** | N     | Private encrypted/restricted; CSRF on POST |
+| `POST /api/v1/me/commute/estimate`               | N       | Y (S) **P** | N     | Rate-limited; mocked Fake provider in tests |
+
 ---
 
 ## Partner APIs (`/api/v1/partner/*`)
@@ -102,6 +114,7 @@ All require **verified session** + platform role.
 | `/{locale}/favourites`                     | Y (guest local) | Y (S) | Y                       | Y                     |
 | `/{locale}/workspace/**` (Phase 4)         | Y (guest local) | Y (S) | Y (own buyer data only) | Y                     |
 | `/{locale}/shared-comparison/{token}` (4C) | Y               | Y     | Y                       | Y                     |
+| `/{locale}/search` map mode (5)            | Y **P**         | Y     | Y                       | Y                     |
 | `/{locale}/partner/**`                     | N → login       | N     | Y (S + membership)      | N\*                   |
 | `/{locale}/admin/**`                       | N → login       | N     | N                       | Y (S + platform role) |
 | `DevIdentitySwitcher`                      | —               | —     | Dev/fake only           | Dev/fake only         |
@@ -125,6 +138,9 @@ All require **verified session** + platform role.
 | Public share returns notes or identity (Phase 4C)       | Must not                        |
 | Invalid / expired / revoked share token (Phase 4C)      | Generic unavailable (identical) |
 | Anon SELECT on `comparison_shares*` (Phase 4C)          | Denied (no RLS policy)          |
+| Exact coords when display policy is approximate (P5)    | Must not appear in public payloads |
+| Agency lists buyer commute destinations (P5)            | Denied                          |
+| Oversized / invalid polygon search (P5)                 | 400 / rate limited              |
 
 ---
 
@@ -132,5 +148,5 @@ All require **verified session** + platform role.
 
 1. **Session** — AuthProvider cookie verification (`spain_session` / Supabase cookies)
 2. **App authorization** — membership / `user_roles` / capability checks (`partner-auth.ts`)
-3. **RLS** — `request.jwt.claim.sub` via `withAuthenticatedDb` (CSV import service-role exception after API auth; 4C public resolve service-role after rate limit)
+3. **RLS** — `request.jwt.claim.sub` via `withAuthenticatedDb` (CSV import service-role exception after API auth; 4C public resolve service-role after rate limit; Phase 5 map projection via service)
 4. **Audit** — actor from session only
