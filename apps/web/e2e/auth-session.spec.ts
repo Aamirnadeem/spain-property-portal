@@ -30,6 +30,22 @@ async function setFakeSession(
 }
 
 test.describe('Phase 3.1 session authz', () => {
+  test('unauthenticated partner and admin pages redirect to locale login', async ({ request }) => {
+    const protectedPages = [
+      '/en/partner',
+      '/en/partner/listings',
+      '/en/admin',
+      '/en/admin/review',
+      '/en/admin/audit',
+    ];
+
+    for (const path of protectedPages) {
+      const res = await request.get(path, { maxRedirects: 0 });
+      expect(res.status(), path).toBe(307);
+      expect(res.headers().location, path).toBe('/en/account');
+    }
+  });
+
   test('unauthenticated partner API returns 401', async ({ request }) => {
     const res = await request.get('/api/v1/partner/listings');
     expect(res.status()).toBe(401);
