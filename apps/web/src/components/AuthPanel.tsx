@@ -43,6 +43,7 @@ export function AuthPanel({ locale, labels }: { locale: string; labels: Labels }
     setMessage(null);
     const res = await fetch('/api/v1/auth/otp/request', {
       method: 'POST',
+      credentials: 'same-origin',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ channel, destination, guestKey }),
     });
@@ -65,6 +66,7 @@ export function AuthPanel({ locale, labels }: { locale: string; labels: Labels }
     );
     const res = await fetch('/api/v1/auth/otp/verify', {
       method: 'POST',
+      credentials: 'same-origin',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ challengeId, code, guestKey, guestPayload }),
     });
@@ -78,17 +80,14 @@ export function AuthPanel({ locale, labels }: { locale: string; labels: Labels }
         ? `${labels.guestMerged} (user ${data.userId}; favourites ${data.merge.favouriteListingIds.length})`
         : `Signed in as ${data.userId}`,
     );
-    document.cookie = `spain_user_id=${data.userId}; path=/; SameSite=Lax`;
     const guestFavs = JSON.parse(
       window.localStorage.getItem('spain_guest_favourites') ?? '[]',
     ) as string[];
     if (guestFavs.length) {
       await fetch('/api/v1/favourites', {
         method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          'x-user-id': data.userId,
-        },
+        credentials: 'same-origin',
+        headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           listingId: guestFavs[0],
           guestListingIds: guestFavs,

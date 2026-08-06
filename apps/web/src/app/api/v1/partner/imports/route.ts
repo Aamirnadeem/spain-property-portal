@@ -4,26 +4,38 @@ import * as schema from '@spain/database/schema';
 import { listOrgImportRuns } from '@spain/database';
 import { runSpainPartnerCsvImport } from '@spain/ingestion';
 import { getAppDb } from '@/lib/db';
+import { withAppAuthenticatedDb } from '@/lib/authenticated-db';
+import { getSession } from '@/lib/session';
 import { isErrorResponse, resolvePartnerContext } from '@/lib/partner-auth';
 
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 
 export async function GET(request: Request) {
-  const { db, client } = getAppDb();
-  try {
+  const session = await getSession(request);
+  if (!session) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  }
+  return withAppAuthenticatedDb(session.userId, async (db) => {
     const ctx = await resolvePartnerContext(request, db);
     if (isErrorResponse(ctx)) return ctx;
     const runs = await listOrgImportRuns(db, ctx.organizationId);
     return NextResponse.json({ items: runs });
-  } finally {
-    await client.end({ timeout: 5 });
-  }
+  });
 }
 
+/**
+ * CSV ingestion uses the service-role connection after session + mutator checks
+ * (workers/CLI exception — see SESSION_SECURITY_DESIGN / RLS_IMPLEMENTATION_STATUS).
+ */
 export async function POST(request: Request) {
+  const session = await getSession(request);
+  if (!session) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  }
+
   const { db, client } = getAppDb();
   try {
-    const ctx = await resolvePartnerContext(request, db);
+    const ctx = await resolvePartnerContext(request, db, { mutate: true });
     if (isErrorResponse(ctx)) return ctx;
 
     const formData = await request.formData();

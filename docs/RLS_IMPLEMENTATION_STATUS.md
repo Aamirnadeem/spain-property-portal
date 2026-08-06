@@ -1,7 +1,7 @@
 # RLS implementation status
 
-Date: 2026-08-06 (updated Phase 3.1 auth planning)  
-Migrations: `0001_phase1_rls.sql`, `0003_phase2_rls.sql`, `0005_phase3_rls.sql`
+Date: 2026-08-06 (updated Phase 3.1 implementation)  
+Migrations: `0001_phase1_rls.sql`, `0003_phase2_rls.sql`, `0005_phase3_rls.sql`, `0006_phase3_1_rls.sql`
 
 Status meanings:
 
@@ -29,14 +29,15 @@ Status meanings:
 - `import_runs_org_select` / `import_runs_admin_all`, `import_errors_org_select`, `raw_snapshots_org_select`: implemented / tested
 - `feed_configs_org_select` / `feed_configs_admin_all`: implemented / not yet tested (dedicated case pending)
 - `source_permission_events_admin_all`: implemented / tested indirectly
-- `audit_events_org_select` (no client insert/update/delete — service writes only): implemented / tested
+- `audit_events_org_select` (no client insert/update/delete until 0006): implemented / tested
 - `data_sources_admin_write`: implemented / tested
 
-## Phase 3.1 planned (ADR-029 — not migrated/wired yet)
+## Phase 3.1 (implemented — ADR-029)
 
-- Runtime `withAuthenticatedDb(session)` setting `SET LOCAL ROLE authenticated` + `request.jwt.claim.sub` on partner/admin/favourites request paths
-- Retire app-only reliance on `x-user-id` so RLS becomes primary defense on those routes
-- Expand `pnpm test:db` / Playwright to prove isolation under real session claim injection
+- Runtime `withAuthenticatedDb(session)` setting `SET LOCAL ROLE authenticated` + `request.jwt.claim.sub` on partner/admin/favourites request paths: **implemented**
+- `0006_phase3_1_rls.sql`: `audit_events_authenticated_insert`, `listing_price_history_org_or_admin_insert`, `listing_status_history_org_or_admin_insert` + authenticated role grants: **implemented / tested** via `withAuthenticatedDb` price update in `pnpm test:db`
+- Client `x-user-id` / `spain_user_id` authority retired (FakeAuth sealed cookie / Supabase session): **implemented**
+- CSV partner import POST remains **service-role after API session + mutator checks** (ingestion exception, same class as workers/CLI)
 - Workers/CLI remain service-role exceptions (documented)
 
 ## Authorization / deferred
@@ -48,7 +49,3 @@ Status meanings:
 ## Not applicable
 
 - Geography reference tables remain public seed data without owner RLS in Phase 1.1; inventory public browse is separate.
-
-## Known gap (documented, not an RLS defect)
-
-Application code in `apps/web` still queries Postgres through a trusted server-side connection without per-request JWT claims. Partner/admin authorization today is app-layer (`partner-auth.ts`) gated by non-verified `x-user-id`/cookie wiring (`KNOWN_ISSUES.md` #7–8). **Phase 3.1** closes this gap per [`PHASE3_1_AUTH_PLAN.md`](PHASE3_1_AUTH_PLAN.md); implementation has not started.

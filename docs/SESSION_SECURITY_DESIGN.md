@@ -1,7 +1,7 @@
 # Session security design — Phase 3.1
 
 Date: 2026-08-06  
-Status: Planning  
+Status: **Implemented**  
 Related: [`PHASE3_1_AUTH_PLAN.md`](PHASE3_1_AUTH_PLAN.md), [`SECURITY_AND_PRIVACY.md`](SECURITY_AND_PRIVACY.md)
 
 ## Goals
@@ -50,8 +50,8 @@ Partner portal may later prefer `SameSite=Strict` if cross-site embeds are not r
 
 Cookie-authenticated mutating requests (`POST`/`PATCH`/`DELETE` on partner, admin, favourites, logout):
 
-1. Require same-origin: `Origin` (or `Referer`) matches configured app origin allowlist.
-2. Reject cross-site origins with 403.
+1. Require same-origin: `Origin` (or `Referer`) matches this deployment's own origin, derived from the request URL and `Host` / `X-Forwarded-Host` + `X-Forwarded-Proto`, plus `APP_ORIGIN` when a proxy presents a different public origin. Deriving from the request rather than a hard-coded host/port keeps the check correct on any dev port, preview URL or proxied deployment.
+2. Reject cross-site origins with 403 (`csrf_origin_rejected`). A cross-site attacker controls `Origin`/`Referer` but never the `Host` of a request the victim's browser sends to us.
 3. Do **not** provide an `x-user-id` fallback that bypasses Origin checks.
 4. Prefer same-site form/fetch from Next.js app; no wildcard CORS for credentialed partner APIs.
 

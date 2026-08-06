@@ -45,23 +45,23 @@ export function PropertyDetailClient({
   }, [listingId]);
 
   async function toggleFavourite() {
-    const userId = document.cookie
-      .split(';')
-      .map((c) => c.trim())
-      .find((c) => c.startsWith('spain_user_id='))
-      ?.split('=')[1];
+    const sessionRes = await fetch('/api/v1/auth/session', { credentials: 'same-origin' });
+    const session = sessionRes.ok
+      ? ((await sessionRes.json()) as { userId?: string | null })
+      : null;
 
-    if (userId) {
+    if (session?.userId) {
       if (favourited) {
         await fetch(`/api/v1/favourites?listingId=${listingId}`, {
           method: 'DELETE',
-          headers: { 'x-user-id': userId },
+          credentials: 'same-origin',
         });
         setFavourited(false);
       } else {
         await fetch('/api/v1/favourites', {
           method: 'POST',
-          headers: { 'content-type': 'application/json', 'x-user-id': userId },
+          credentials: 'same-origin',
+          headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ listingId }),
         });
         setFavourited(true);

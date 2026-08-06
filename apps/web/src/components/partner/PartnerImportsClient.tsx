@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { readSpainUserId } from '@/lib/demo-identities';
 
 interface ImportRunRow {
   id: string;
@@ -65,9 +64,7 @@ export function PartnerImportsClient({ locale, labels }: { locale: string; label
   const [busy, setBusy] = useState(false);
 
   async function loadHistory() {
-    const userId = readSpainUserId();
-    if (!userId) return;
-    const res = await fetch('/api/v1/partner/imports', { headers: { 'x-user-id': userId } });
+    const res = await fetch('/api/v1/partner/imports', { credentials: 'same-origin' });
     if (res.ok) {
       const data = await res.json();
       setRuns(data.items ?? []);
@@ -79,8 +76,7 @@ export function PartnerImportsClient({ locale, labels }: { locale: string; label
   }, []);
 
   async function submit(mode: 'dry_run' | 'confirm') {
-    const userId = readSpainUserId();
-    if (!userId || !file) return;
+    if (!file) return;
     setBusy(true);
     setError(null);
     setReport(null);
@@ -89,7 +85,7 @@ export function PartnerImportsClient({ locale, labels }: { locale: string; label
     formData.append('mode', mode);
     const res = await fetch('/api/v1/partner/imports', {
       method: 'POST',
-      headers: { 'x-user-id': userId },
+      credentials: 'same-origin',
       body: formData,
     });
     const data = await res.json();

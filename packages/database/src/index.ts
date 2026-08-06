@@ -22,4 +22,6 @@ export * from './services/organizations';
 export * from './services/partner';
 export * from './services/admin';
 export * from './services/audit';
+export * from './services/authz-roles';
+export * from './auth/with-authenticated-db';
 export * from './seed-constants';

@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { readSpainUserId } from '@/lib/demo-identities';
 
 interface ReviewListingRow {
   id: string;
@@ -28,12 +27,7 @@ export function AdminReviewClient({ labels }: { labels: Labels }) {
   const [busyId, setBusyId] = useState<string | null>(null);
 
   async function load() {
-    const userId = readSpainUserId();
-    if (!userId) {
-      setError('not_signed_in');
-      return;
-    }
-    const res = await fetch('/api/v1/admin/listings', { headers: { 'x-user-id': userId } });
+    const res = await fetch('/api/v1/admin/listings', { credentials: 'same-origin' });
     if (!res.ok) {
       setError((await res.json().catch(() => ({}))).error ?? 'load_failed');
       return;
@@ -48,12 +42,10 @@ export function AdminReviewClient({ labels }: { labels: Labels }) {
   }, []);
 
   async function act(listingId: string, action: 'publish' | 'withdraw') {
-    const userId = readSpainUserId();
-    if (!userId) return;
     setBusyId(listingId);
     await fetch(`/api/v1/admin/listings/${listingId}/${action}`, {
       method: 'POST',
-      headers: { 'x-user-id': userId },
+      credentials: 'same-origin',
     });
     setBusyId(null);
     await load();

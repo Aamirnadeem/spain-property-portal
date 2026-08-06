@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { readSpainUserId } from '@/lib/demo-identities';
 
 interface AuditEventRow {
   id: string;
@@ -28,12 +27,7 @@ export function AdminAuditClient({ labels }: { labels: Labels }) {
 
   useEffect(() => {
     void (async () => {
-      const userId = readSpainUserId();
-      if (!userId) {
-        setError('not_signed_in');
-        return;
-      }
-      const res = await fetch('/api/v1/admin/audit', { headers: { 'x-user-id': userId } });
+      const res = await fetch('/api/v1/admin/audit', { credentials: 'same-origin' });
       if (!res.ok) {
         setError((await res.json().catch(() => ({}))).error ?? 'load_failed');
         return;

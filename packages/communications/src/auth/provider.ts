@@ -25,11 +25,23 @@ export interface VerifyOtpInput {
   code: string;
 }
 
+/** Optional provider-managed tokens (Supabase) returned alongside the verified user. */
+export interface ProviderSessionTokens {
+  accessToken: string;
+  refreshToken: string;
+  expiresAt?: number;
+}
+
+export interface AuthVerifyResult {
+  user: AuthUser;
+  providerSession?: ProviderSessionTokens;
+}
+
 export interface AuthProvider {
   readonly name: 'fake' | 'supabase';
   readonly persistent: boolean;
   requestOtp(input: RequestOtpInput): Promise<RequestOtpResult>;
-  verifyOtp(input: VerifyOtpInput): Promise<AuthUser>;
+  verifyOtp(input: VerifyOtpInput): Promise<AuthVerifyResult>;
 }
 
 export class AuthConfigurationError extends Error {
@@ -44,6 +56,7 @@ export interface AuthRuntimeConfig {
   otpProvider?: string;
   supabaseUrl?: string;
   supabaseAnonKey?: string;
+  allowHeaderAuth?: string;
 }
 
 export function readAuthRuntimeConfig(env: NodeJS.ProcessEnv = process.env): AuthRuntimeConfig {
@@ -52,6 +65,7 @@ export function readAuthRuntimeConfig(env: NodeJS.ProcessEnv = process.env): Aut
     otpProvider: env.OTP_PROVIDER,
     supabaseUrl: env.NEXT_PUBLIC_SUPABASE_URL,
     supabaseAnonKey: env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    allowHeaderAuth: env.ALLOW_HEADER_AUTH,
   };
 }
 
@@ -72,6 +86,28 @@ export function assertAuthRuntimeSafety(config: AuthRuntimeConfig): void {
       'Supabase URL and anonymous key are required for production authentication',
     );
   }
+  if (config.allowHeaderAuth === 'true') {
+    throw new AuthConfigurationError('ALLOW_HEADER_AUTH is forbidden in production');
+  }
+}
+
+/**
+ * Temporary local/test escape hatch for `x-user-id` / client `spain_user_id`.
+ * Forbidden in production even if set; requires FakeAuth.
+ */
+export function isHeaderAuthAllowed(config: AuthRuntimeConfig = readAuthRuntimeConfig()): boolean {
+  if (config.nodeEnv === 'production') return false;
+  if (config.nodeEnv !== 'development' && config.nodeEnv !== 'test') return false;
+  if (config.otpProvider !== 'fake') return false;
+  return config.allowHeaderAuth === 'true';
+}
+
+/** DevIdentitySwitcher / fake session minting — development or test + FakeAuth only. */
+export function isFakeDevAuthUiAllowed(
+  config: AuthRuntimeConfig = readAuthRuntimeConfig(),
+): boolean {
+  if (config.nodeEnv !== 'development' && config.nodeEnv !== 'test') return false;
+  return (config.otpProvider ?? 'fake') === 'fake';
 }
 
 export function canExposeDevCode(nodeEnv: string | undefined = process.env.NODE_ENV): boolean {

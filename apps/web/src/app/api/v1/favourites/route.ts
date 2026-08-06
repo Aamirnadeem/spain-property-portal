@@ -6,21 +6,20 @@ import {
   mergeGuestFavouritesIntoUser,
   removeFavourite,
 } from '@spain/database';
-import { getAppDb, readUserId } from '@/lib/db';
+import { withAppAuthenticatedDb } from '@/lib/authenticated-db';
+import { assertSameOrigin } from '@/lib/csrf';
 import { ensureUserRow } from '@/lib/ensure-user';
+import { getSession } from '@/lib/session';
 
 export async function GET(request: Request) {
-  const userId = readUserId(request);
-  if (!userId) {
+  const session = await getSession(request);
+  if (!session) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
-  const { db, client } = getAppDb();
-  try {
-    const items = await listFavourites(db, userId);
+  return withAppAuthenticatedDb(session.userId, async (db) => {
+    const items = await listFavourites(db, session.userId);
     return NextResponse.json({ items });
-  } finally {
-    await client.end({ timeout: 5 });
-  }
+  });
 }
 
 const bodySchema = z.object({
@@ -29,31 +28,34 @@ const bodySchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const userId = readUserId(request);
-  if (!userId) {
+  const csrf = assertSameOrigin(request);
+  if (csrf) return NextResponse.json(await csrf.json(), { status: csrf.status });
+
+  const session = await getSession(request);
+  if (!session) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
   const body = bodySchema.parse(await request.json());
-  const { db, client } = getAppDb();
-  try {
-    await ensureUserRow(db, userId);
+  return withAppAuthenticatedDb(session.userId, async (db) => {
+    await ensureUserRow(db, session.userId);
     if (body.guestListingIds?.length) {
-      const ids = await mergeGuestFavouritesIntoUser(db, userId, [
+      const ids = await mergeGuestFavouritesIntoUser(db, session.userId, [
         ...body.guestListingIds,
         body.listingId,
       ]);
       return NextResponse.json({ ok: true, favouriteListingIds: ids });
     }
-    await addFavourite(db, userId, body.listingId);
+    await addFavourite(db, session.userId, body.listingId);
     return NextResponse.json({ ok: true });
-  } finally {
-    await client.end({ timeout: 5 });
-  }
+  });
 }
 
 export async function DELETE(request: Request) {
-  const userId = readUserId(request);
-  if (!userId) {
+  const csrf = assertSameOrigin(request);
+  if (csrf) return NextResponse.json(await csrf.json(), { status: csrf.status });
+
+  const session = await getSession(request);
+  if (!session) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
   const url = new URL(request.url);
@@ -61,11 +63,8 @@ export async function DELETE(request: Request) {
   if (!listingId) {
     return NextResponse.json({ error: 'listingId_required' }, { status: 400 });
   }
-  const { db, client } = getAppDb();
-  try {
-    await removeFavourite(db, userId, listingId);
+  return withAppAuthenticatedDb(session.userId, async (db) => {
+    await removeFavourite(db, session.userId, listingId);
     return NextResponse.json({ ok: true });
-  } finally {
-    await client.end({ timeout: 5 });
-  }
+  });
 }

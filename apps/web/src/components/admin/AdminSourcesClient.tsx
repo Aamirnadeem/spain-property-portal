@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { readSpainUserId } from '@/lib/demo-identities';
 
 const PERMISSION_STATUSES = ['pending', 'approved', 'restricted', 'suspended', 'expired'] as const;
 const IMAGE_RIGHTS = ['none', 'hotlink_only', 'display', 'download_and_transform'] as const;
@@ -30,12 +29,7 @@ export function AdminSourcesClient({ labels }: { labels: Labels }) {
   const [busyId, setBusyId] = useState<string | null>(null);
 
   async function load() {
-    const userId = readSpainUserId();
-    if (!userId) {
-      setError('not_signed_in');
-      return;
-    }
-    const res = await fetch('/api/v1/admin/sources', { headers: { 'x-user-id': userId } });
+    const res = await fetch('/api/v1/admin/sources', { credentials: 'same-origin' });
     if (!res.ok) {
       setError((await res.json().catch(() => ({}))).error ?? 'load_failed');
       return;
@@ -58,13 +52,13 @@ export function AdminSourcesClient({ labels }: { labels: Labels }) {
   }, []);
 
   async function update(sourceId: string) {
-    const userId = readSpainUserId();
     const draft = drafts[sourceId];
-    if (!userId || !draft) return;
+    if (!draft) return;
     setBusyId(sourceId);
     await fetch(`/api/v1/admin/sources/${sourceId}`, {
       method: 'PATCH',
-      headers: { 'content-type': 'application/json', 'x-user-id': userId },
+      credentials: 'same-origin',
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ toStatus: draft.status, toImageRights: draft.rights }),
     });
     setBusyId(null);

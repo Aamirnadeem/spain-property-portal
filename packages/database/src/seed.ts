@@ -11,6 +11,7 @@ import {
   LISTING_REVIEWER_USER_ID,
   ORG_AGENT_USER_ID,
   ORG_OWNER_USER_ID,
+  ORG_VIEWER_USER_ID,
   PLATFORM_ADMIN_USER_ID,
 } from './seed-constants';
 
@@ -151,7 +152,15 @@ async function main() {
     }
   }
 
-  for (const key of ['platform_admin', 'listing_reviewer', 'buyer', 'org_owner', 'org_agent']) {
+  for (const key of [
+    'platform_admin',
+    'listing_reviewer',
+    'buyer',
+    'org_owner',
+    'org_agent',
+    'org_viewer',
+    'org_admin',
+  ]) {
     const role = await db.select().from(schema.roles).where(eq(schema.roles.key, key)).limit(1);
     if (!role[0]) {
       await db.insert(schema.roles).values({ key });
@@ -204,6 +213,7 @@ async function main() {
 
   const orgOwnerUser = await ensureUser(ORG_OWNER_USER_ID, 'Demo Agency Owner');
   const orgAgentUser = await ensureUser(ORG_AGENT_USER_ID, 'Demo Agency Agent');
+  const orgViewerUser = await ensureUser(ORG_VIEWER_USER_ID, 'Demo Agency Viewer');
   const platformAdminUser = await ensureUser(PLATFORM_ADMIN_USER_ID, 'Platform Admin (seed)');
   const listingReviewerUser = await ensureUser(LISTING_REVIEWER_USER_ID, 'Listing Reviewer (seed)');
 
@@ -243,6 +253,7 @@ async function main() {
   }
   await ensureMembership(orgOwnerUser.id, 'org_owner');
   await ensureMembership(orgAgentUser.id, 'org_agent');
+  await ensureMembership(orgViewerUser.id, 'org_viewer');
 
   async function ensurePlatformRole(userId: string, roleKey: string) {
     const role = await db.select().from(schema.roles).where(eq(schema.roles.key, roleKey)).limit(1);

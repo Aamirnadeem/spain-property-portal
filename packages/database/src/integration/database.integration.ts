@@ -11,6 +11,7 @@ import {
   LISTING_REVIEWER_USER_ID,
   ORG_AGENT_USER_ID,
   ORG_OWNER_USER_ID,
+  ORG_VIEWER_USER_ID,
   PLATFORM_ADMIN_USER_ID,
 } from '../seed-constants';
 import {
@@ -20,6 +21,8 @@ import {
   updateSourcePermission,
 } from '../services/admin';
 import { listAuditEventsForOrganization } from '../services/audit';
+import { withAuthenticatedDb } from '../auth/with-authenticated-db';
+import { canMutateOrgInventory } from '../services/authz-roles';
 import { ForbiddenError, requireOrgMember, requirePlatformRole } from '../services/organizations';
 import { updateOrgListingPrice, withdrawOrgListing } from '../services/partner';
 
@@ -449,9 +452,55 @@ async function main(): Promise<void> {
     assert(auditActions.has('listing.withdraw'), 'withdraw must be audited');
     assert(auditActions.has('source.permission_change'), 'permission change must be audited');
 
+    // ---- Phase 3.1: withAuthenticatedDb claim + org viewer isolation ----
+    assert(!canMutateOrgInventory('org_viewer'), 'org_viewer must not mutate inventory');
+
+    await updateSourcePermission(db, {
+      dataSourceId: demoSourceId,
+      actorUserId: PLATFORM_ADMIN_USER_ID,
+      toStatus: 'approved',
+      note: 're-approve for Phase 3.1 withAuthenticatedDb cases',
+    });
+
+    const thirdListingId = demoListings[2]!.id as string;
+    await publishListing(db, {
+      listingId: thirdListingId,
+      actorUserId: PLATFORM_ADMIN_USER_ID,
+    });
+
+    const priceViaClaim = await withAuthenticatedDb(testUrl, ORG_AGENT_USER_ID, async (authDb) =>
+      updateOrgListingPrice(authDb, {
+        organizationId: DEMO_ORG_ID,
+        listingId: thirdListingId,
+        actorUserId: ORG_AGENT_USER_ID,
+        priceAmount: 350000,
+      }),
+    );
+    assert(
+      Number(priceViaClaim.priceAmount) === 350000,
+      'withAuthenticatedDb price update must persist',
+    );
+
+    const auditViaClaim = await withAuthenticatedDb(testUrl, ORG_AGENT_USER_ID, async (authDb) =>
+      listAuditEventsForOrganization(authDb, DEMO_ORG_ID),
+    );
+    const agentPriceAudit = auditViaClaim.find(
+      (e) => e.action === 'listing.price_update' && e.actorUserId === ORG_AGENT_USER_ID,
+    );
+    assert(agentPriceAudit, 'audit actor must match authenticated session user');
+
+    const viewerSeesOrgListings = await withRole(
+      sql,
+      'authenticated',
+      { 'request.jwt.claim.sub': ORG_VIEWER_USER_ID },
+      () => sql`SELECT id FROM property_listings WHERE data_source_id = ${demoSourceId}`,
+    );
+    assert(viewerSeesOrgListings.length >= 1, 'org viewer must see own-org listings via RLS claim');
+
     console.log(
       'Phase 3 integration passed: partner CSV import idempotency, org RLS isolation, ' +
-        'admin publish/withdraw, agency price update + self-withdraw, source permission gate, audit trail',
+        'admin publish/withdraw, agency price update + self-withdraw, source permission gate, audit trail, ' +
+        'Phase 3.1 withAuthenticatedDb claim writes + viewer read',
     );
   } finally {
     await sql.end();

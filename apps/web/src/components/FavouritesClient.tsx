@@ -18,17 +18,14 @@ export function FavouritesClient({
 
   useEffect(() => {
     void (async () => {
-      const userId = document.cookie
-        .split(';')
-        .map((c) => c.trim())
-        .find((c) => c.startsWith('spain_user_id='))
-        ?.split('=')[1];
+      const sessionRes = await fetch('/api/v1/auth/session', { credentials: 'same-origin' });
+      const session = sessionRes.ok
+        ? ((await sessionRes.json()) as { userId?: string | null })
+        : null;
 
-      if (userId) {
+      if (session?.userId) {
         setMode('user');
-        const res = await fetch('/api/v1/favourites', {
-          headers: { 'x-user-id': userId },
-        });
+        const res = await fetch('/api/v1/favourites', { credentials: 'same-origin' });
         if (res.ok) {
           const data = await res.json();
           setItems(data.items ?? []);

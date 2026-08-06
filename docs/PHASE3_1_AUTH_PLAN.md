@@ -1,7 +1,7 @@
 # Phase 3.1 auth plan — Authenticated agency and administrator sessions
 
 Date: 2026-08-06  
-Status: **Planning complete — awaiting explicit implementation approval**  
+Status: **Implemented** — see [`PHASE3_1_IMPLEMENTATION.md`](PHASE3_1_IMPLEMENTATION.md)  
 Branch baseline: `cursor/phase2-legacy-inventory-buyer-journey` @ Phase 3 CSV slice (`71c80b1`)  
 Companions: [`AUTHORIZATION_MATRIX.md`](AUTHORIZATION_MATRIX.md), [`SESSION_SECURITY_DESIGN.md`](SESSION_SECURITY_DESIGN.md), [`PHASE3_1_ACCEPTANCE_CRITERIA.md`](PHASE3_1_ACCEPTANCE_CRITERIA.md)
 
@@ -253,4 +253,4 @@ Full checklist: [`PHASE3_1_ACCEPTANCE_CRITERIA.md`](PHASE3_1_ACCEPTANCE_CRITERIA
 
 ## Implementation gate
 
-**Do not write Phase 3.1 application code until this plan set is explicitly approved.**
+**Implemented** — application code and tests landed; see [`PHASE3_1_IMPLEMENTATION.md`](PHASE3_1_IMPLEMENTATION.md).

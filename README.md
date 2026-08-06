@@ -32,6 +32,8 @@ pnpm test:db
 
 Unit tests remain fast and do not require Postgres. `pnpm test:db` recreates the local `spain_properties_test` database and validates migration, seed, RLS, uniqueness, and foreign keys. Never use `drizzle-kit push` for production deployment.
 
+End-to-end tests are self-provisioning: `pnpm test:e2e` recreates `spain_properties_e2e` (`pnpm db:reset:e2e`) and serves the app on port 3100, so it never touches your own `spain_properties` database or a `pnpm dev` server on port 3000.
+
 ## Phase 1 scope
 
 Monorepo foundation, locales, provider-neutral auth/storage, production-gated Supabase adapters, guest merge, versioned identity/org/geography migrations, Phase 1 RLS, media table foundations, and observability stubs.

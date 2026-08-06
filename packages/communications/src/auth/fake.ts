@@ -4,6 +4,7 @@ import {
   canExposeDevCode,
   type AuthProvider,
   type AuthUser,
+  type AuthVerifyResult,
   type RequestOtpInput,
   type RequestOtpResult,
   type VerifyOtpInput,
@@ -61,11 +62,11 @@ export class FakeAuthProvider implements AuthProvider {
     };
   }
 
-  async verifyOtp(input: VerifyOtpInput): Promise<AuthUser> {
+  async verifyOtp(input: VerifyOtpInput): Promise<AuthVerifyResult> {
     const verified = await this.otpStore.verifyCode(input);
     const identityKey = `${verified.channel}:${verified.destination}`;
     const existing = this.usersByIdentity.get(identityKey);
-    if (existing) return existing;
+    if (existing) return { user: existing };
 
     const user: AuthUser = {
       id: crypto.randomUUID(),
@@ -73,6 +74,6 @@ export class FakeAuthProvider implements AuthProvider {
       mobile: verified.channel === 'sms' ? verified.destination : undefined,
     };
     this.usersByIdentity.set(identityKey, user);
-    return user;
+    return { user };
   }
 }

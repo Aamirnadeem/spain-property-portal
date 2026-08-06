@@ -39,6 +39,18 @@ describe('production auth safety', () => {
     ).not.toThrow();
   });
 
+  it('rejects ALLOW_HEADER_AUTH in production', () => {
+    expect(() =>
+      assertAuthRuntimeSafety({
+        nodeEnv: 'production',
+        otpProvider: 'supabase',
+        supabaseUrl: 'https://project.supabase.co',
+        supabaseAnonKey: 'anon-key',
+        allowHeaderAuth: 'true',
+      }),
+    ).toThrow(/ALLOW_HEADER_AUTH/);
+  });
+
   it('never exposes dev codes outside development and test', () => {
     expect(canExposeDevCode('development')).toBe(true);
     expect(canExposeDevCode('test')).toBe(true);
@@ -69,7 +81,7 @@ describe('FakeAuthProvider', () => {
       challengeId: issued.challengeId,
       code: issued.devCode!,
     });
-    expect(first.id).toMatch(
+    expect(first.user.id).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
     );
     expect(provider.persistent).toBe(false);

@@ -129,7 +129,7 @@ This is the implementation-facing decision log. The broader planning register re
 - The Phase 3 partner/admin UI reuses the Phase 2 `spain_user_id` cookie / `x-user-id` header wiring (`PHASE3_DECISIONS_REQUIRED.md` default: "FakeAuth + seed OK for local").
 - A `DevIdentitySwitcher` component lets a developer set that cookie to one of the four fixed seed UUIDs (`org_owner`, `org_agent`, `platform_admin`, `listing_reviewer`) instead of running the OTP flow, since those seed users are never created through `ensureUserRow`/OTP verification.
 - **Not chosen:** a real session-based auth check for partner/admin routes in this slice.
-- **Status:** implemented for local/dev only. **Must be replaced by a verified Supabase session check before any non-local deployment** (carried-over Phase 2 gap, see `KNOWN_ISSUES.md`). Superseded for planning by **ADR-029** (Phase 3.1); implementation of ADR-029 has not started.
+- **Status:** implemented for local/dev only. **Superseded by ADR-029** (Phase 3.1 verified sessions). DevIdentitySwitcher now mints FakeAuth sealed cookies via `/api/v1/auth/dev-session` when FakeAuth is enabled; it no longer sets authoritative `spain_user_id`.
 
 ## Phase 3.1 planning (2026-08-06)
 
@@ -138,7 +138,8 @@ This is the implementation-facing decision log. The broader planning register re
 - **Decision:** Production and non-local deployments authorize buyers, agency users, and platform admins only via **server-verified AuthProvider sessions** (Supabase Auth cookies in production; sealed FakeAuth HttpOnly cookie in local/test).
 - **Not chosen:** `x-user-id`, client-writable `spain_user_id`, `x-organization-id`, or `x-role` as production authority.
 - Org membership and platform roles continue to come from Postgres (`organization_members`, `user_roles`) after session user resolution.
-- Partner/admin/favourites request DB access should set `request.jwt.claim.sub` via `withAuthenticatedDb` so Phase 3 RLS is enforced on the request path.
+- Partner/admin/favourites request DB access sets `request.jwt.claim.sub` via `withAuthenticatedDb` so Phase 3 RLS is enforced on the request path (CSV ingestion remains a service-role exception after API auth).
 - Role product names map to existing keys: agency-admin → `org_owner`/`org_admin`; agency-editor → `org_agent`; agency-viewer → `org_viewer`.
 - Planning docs: [`PHASE3_1_AUTH_PLAN.md`](PHASE3_1_AUTH_PLAN.md), [`AUTHORIZATION_MATRIX.md`](AUTHORIZATION_MATRIX.md), [`SESSION_SECURITY_DESIGN.md`](SESSION_SECURITY_DESIGN.md), [`PHASE3_1_ACCEPTANCE_CRITERIA.md`](PHASE3_1_ACCEPTANCE_CRITERIA.md).
-- **Status:** locked for planning. **Do not implement until Phase 3.1 plan is explicitly approved.**
+- Implementation: [`PHASE3_1_IMPLEMENTATION.md`](PHASE3_1_IMPLEMENTATION.md).
+- **Status:** **implemented** (2026-08-06).

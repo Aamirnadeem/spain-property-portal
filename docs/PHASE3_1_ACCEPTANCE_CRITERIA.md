@@ -1,8 +1,8 @@
 # Phase 3.1 acceptance criteria
 
 Date: 2026-08-06  
-Status: Planning — criteria for implementation approval gate  
-Related: [`PHASE3_1_AUTH_PLAN.md`](PHASE3_1_AUTH_PLAN.md), [`AUTHORIZATION_MATRIX.md`](AUTHORIZATION_MATRIX.md)
+Status: **Implemented** (criteria used as the ship checklist)  
+Related: [`PHASE3_1_AUTH_PLAN.md`](PHASE3_1_AUTH_PLAN.md), [`AUTHORIZATION_MATRIX.md`](AUTHORIZATION_MATRIX.md), [`PHASE3_1_IMPLEMENTATION.md`](PHASE3_1_IMPLEMENTATION.md)
 
 ## Scope gate
 

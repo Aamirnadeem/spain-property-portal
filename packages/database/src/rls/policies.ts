@@ -91,4 +91,8 @@ export const implementedRlsPolicies = [
   'source_permission_events_admin_all',
   'audit_events_org_select',
   'data_sources_admin_write',
+  // Phase 3.1 — authenticated write paths (0006_phase3_1_rls.sql)
+  'audit_events_authenticated_insert',
+  'listing_price_history_org_or_admin_insert',
+  'listing_status_history_org_or_admin_insert',
 ] as const;

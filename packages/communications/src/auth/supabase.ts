@@ -2,6 +2,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type {
   AuthProvider,
   AuthUser,
+  AuthVerifyResult,
   RequestOtpInput,
   RequestOtpResult,
   VerifyOtpInput,
@@ -70,7 +71,7 @@ export class SupabaseAuthProvider implements AuthProvider {
     };
   }
 
-  async verifyOtp(input: VerifyOtpInput): Promise<AuthUser> {
+  async verifyOtp(input: VerifyOtpInput): Promise<AuthVerifyResult> {
     const challenge = decodeChallenge(input.challengeId);
     const result =
       challenge.channel === 'email'
@@ -90,10 +91,33 @@ export class SupabaseAuthProvider implements AuthProvider {
       throw new Error('Supabase OTP verification returned no user');
     }
 
-    return {
+    const user = {
       id: result.data.user.id,
       email: result.data.user.email,
       mobile: result.data.user.phone,
+    };
+    const session = result.data.session;
+    if (!session?.access_token || !session.refresh_token) {
+      return { user };
+    }
+    return {
+      user,
+      providerSession: {
+        accessToken: session.access_token,
+        refreshToken: session.refresh_token,
+        expiresAt: session.expires_at,
+      },
+    };
+  }
+
+  /** Validate an access token from a cookie-backed Supabase session. */
+  async getUserFromAccessToken(accessToken: string): Promise<AuthUser | null> {
+    const { data, error } = await this.client.auth.getUser(accessToken);
+    if (error || !data.user) return null;
+    return {
+      id: data.user.id,
+      email: data.user.email,
+      mobile: data.user.phone,
     };
   }
 }

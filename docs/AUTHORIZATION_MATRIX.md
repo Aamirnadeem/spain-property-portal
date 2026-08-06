@@ -1,8 +1,8 @@
 # Authorization matrix — Phase 3.1
 
 Date: 2026-08-06  
-Status: Planning  
-Related: [`PHASE3_1_AUTH_PLAN.md`](PHASE3_1_AUTH_PLAN.md), [`SESSION_SECURITY_DESIGN.md`](SESSION_SECURITY_DESIGN.md)
+Status: **Implemented**  
+Related: [`PHASE3_1_AUTH_PLAN.md`](PHASE3_1_AUTH_PLAN.md), [`SESSION_SECURITY_DESIGN.md`](SESSION_SECURITY_DESIGN.md), [`PHASE3_1_IMPLEMENTATION.md`](PHASE3_1_IMPLEMENTATION.md)
 
 Legend: **Y** = allow · **N** = deny · **—** = not applicable · **S** = session required
 
@@ -25,7 +25,7 @@ Role keys: `anon`, `buyer` (authenticated, no org/platform role), `org_viewer`, 
 
 ## Partner APIs (`/api/v1/partner/*`)
 
-All rows require **verified session** + **org membership**. Org resolved from membership (+ optional validated `organizationId`).
+All rows require **verified session** + **org membership**. Org resolved from membership (+ optional validated `organizationId` query). Role from DB only.
 
 | Route                             | viewer | editor (`org_agent`) | agency admin | platform roles | Notes                     |
 | --------------------------------- | ------ | -------------------- | ------------ | -------------- | ------------------------- |
@@ -87,7 +87,7 @@ All require **verified session** + platform role.
 
 ## Enforcement layers
 
-1. **Session** — AuthProvider cookie verification
-2. **App authorization** — membership / `user_roles` / capability checks
-3. **RLS** — `request.jwt.claim.sub` via `withAuthenticatedDb`
+1. **Session** — AuthProvider cookie verification (`spain_session` / Supabase cookies)
+2. **App authorization** — membership / `user_roles` / capability checks (`partner-auth.ts`)
+3. **RLS** — `request.jwt.claim.sub` via `withAuthenticatedDb` (CSV import service-role exception after API auth)
 4. **Audit** — actor from session only

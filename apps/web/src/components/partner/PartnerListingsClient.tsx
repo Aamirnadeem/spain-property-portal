@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { readSpainUserId } from '@/lib/demo-identities';
 
 interface PartnerListingRow {
   id: string;
@@ -33,12 +32,7 @@ export function PartnerListingsClient({ labels }: { labels: Labels }) {
   const [busyId, setBusyId] = useState<string | null>(null);
 
   async function load() {
-    const userId = readSpainUserId();
-    if (!userId) {
-      setError('not_signed_in');
-      return;
-    }
-    const res = await fetch('/api/v1/partner/listings', { headers: { 'x-user-id': userId } });
+    const res = await fetch('/api/v1/partner/listings', { credentials: 'same-origin' });
     if (!res.ok) {
       setError((await res.json().catch(() => ({}))).error ?? 'load_failed');
       return;
@@ -53,13 +47,13 @@ export function PartnerListingsClient({ labels }: { labels: Labels }) {
   }, []);
 
   async function updatePrice(listingId: string) {
-    const userId = readSpainUserId();
     const priceAmount = Number(drafts[listingId]);
-    if (!userId || !priceAmount || priceAmount <= 0) return;
+    if (!priceAmount || priceAmount <= 0) return;
     setBusyId(listingId);
     await fetch(`/api/v1/partner/listings/${listingId}`, {
       method: 'PATCH',
-      headers: { 'content-type': 'application/json', 'x-user-id': userId },
+      credentials: 'same-origin',
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ priceAmount }),
     });
     setBusyId(null);
@@ -67,13 +61,11 @@ export function PartnerListingsClient({ labels }: { labels: Labels }) {
   }
 
   async function withdraw(listingId: string) {
-    const userId = readSpainUserId();
-    if (!userId) return;
     if (!window.confirm(labels.withdrawConfirm)) return;
     setBusyId(listingId);
     await fetch(`/api/v1/partner/listings/${listingId}/withdraw`, {
       method: 'POST',
-      headers: { 'x-user-id': userId },
+      credentials: 'same-origin',
     });
     setBusyId(null);
     await load();

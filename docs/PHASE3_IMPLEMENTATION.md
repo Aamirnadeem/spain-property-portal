@@ -50,6 +50,7 @@ No background job runner was introduced. All ingestion runs synchronously inside
 - **Partner routes** (`/api/v1/partner/*`) resolve the caller's organization via `requireSoleOrganization` — the seeded demo agency has exactly one org per user, so there is no org switcher. Agents/owners act on their own org's listings only (enforced in both the service layer and RLS).
 - **Admin routes** (`/api/v1/admin/*`) require `platform_admin` or `listing_reviewer` (`requirePlatformRole`).
 - **FakeAuth + seed is intentionally acceptable for local/dev** per `PHASE3_DECISIONS_REQUIRED.md`'s default. The `DevIdentitySwitcher` component sets the same `spain_user_id` cookie the Phase 2 `AuthPanel` OTP flow sets, just pointed at one of the four fixed seed UUIDs, so the same header-based dev wiring from Phase 2 (`apps/web/src/lib/db.ts#readUserId`) carries the identity through to the partner/admin APIs. **A verified Supabase session must replace this before any non-local deployment** — this is a carried-over Phase 2 gap, not new in Phase 3 (see `KNOWN_ISSUES.md`).
+  - **Superseded by Phase 3.1 (ADR-029):** header/client-cookie identity is gone; the switcher now mints sealed HttpOnly sessions server-side and authorization comes from verified sessions plus DB membership. See [`PHASE3_1_IMPLEMENTATION.md`](PHASE3_1_IMPLEMENTATION.md).
 
 ## Commands
 
@@ -59,7 +60,7 @@ pnpm db:seed
 pnpm db:import-legacy
 pnpm db:import-partner-fixture   # optional: seed demo agency inventory via CLI instead of the UI
 pnpm test:db
-pnpm test:e2e
+pnpm test:e2e                    # since Phase 3.1: provisions its own spain_properties_e2e database
 ```
 
 ## Verification results (this change)

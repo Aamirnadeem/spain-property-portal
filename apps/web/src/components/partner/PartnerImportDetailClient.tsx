@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { readSpainUserId } from '@/lib/demo-identities';
 
 interface ImportRun {
   id: string;
@@ -57,13 +56,8 @@ export function PartnerImportDetailClient({
 
   useEffect(() => {
     void (async () => {
-      const userId = readSpainUserId();
-      if (!userId) {
-        setError('not_signed_in');
-        return;
-      }
       const res = await fetch(`/api/v1/partner/imports/${importRunId}`, {
-        headers: { 'x-user-id': userId },
+        credentials: 'same-origin',
       });
       if (!res.ok) {
         setError((await res.json().catch(() => ({}))).error ?? 'load_failed');
@@ -122,33 +116,17 @@ export function PartnerImportDetailClient({
           </div>
         </dl>
       ) : null}
-
       <h2>{labels.errorsTitle}</h2>
       {errors.length === 0 ? (
         <p>{labels.noErrors}</p>
       ) : (
-        <div className="table-wrap">
-          <table className="results-table">
-            <thead>
-              <tr>
-                <th>Row</th>
-                <th>External ID</th>
-                <th>Code</th>
-                <th>Message</th>
-              </tr>
-            </thead>
-            <tbody>
-              {errors.map((e) => (
-                <tr key={e.id}>
-                  <td>{e.recordIndex}</td>
-                  <td>{e.externalListingId ?? '—'}</td>
-                  <td>{e.code}</td>
-                  <td>{e.message}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <ul>
+          {errors.map((e) => (
+            <li key={e.id}>
+              Row {e.recordIndex} ({e.externalListingId ?? '—'}): [{e.code}] {e.message}
+            </li>
+          ))}
+        </ul>
       )}
     </section>
   );

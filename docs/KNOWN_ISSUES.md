@@ -1,6 +1,6 @@
 # Known issues
 
-Date: 2026-08-05 (Phase 2 + Phase 3 vertical slice)
+Date: 2026-08-06 (Phase 2 + Phase 3 + Phase 3.1)
 
 ## Phase 2
 
@@ -8,17 +8,24 @@ Date: 2026-08-05 (Phase 2 + Phase 3 vertical slice)
 2. **Bathrooms unavailable** in the legacy dataset; detail pages show an explicit “not provided” state rather than inventing values.
 3. **Some source URLs are portal search pages** (Idealista/Fotocasa). Stored as-is; weak listing identity flagged via snapshot provenance.
 4. **Fake auth user rows** are created lazily when favourites are persisted; production will use Supabase Auth UUIDs as `users.id`.
-5. **Playwright e2e** requires a migrated/seeded/imported local database and `DATABASE_URL` for the Next.js server.
+5. ~~**Playwright e2e** requires a manually migrated/seeded/imported local database~~ — **Resolved in Phase 3.1**: `pnpm test:e2e` provisions its own `spain_properties_e2e` database via `globalSetup` (`pnpm db:reset:e2e`) and serves the app on port 3100, so it never reads or resets a developer's `spain_properties`.
 6. **Map view** is deferred (not required for this Phase 2 slice); card and table views are implemented.
-7. **Favourites authorization** is enforced in API + RLS; browser `x-user-id` header is a temporary Phase 1/2 wiring aid until full Supabase session cookies are configured.
+7. ~~**Favourites authorization** via browser `x-user-id`~~ — **Resolved in Phase 3.1**: favourites use verified session cookies; guest local favourites remain for anonymous users.
 
 ## Phase 3 vertical slice
 
-8. **Partner/admin routes trust the same `x-user-id`/`spain_user_id` wiring as Phase 2 favourites (issue 7), not a verified session.** `apps/web/src/lib/partner-auth.ts` resolves org membership / platform role from that header/cookie. This is acceptable for local development (ADR-028; `PHASE3_DECISIONS_REQUIRED.md` explicitly allows FakeAuth + seed locally) but **must not be exposed on a non-local deployment** until real Supabase session verification (and probably a real "which org am I acting as" UI, not `requireSoleOrganization`) is implemented.
-9. **`DevIdentitySwitcher` is a local-only dev aid**, not a login UI. It hardcodes the four seeded demo user UUIDs from `packages/database/src/seed-constants.ts` (duplicated as plain strings in `apps/web/src/lib/demo-identities.ts` to avoid pulling server-only DB deps into a client bundle). It must be removed or gated out before any non-local deployment.
+8. ~~**Partner/admin routes trust `x-user-id`/`spain_user_id`~~ — **Resolved in Phase 3.1** (ADR-029): verified FakeAuth/Supabase sessions; org membership and platform roles from DB. Residual: multi-org UI still defaults via `requireSoleOrganization` when the user has exactly one membership (query `organizationId` supported when multiple).
+9. ~~**`DevIdentitySwitcher` sets client cookie identity**~~ — **Narrowed in Phase 3.1**: gated to development/test + FakeAuth; calls `/api/v1/auth/dev-session` to mint HttpOnly sealed sessions. Still a local demo aid, not a production login UI.
 10. **No background job runner (`JOBS_PROVIDER=inline` only, ADR-027).** `runSpainPartnerCsvImport` runs synchronously inside the API request handler; large CSVs will block the request thread and there is no retry/backoff. Acceptable for this slice's seeded volumes; revisit (pg-boss or similar) before larger files or more partners are onboarded.
 11. **`image_urls` in the CSV are parsed but never persisted as real media.** Every listing gets a single placeholder `listing_media` row regardless of the source's `image_rights`. There is no rights-checked media pipeline (download/verify/store) in this slice — see `docs/IMPORT_FORMAT_CSV.md` "Images".
-12. **One data source per organization is assumed.** `requireSoleOrganization` and the partner import route both pick "the org's data source" without a picker; an org with two feeds would need explicit source selection, not built here.
+12. **One data source per organization is assumed.** Partner import route picks "the org's data source" without a picker; an org with two feeds would need explicit source selection, not built here.
 13. **No physical-property matching/merge across sources.** Every partner CSV row creates its own `physical_properties` row (ADR-025), even if it plausibly duplicates an existing legacy snapshot or another partner's listing. Deduplication/matching is out of scope for this slice.
 14. **JSON/XML partner adapters are not implemented.** Only Spain Partner CSV v1 ships (ADR-023); `INGESTION_ARCHITECTURE.md`'s multi-format `FeedAdapter` interface exists conceptually but has one concrete implementation.
-15. **Playwright e2e for the agency journey requires its own migrated/seeded (but _not_ partner-fixture-imported) database** so the test can exercise a genuine first-time CSV insert; reusing a database that already has `partner-csv-demo-catalonia` listings pre-imported via `pnpm db:import-partner-fixture` would make some of the test's "starts pending_review" assertions inaccurate (a reimport of an already-published listing applies the CSV status directly, per ADR-026).
+15. ~~**Playwright e2e for the agency journey requires its own migrated/seeded (but _not_ partner-fixture-imported) database**~~ — **Resolved in Phase 3.1**: `pnpm db:reset:e2e` recreates `spain_properties_e2e` from migrations + seed + legacy import only, and Playwright's `globalSetup` runs it before every suite. The journey therefore always exercises a genuine first-time CSV insert (`pending_review`), and repeated runs no longer inherit listings a previous run published (a reimport of an already-published listing applies the CSV status directly, per ADR-026). Set `E2E_SKIP_DB_RESET=true` to opt out when iterating locally.
+
+## Phase 3.1 residual
+
+16. **Guest merge still accepts client `guestPayload`** (bounded by schema size). Prefer HttpOnly guest cookie as a fast follow; does not block agency session work.
+17. **CSV import uses service-role DB** after session + mutator checks (intentional ingestion exception; listing price/withdraw/admin/favourites use `withAuthenticatedDb`).
+18. **Live Supabase cookie SSR path** is wired for access-token cookies from OTP verify; full `@supabase/ssr` refresh-cookie rotation against a live project remains credential-gated.
+19. ~~**`pnpm format:check` fails on Windows checkouts** for ~100 files no phase touched~~ — **Resolved**: `.prettierrc.json` now sets `endOfLine: "auto"`, so Prettier accepts the platform's checked-out line endings (Windows `core.autocrlf=true` produces CRLF working trees while the repository stores LF) and still enforces consistency within each file. Chosen over `.gitattributes` + renormalization because it fixes the gate without a repository-wide line-ending-only diff; Git continues to normalize to LF on commit, so committed content is unchanged.
