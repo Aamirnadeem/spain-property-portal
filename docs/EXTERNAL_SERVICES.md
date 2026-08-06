@@ -1,7 +1,7 @@
 # Spain Property Buyer Portal — External Services
 
-Version: 1.1  
-Status: Phase 0 deliverable (updated after legacy assessment)  
+Version: 1.2  
+Status: Phase 1.1 Supabase architecture locked  
 Includes: provider decision matrix, credential checklist, data-source permission register template, `.env.example` outline  
 Companion: [`DECISIONS_REQUIRED.md`](DECISIONS_REQUIRED.md), [`ARCHITECTURE.md`](ARCHITECTURE.md), [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md), [`LEGACY_CODE_ASSESSMENT.md`](LEGACY_CODE_ASSESSMENT.md)
 
@@ -17,25 +17,25 @@ When a provider is unavailable: implement the interface, a **test fake**, and a 
 
 ## 2. Provider decision matrix
 
-| Capability                   | MVP need                | Locked / candidate                                          | Adapter package            | Fake for local/CI                      | Activation phase |
-| ---------------------------- | ----------------------- | ----------------------------------------------------------- | -------------------------- | -------------------------------------- | ---------------- |
-| Postgres + PostGIS           | Required                | **Supabase** (default)                                      | `packages/database`        | Local Postgres/Supabase CLI            | 1                |
-| Auth OTP email/SMS transport | Required                | Supabase Auth + SMS vendor TBD                              | Auth + `communications`    | Log OTP to console / fixed test codes  | 1                |
-| Object storage               | Required                | Supabase Storage or S3-compatible                           | Storage client             | Local disk/MinIO                       | 1–2              |
-| Transactional email          | Required                | Resend / SendGrid / Postmark (TBD)                          | `communications/email`     | In-memory/outbox fake                  | 1 / 3            |
-| SMS OTP / SMS notify         | OTP required            | Twilio / MessageBird / Vonage (TBD)                         | `communications/sms`       | Fake SMS sink                          | 1                |
-| Background jobs              | Required                | Inngest **or** Trigger.dev **or** pg-boss (pick in Phase 1) | `apps/worker`              | Synchronous/inline runner              | 1                |
-| Maps tiles                   | Required for map UX     | MapLibre + licensed tiles (TBD vendor)                      | Map config                 | OSM demo tiles with attribution limits | 2                |
-| Geocoding                    | Required for enrichment | Licensed geocoder (TBD)                                     | Geo client                 | Fixture geocodes                       | 2 / 4            |
-| LLM                          | Required for live AI    | Provider TBD (OpenAI/Anthropic/etc.)                        | `apps/ai-service`          | Mock LLM for evals/CI                  | 5                |
-| Embeddings / vector          | Guidance RAG            | **pgvector** default                                        | Knowledge store            | Fixture embeddings                     | 5                |
-| Error tracking               | Required before prod    | Sentry                                                      | `observability`            | Console transport                      | 1                |
-| Tracing metrics              | Required before prod    | OpenTelemetry → TBD backend                                 | `observability`            | No-op exporter                         | 1                |
-| WhatsApp Business            | Not MVP                 | Meta Cloud API or BSP (Twilio/etc.) TBD                     | `communications/whatsapp`  | Fake webhook fixtures                  | 7                |
-| STT / TTS                    | Not MVP                 | Browser APIs first; cloud vendors TBD                       | `communications/speech`    | Fake transcripts                       | 8a               |
-| Telephony                    | Not MVP                 | Twilio / Vonage / etc. TBD                                  | `communications/telephony` | Fake call events                       | 8b               |
-| Malware scan                 | Media pipeline          | ClamAV or cloud scanner TBD                                 | Worker media pipeline      | EICAR fixture harness                  | 4                |
-| CDN                          | Prod                    | TBD with hosting                                            | —                          | —                                      | Prod             |
+| Capability                   | MVP need                | Locked / candidate                                            | Adapter package            | Fake for local/CI                      | Activation phase |
+| ---------------------------- | ----------------------- | ------------------------------------------------------------- | -------------------------- | -------------------------------------- | ---------------- |
+| Postgres + PostGIS           | Required                | **Supabase** (default)                                        | `packages/database`        | Local Postgres/Supabase CLI            | 1                |
+| Auth OTP email/SMS transport | Required                | **Supabase Auth** + configured SMS vendor                     | `AuthProvider`             | Non-persistent `FakeAuthProvider`      | 1                |
+| Object storage               | Required                | **Supabase Storage**                                          | `StorageProvider`          | Non-persistent local filesystem        | 1–2              |
+| Transactional email          | Required                | Resend / SendGrid / Postmark (TBD)                            | `communications/email`     | In-memory/outbox fake                  | 1 / 3            |
+| SMS OTP / SMS notify         | OTP required            | Twilio / MessageBird / Vonage (TBD)                           | `communications/sms`       | Fake SMS sink                          | 1                |
+| Background jobs              | Required                | **pg-boss** (Phase 3 planning default) or Inngest/Trigger.dev | `apps/worker`              | Synchronous/inline runner              | 1 / 3            |
+| Maps tiles                   | Required for map UX     | MapLibre + licensed tiles (TBD vendor)                        | Map config                 | OSM demo tiles with attribution limits | 2                |
+| Geocoding                    | Required for enrichment | Licensed geocoder (TBD)                                       | Geo client                 | Fixture geocodes                       | 2 / 4            |
+| LLM                          | Required for live AI    | Provider TBD (OpenAI/Anthropic/etc.)                          | `apps/ai-service`          | Mock LLM for evals/CI                  | 5                |
+| Embeddings / vector          | Guidance RAG            | **pgvector** default                                          | Knowledge store            | Fixture embeddings                     | 5                |
+| Error tracking               | Required before prod    | Sentry                                                        | `observability`            | Console transport                      | 1                |
+| Tracing metrics              | Required before prod    | OpenTelemetry → TBD backend                                   | `observability`            | No-op exporter                         | 1                |
+| WhatsApp Business            | Not MVP                 | Meta Cloud API or BSP (Twilio/etc.) TBD                       | `communications/whatsapp`  | Fake webhook fixtures                  | 7                |
+| STT / TTS                    | Not MVP                 | Browser APIs first; cloud vendors TBD                         | `communications/speech`    | Fake transcripts                       | 8a               |
+| Telephony                    | Not MVP                 | Twilio / Vonage / etc. TBD                                    | `communications/telephony` | Fake call events                       | 8b               |
+| Malware scan                 | Media pipeline          | ClamAV or cloud scanner TBD                                   | Worker media pipeline      | EICAR fixture harness                  | 3                |
+| CDN                          | Prod                    | TBD with hosting                                              | —                          | —                                      | Prod             |
 
 ---
 
@@ -63,11 +63,22 @@ When a provider is unavailable: implement the interface, a **test fake**, and a 
 | Telephony + STT/TTS keys                            | 8                                       | Fake adapters         |
 | Job framework keys (if SaaS)                        | 1 prod                                  | Inline runner         |
 
+Phase 1.1 exact Supabase configuration:
+
+- `DATABASE_URL`: direct/migration connection to Supabase PostgreSQL
+- `NEXT_PUBLIC_SUPABASE_URL`: project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: public Auth client key
+- `SUPABASE_SERVICE_ROLE_KEY`: server-only Storage/admin operations; never exposed to browsers
+- `SUPABASE_STORAGE_BUCKET`: private authorized-media bucket
+- `OTP_PROVIDER=supabase` and `STORAGE_PROVIDER=supabase` in production
+
+Without these credentials, adapters compile and configuration-gate correctly, but live Supabase Auth OTP delivery/verification and Supabase Storage operations cannot be exercised.
+
 ### 3.3 Non-credential blockers (legal/commercial)
 
 | Blocker                                          | Effect                                                                |
 | ------------------------------------------------ | --------------------------------------------------------------------- |
-| Written partner/source permission + media rights | Blocks live Phase 4 partner adapter and public “live” claims          |
+| Written partner/source permission + media rights | Blocks live Phase 3 partner HTTP adapter and public “live” claims     |
 | Legacy 60 rights/freshness review (D-019)        | Blocks removing `legacy_snapshot` labelling / claiming live inventory |
 | WhatsApp Business account + approved templates   | Blocks Phase 7 activation                                             |
 | Recording consent policy finalized               | Blocks Phase 8 recording                                              |
@@ -153,9 +164,10 @@ notes
 | ------------------------------ | ------------------------------------------- | ------------------ | ----------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `legacy-barcelona-explorer-60` | Barcelona Property Explorer legacy snapshot | `legacy_snapshot`  | `restricted`      | `none` (no images in file; URLs only; no republication of portal media) | File **present** at `data/legacy/barcelona_property_explorer_legacy_60.json`. Identical to `legacy/client/src/data/properties.json`. 60 rows. Portals include Engel & Völkers, Coldwell Banker, Lucas Fox, Fotocasa, Idealista — **not** a live licence (ADR-015). Some Idealista/Fotocasa URLs are search pages. Importer allowed as snapshot only; **no scrape**. |
 | `manual-editor`                | Internal / partner manual entry             | `manual`           | `pending`         | per-upload declaration                                                  | First operational path after org verification                                                                                                                                                                                                                                                                                                                       |
-| `partner-csv-generic`          | Generic partner CSV                         | `csv`              | `pending`         | per agreement                                                           | Framework in Phase 4; no partner attached                                                                                                                                                                                                                                                                                                                           |
-| `partner-xml-json-generic`     | Generic CRM XML/JSON                        | `xml`/`json`       | `pending`         | per agreement                                                           | Interface + fixtures only until partner named                                                                                                                                                                                                                                                                                                                       |
+| `partner-csv-generic`          | Generic partner CSV                         | `csv`              | `pending`         | per agreement                                                           | Framework in Phase 3; demo agency uses `partner-csv-demo-catalonia` when approved                                                                                                                                                                                                                                                                                   |
+| `partner-xml-json-generic`     | Generic CRM XML/JSON                        | `xml`/`json`       | `pending`         | per agreement                                                           | Phase 3 interface + fixtures; E2E acceptance remains CSV-first until partner named                                                                                                                                                                                                                                                                                  |
 | `authorized-crawl-placeholder` | Partner site crawl                          | `authorized_crawl` | `pending`         | per agreement                                                           | **Do not implement extractor** until written authorization for that exact domain exists                                                                                                                                                                                                                                                                             |
+| `partner-csv-demo-catalonia`   | Demo Catalonia cooperating agency CSV       | `csv`              | `approved` (seed) | `display` after declaration; else `none`                                | Phase 3 vertical slice source; seeded only for local/CI and staging demos — not a live Idealista scrape                                                                                                                                                                                                                                                             |
 
 ### 6.3 Gate rule
 
@@ -197,7 +209,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 
 # Auth / OTP
-OTP_PROVIDER=fake
+OTP_PROVIDER=fake # local/test only; production=supabase
 # EMAIL_PROVIDER=fake|resend|...
 # SMS_PROVIDER=fake|twilio|...
 # TWILIO_ACCOUNT_SID=
@@ -206,11 +218,8 @@ OTP_PROVIDER=fake
 # RESEND_API_KEY=
 
 # Storage
-STORAGE_PROVIDER=local
-# S3_ENDPOINT=
-# S3_BUCKET=
-# S3_ACCESS_KEY=
-# S3_SECRET_KEY=
+STORAGE_PROVIDER=local # local/test only; production=supabase
+SUPABASE_STORAGE_BUCKET=authorized-media
 
 # Maps
 NEXT_PUBLIC_MAP_STYLE_URL=

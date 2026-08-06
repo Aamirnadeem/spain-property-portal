@@ -2,4 +2,8 @@ export * from './types';
 export * from './email/fake';
 export * from './sms/fake';
 export * from './otp/store';
+export * from './auth/provider';
+export * from './auth/fake';
+export * from './auth/supabase';
+export * from './auth/factory';
 export * from './stubs';

@@ -1,0 +1,18 @@
+import { NextResponse } from 'next/server';
+import { listOrgListings } from '@spain/database';
+import { withAppAuthenticatedDb } from '@/lib/authenticated-db';
+import { getSession } from '@/lib/session';
+import { isErrorResponse, resolvePartnerContext } from '@/lib/partner-auth';
+
+export async function GET(request: Request) {
+  const session = await getSession(request);
+  if (!session) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  }
+  return withAppAuthenticatedDb(session.userId, async (db) => {
+    const ctx = await resolvePartnerContext(request, db);
+    if (isErrorResponse(ctx)) return ctx;
+    const listings = await listOrgListings(db, ctx.organizationId);
+    return NextResponse.json({ items: listings });
+  });
+}

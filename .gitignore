@@ -12,3 +12,8 @@ apps/web/.next
 .data
 
 apps/web/tsconfig.tsbuildinfo
+
+# Playwright artifacts
+**/test-results/
+**/playwright-report/
+**/blob-report/

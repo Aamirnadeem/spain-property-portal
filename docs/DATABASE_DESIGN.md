@@ -312,29 +312,30 @@ Do not hotlink by default. Do not invent or AI-generate property photos as listi
 
 Migrations are ordered and additive. Never edit production schema manually.
 
-| Step | Migration focus                                                                                                                       | Phase          |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
-| M00  | Extensions: `uuid-ossp` or `pgcrypto`, `postgis`, `unaccent`, `pg_trgm`, `vector`                                                     | 1              |
-| M01  | Identity: users, profiles, auth_identities, guest_sessions, security_events                                                           | 1              |
-| M02  | AuthZ: organizations, members, verifications, roles, permissions, consents, notification_preferences, privacy_requests                | 1              |
-| M03  | Channel identity stubs: `user_channel_identities`                                                                                     | 1              |
-| M04  | Geography hierarchy + geo_aliases + places                                                                                            | 1–2            |
-| M05  | Amenities, transport_stops, environmental_layers (schema; data later)                                                                 | 2–6            |
-| M06  | Inventory core: physical_properties, addresses, locations, listings, types, features, source_claims, derived_attributes, provenance   | 2              |
-| M07  | Histories: listing_status_history, listing_price_history, verification_events                                                         | 2              |
-| M08  | Media: media_assets, media_rights, listing_media                                                                                      | 2              |
-| M09  | Off-plan: developments, development_units, offplan_milestones, property_documents, document_verifications                             | 2 / 6          |
-| M10  | Buyer workspace: favourites, shortlists, items, notes, comparisons, saved_searches, search_runs, recently_viewed, preference profiles | 3              |
-| M11  | Alerts: alerts, alert_deliveries; collaborators                                                                                       | 3 / 6          |
-| M12  | Leads: leads, links, viewing_requests, assignments, status history                                                                    | 3              |
-| M13  | Conversations: conversations, participants, messages, attachments, property links, channel_threads, handoffs, summaries               | 5–6            |
-| M14  | AI: ai_runs, ai_tool_calls, ai_feedback, evaluation tables                                                                            | 5              |
-| M15  | Communications: communication_deliveries; call_sessions, call_recordings, call_consents (disabled in app config)                      | 6              |
-| M16  | Ingestion: data_sources through source_takedown_requests, duplicate_candidates                                                        | 4              |
-| M17  | Knowledge and rules: knowledge__, jurisdictions, rule__, calculator_runs, document_checklist_templates, legal_content_reviews         | 5–6            |
-| M18  | RLS policies for all user/partner-scoped tables; service roles for workers                                                            | 1+ incremental |
-| M19  | Seeds: Spain geography (full hierarchy capability), Catalonia focus depth, Alcaraz correctness check, fixture listings                | 2              |
-| M20  | Indexes: GiST/Geog for locations, GIN for FTS/trgm, unique (source_id, external_listing_id), price/status history                     | ongoing        |
+| Step | Migration focus                                                                                                                            | Phase                                                                                        |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| M00  | Extensions: `uuid-ossp` or `pgcrypto`, `postgis`, `unaccent`, `pg_trgm`, `vector`                                                          | 1                                                                                            |
+| M01  | Identity: users, profiles, auth_identities, guest_sessions, security_events                                                                | 1                                                                                            |
+| M02  | AuthZ: organizations, members, verifications, roles, permissions, consents, notification_preferences, privacy_requests                     | 1                                                                                            |
+| M03  | Channel identity stubs: `user_channel_identities`                                                                                          | 1                                                                                            |
+| M04  | Geography hierarchy + geo_aliases + places                                                                                                 | 1–2                                                                                          |
+| M05  | Amenities, transport_stops, environmental_layers (schema; data later)                                                                      | 2–6                                                                                          |
+| M06  | Inventory core: physical_properties, addresses, locations, listings, types, features, source_claims, derived_attributes, provenance        | 2                                                                                            |
+| M07  | Histories: listing_status_history, listing_price_history, verification_events                                                              | 2                                                                                            |
+| M08  | Media: media_assets, media_rights, listing_media                                                                                           | 2                                                                                            |
+| M09  | Off-plan: developments, development_units, offplan_milestones, property_documents, document_verifications                                  | 2 / 6                                                                                        |
+| M10  | Buyer workspace: favourites (done P2); shortlists, items, notes, comparisons, shares, saved_searches, recently_viewed, preference profiles | **4** (plan: [`PHASE4_DATABASE_CHANGES.md`](PHASE4_DATABASE_CHANGES.md); was mis-labelled 3) |
+| M11  | Alerts: alert_subscriptions, in_app_notifications (P4); email deliveries / collaborators later                                             | **4** foundation / 4.1+ / 6                                                                  |
+| M12  | Leads: leads, links, viewing_requests, assignments, status history                                                                         | **4.1+** (deferred from Phase 4 scope lock)                                                  |
+
+| M13 | Conversations: conversations, participants, messages, attachments, property links, channel_threads, handoffs, summaries | 5–6 |
+| M14 | AI: ai_runs, ai_tool_calls, ai_feedback, evaluation tables | 5 |
+| M15 | Communications: communication_deliveries; call_sessions, call_recordings, call_consents (disabled in app config) | 6 |
+| M16 | Ingestion: data_sources through source_takedown_requests, duplicate_candidates | 3 (ADR-022; was 4) |
+| M17 | Knowledge and rules: knowledge__, jurisdictions, rule__, calculator_runs, document_checklist_templates, legal_content_reviews | 5–6 |
+| M18 | RLS policies for all user/partner-scoped tables; service roles for workers | 1+ incremental |
+| M19 | Seeds: Spain geography (full hierarchy capability), Catalonia focus depth, Alcaraz correctness check, fixture listings | 2 |
+| M20 | Indexes: GiST/Geog for locations, GIN for FTS/trgm, unique (source_id, external_listing_id), price/status history | ongoing |
 
 ---
 

@@ -12,7 +12,7 @@ export default async function AccountPage({ params }: { params: Promise<{ locale
     <section>
       <h1 style={{ fontFamily: 'var(--font-serif)' }}>{messages.nav.signIn}</h1>
       <p style={{ color: 'hsl(var(--muted-foreground))' }}>
-        Phase 1 uses fake email/SMS OTP adapters (codes appear in API responses and logs).
+        Local development uses a non-persistent fake OTP provider. Production uses Supabase Auth.
       </p>
       <AuthPanel
         locale={locale}

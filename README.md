@@ -1,4 +1,4 @@
-# Spain Property Portal — Phase 1 local setup
+# Spain Property Portal — Phase 1.1 local setup
 
 ## Prerequisites
 
@@ -17,22 +17,26 @@ pnpm --filter @spain/web dev
 
 Open http://localhost:3000/en (also `/es`, `/ca`, `/ar` with RTL).
 
-Fake OTP: request a code on `/en/account` — `devCode` is returned in the API response when `OTP_PROVIDER=fake`.
+Fake OTP: request a code on `/en/account` — `devCode` is returned only in development/test when `OTP_PROVIDER=fake`.
 
 ## Database (optional for unit tests)
 
 ```bash
 docker compose up -d db
-# set DATABASE_URL in .env.local
+# set DATABASE_URL in the shell or environment loader
+pnpm db:generate # only after intentional schema changes; review generated SQL
 pnpm db:migrate
 pnpm db:seed
+pnpm test:db
 ```
 
-Unit tests for schema/RLS catalogues and OTP/guest-merge do **not** require Postgres.
+Unit tests remain fast and do not require Postgres. `pnpm test:db` recreates the local `spain_properties_test` database and validates migration, seed, RLS, uniqueness, and foreign keys. Never use `drizzle-kit push` for production deployment.
+
+End-to-end tests are self-provisioning: `pnpm test:e2e` recreates `spain_properties_e2e` (`pnpm db:reset:e2e`) and serves the app on port 3100, so it never touches your own `spain_properties` database or a `pnpm dev` server on port 3000.
 
 ## Phase 1 scope
 
-Monorepo foundation, locales, health, fake email/SMS OTP, guest merge, identity/org/geography schema + RLS policy catalogue, media table foundations, observability stubs.
+Monorepo foundation, locales, provider-neutral auth/storage, production-gated Supabase adapters, guest merge, versioned identity/org/geography migrations, Phase 1 RLS, media table foundations, and observability stubs.
 
 **Not in Phase 1:** property search UI, legacy JSON import, WhatsApp, voice, AI legal guidance, nationwide scraping.
 

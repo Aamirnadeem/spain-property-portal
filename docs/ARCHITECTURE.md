@@ -1,7 +1,7 @@
 # Spain Property Buyer Portal — Architecture
 
-Version: 1.1  
-Status: Phase 0 deliverable (updated after legacy assessment)  
+Version: 1.2  
+Status: Phase 1.1 production architecture locked  
 Authoritative source: [`spain_property_portal_build_plan_and_master_prompt_v2.md`](spain_property_portal_build_plan_and_master_prompt_v2.md)  
 Companion: [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md), [`DATABASE_DESIGN.md`](DATABASE_DESIGN.md), [`LEGACY_CODE_ASSESSMENT.md`](LEGACY_CODE_ASSESSMENT.md)
 
@@ -20,6 +20,18 @@ Companion: [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md), [`DATABASE_DESIGN
 9. Prefer deterministic rules and geospatial calculations over AI guesses.
 10. Do not activate a channel until operational support, consent and monitoring exist.
 11. Treat [`legacy/`](../legacy/) as a **frozen UX/data reference** — rebuild the production UI on Next.js; do not adopt the Vite/Express/SQLite stack.
+12. Production identity, database, and authorized media use Supabase Auth, Supabase PostgreSQL, and Supabase Storage respectively. Drizzle owns schema migrations and typed application queries.
+13. Fake auth and local storage providers are non-persistent development/test implementations and are rejected in production.
+14. **Phase 3.1 (planned):** browser identity for buyers, agencies, and admins is a **server-verified AuthProvider session**. Client headers such as `x-user-id` are not production authority. See [`PHASE3_1_AUTH_PLAN.md`](PHASE3_1_AUTH_PLAN.md) and ADR-029 in [`DECISIONS.md`](DECISIONS.md).
+
+### 1.1 Phase 1.1 provider boundaries
+
+- `AuthProvider` is the sole authentication boundary. `SupabaseAuthProvider` supplies persistent Supabase user UUIDs; `FakeAuthProvider` owns its process-local OTP/user maps internally.
+- UI and domain code never access an in-memory user map. Future favourites, shortlists, and conversations receive the provider-issued persistent user ID.
+- `StorageProvider` isolates authorized-media storage. `SupabaseStorageProvider` is the production server adapter; `LocalStorageProvider` is local/test only.
+- Provider SDKs remain adapters and do not own guest merge, consent, workspace, or media-rights rules.
+- Production configuration fails closed before serving when auth is fake/missing or Supabase Auth configuration is incomplete.
+- **Phase 3.1 extends this:** OTP verify must establish an HttpOnly session cookie; partner/admin/favourites routes call `getSession` rather than trusting `x-user-id`. Request-scoped DB access sets `request.jwt.claim.sub` so RLS matches the session user.
 
 ---
 
@@ -74,10 +86,14 @@ flowchart LR
 | `apps/ai-service`    | Orchestration, RAG over approved sources, tool calling, evaluations      | TypeScript + OpenAPI                                     |
 | `apps/worker`        | Ingestion, media processing, enrichment, alerts, freshness, privacy jobs | Same monorepo TS; one job framework                      |
 | PostgreSQL + PostGIS | Canonical data, FTS, geospatial, pgvector knowledge                      | Supabase-managed                                         |
-| Object storage       | Rights-cleared media variants                                            | Supabase Storage / S3-compatible + CDN                   |
+| Object storage       | Rights-cleared media variants                                            | Supabase Storage + CDN                                   |
 | Channel adapters     | Email, SMS, WhatsApp, STT, TTS, telephony                                | `packages/communications` interfaces + provider adapters |
 
 Provider SDKs must not own domain logic. Adapters translate provider payloads into internal events and map internal `Message` records to channel-specific formats.
+
+### 3.1 Database deployment
+
+Committed Drizzle migrations in `packages/database/drizzle` are the only production schema deployment path. `db:generate` creates reviewable SQL, `db:migrate` applies the migration journal, and `db:seed` adds idempotent reference data. `drizzle-kit push` is not a production strategy.
 
 ---
 
@@ -192,20 +208,32 @@ GET  /api/v1/properties/{listingId}/price-history
 GET  /api/v1/properties/{listingId}/freshness
 POST /api/v1/search/parse-natural-language
 POST /api/v1/compare/preview
+GET  /api/v1/compare/shared/{token}    # Phase 4 — public share (rate-limited)
 ```
 
 ### 7.3 Account / workspace
 
 ```text
 GET/PUT /api/v1/me/profile
-GET/POST/DELETE /api/v1/me/favourites
-GET/POST/PUT/DELETE /api/v1/me/shortlists
-POST /api/v1/me/shortlists/{id}/items
+GET/POST/DELETE /api/v1/favourites          # Phase 2 (shipped); me/favourites alias optional later
+GET/POST/PUT/DELETE /api/v1/me/shortlists   # Phase 4 (planned)
+POST/DELETE /api/v1/me/shortlists/{id}/items
+PUT /api/v1/me/shortlists/{id}/note
+GET/PUT/DELETE /api/v1/me/notes/properties/{listingId}
+POST /api/v1/me/comparisons/preview
+GET/PUT /api/v1/me/preference-profiles
 GET/POST/PUT/DELETE /api/v1/me/saved-searches
-GET /api/v1/me/history
-POST /api/v1/me/privacy/export
-POST /api/v1/me/privacy/delete
+POST/DELETE /api/v1/me/saved-searches/{id}/alerts
+GET/DELETE /api/v1/me/history
+POST /api/v1/me/history/views
+GET/PATCH /api/v1/me/notifications
+POST/DELETE /api/v1/me/comparison-shares
+POST /api/v1/me/workspace/merge
+POST /api/v1/me/privacy/export              # Phase 4.1+ deferred
+POST /api/v1/me/privacy/delete              # Phase 4.1+ deferred
 ```
+
+Phase 4 design: [`PHASE4_PLAN.md`](PHASE4_PLAN.md), [`BUYER_WORKSPACE_DESIGN.md`](BUYER_WORKSPACE_DESIGN.md).
 
 ### 7.4 Leads and AI
 

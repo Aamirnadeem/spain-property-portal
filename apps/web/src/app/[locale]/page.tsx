@@ -16,7 +16,7 @@ export default async function LocaleHomePage({ params }: { params: Promise<{ loc
       <p style={{ color: 'hsl(var(--muted-foreground))', lineHeight: 1.6 }}>{messages.home.body}</p>
       <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
         <Link
-          href={`/${locale}/account`}
+          href={`/${locale}/search`}
           style={{
             background: 'hsl(var(--primary))',
             color: 'hsl(var(--primary-foreground))',
@@ -25,10 +25,10 @@ export default async function LocaleHomePage({ params }: { params: Promise<{ loc
             textDecoration: 'none',
           }}
         >
-          {messages.nav.signIn}
+          {messages.home.cta}
         </Link>
         <Link
-          href="/api/health"
+          href={`/${locale}/favourites`}
           style={{
             border: '1px solid hsl(var(--border))',
             padding: '0.65rem 1rem',
@@ -37,7 +37,7 @@ export default async function LocaleHomePage({ params }: { params: Promise<{ loc
             color: 'hsl(var(--foreground))',
           }}
         >
-          {messages.home.cta}
+          {messages.nav.favourites}
         </Link>
       </div>
     </section>
