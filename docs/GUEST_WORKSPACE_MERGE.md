@@ -41,3 +41,12 @@ Single DB transaction:
 ## Privacy
 
 Guest payloads are size-bounded. Notes never appear in agency/admin APIs, public listing APIs, or audit event bodies.
+
+## Phase 4B extension (planned — ADR-030b)
+
+Domain already returns `savedSearchCriteria` / `recentViewListingIds` (and will gain typed `savedSearches` / `browsingHistory`). **DB persist is not yet implemented** — `mergeGuestWorkspaceIntoUser` must gain steps:
+
+12. Insert saved searches with `onConflictDoNothing` on `(user_id, criteria_hash)`; rename on name clash; never overwrite auth rows or re-enable alerts from a disabled guest search
+13. Upsert `browsing_history` by listing (merge first/last/count); truncate to 50
+
+See [`PHASE4B_PLAN.md`](PHASE4B_PLAN.md) and [`PHASE4B_DECISIONS_REQUIRED.md`](PHASE4B_DECISIONS_REQUIRED.md) D11.

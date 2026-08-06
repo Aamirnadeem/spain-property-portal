@@ -1,6 +1,6 @@
 # Implementation status
 
-Date: 2026-08-06 (Phase 4A buyer workspace implemented)
+Date: 2026-08-06 (Phase 4B planning complete — ADR-030b)
 
 ## Completed
 
@@ -18,6 +18,7 @@ Date: 2026-08-06 (Phase 4A buyer workspace implemented)
 - **Phase 3.1 verified session auth (ADR-029)** — FakeAuth sealed / Supabase sessions replace `x-user-id`; org/platform roles from DB; `withAuthenticatedDb` RLS claim wiring. See [`PHASE3_1_IMPLEMENTATION.md`](PHASE3_1_IMPLEMENTATION.md)
 - **Phase 4 planning documentation (ADR-030)** — see [`PHASE4_PLAN.md`](PHASE4_PLAN.md)
 - **Phase 4A implementation** — shortlists, notes, explainable comparison, guest merge. See [`PHASE4A_IMPLEMENTATION.md`](PHASE4A_IMPLEMENTATION.md)
+- **Phase 4B planning documentation (ADR-030b)** — saved searches, browsing history, in-app alerts. See [`PHASE4B_PLAN.md`](PHASE4B_PLAN.md)
 
 ## Credential-gated
 
@@ -32,10 +33,10 @@ Date: 2026-08-06 (Phase 4A buyer workspace implemented)
 - pg-boss / background job runner
 - Rights-checked media pipeline / authorized listing photographs
 - Multi-partner / nationwide rollout
-- **Phase 4B** — saved searches, browsing history
-- **Phase 4C** — in-app alerts foundation, comparison share links
+- **Phase 4B implementation** — saved searches, browsing history, in-app alerts / matching engine (planning done; code not started)
+- **Phase 4C** — comparison share links only
 - Phase 4.1+ — leads, privacy export/delete workers, production email digests
 - Phase 5+ AI assistant, WhatsApp, voice
 - Map distance enrichment
 
-**Phase 4B/4C have not been started.**
+**Phase 4B/4C implementation has not been started.** Phase 4B planning is complete under ADR-030b (alerts moved into 4B; 4C narrowed to share links).

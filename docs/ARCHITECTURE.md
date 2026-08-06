@@ -208,7 +208,7 @@ GET  /api/v1/properties/{listingId}/price-history
 GET  /api/v1/properties/{listingId}/freshness
 POST /api/v1/search/parse-natural-language
 POST /api/v1/compare/preview
-GET  /api/v1/compare/shared/{token}    # Phase 4 — public share (rate-limited)
+GET  /api/v1/compare/shared/{token}    # Phase 4C — public share (rate-limited; planned)
 ```
 
 ### 7.3 Account / workspace
@@ -216,24 +216,29 @@ GET  /api/v1/compare/shared/{token}    # Phase 4 — public share (rate-limited)
 ```text
 GET/PUT /api/v1/me/profile
 GET/POST/DELETE /api/v1/favourites          # Phase 2 (shipped); me/favourites alias optional later
-GET/POST/PUT/DELETE /api/v1/me/shortlists   # Phase 4 (planned)
+GET/POST/PUT/DELETE /api/v1/me/shortlists   # Phase 4A (implemented)
 POST/DELETE /api/v1/me/shortlists/{id}/items
 PUT /api/v1/me/shortlists/{id}/note
 GET/PUT/DELETE /api/v1/me/notes/properties/{listingId}
 POST /api/v1/me/comparisons/preview
 GET/PUT /api/v1/me/preference-profiles
-GET/POST/PUT/DELETE /api/v1/me/saved-searches
-POST/DELETE /api/v1/me/saved-searches/{id}/alerts
-GET/DELETE /api/v1/me/history
+GET/POST/PUT/DELETE /api/v1/me/saved-searches          # Phase 4B (planned)
+POST /api/v1/me/saved-searches/{id}/run                 # Phase 4B
+PATCH /api/v1/me/saved-searches/{id}/alerts             # Phase 4B
+GET/DELETE /api/v1/me/history                           # Phase 4B
 POST /api/v1/me/history/views
-GET/PATCH /api/v1/me/notifications
-POST/DELETE /api/v1/me/comparison-shares
+DELETE /api/v1/me/history/{listingId}
+GET /api/v1/me/notifications                            # Phase 4B
+POST /api/v1/me/notifications/{id}/read
+POST /api/v1/me/notifications/read-all
+POST /api/v1/me/notifications/{id}/dismiss
+POST/DELETE /api/v1/me/comparison-shares                # Phase 4C (planned)
 POST /api/v1/me/workspace/merge
 POST /api/v1/me/privacy/export              # Phase 4.1+ deferred
 POST /api/v1/me/privacy/delete              # Phase 4.1+ deferred
 ```
 
-Phase 4 design: [`PHASE4_PLAN.md`](PHASE4_PLAN.md), [`BUYER_WORKSPACE_DESIGN.md`](BUYER_WORKSPACE_DESIGN.md).
+Phase 4 design: [`PHASE4_PLAN.md`](PHASE4_PLAN.md), [`BUYER_WORKSPACE_DESIGN.md`](BUYER_WORKSPACE_DESIGN.md), [`PHASE4B_PLAN.md`](PHASE4B_PLAN.md) (ADR-030b). Jobs remain inline (`InlineJobRunner` / `TestJobRunner`); notification providers `InAppNotificationProvider` / `TestNotificationProvider` only in 4B.
 
 ### 7.4 Leads and AI
 

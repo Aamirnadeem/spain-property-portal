@@ -1,7 +1,7 @@
 # Saved search and alert model
 
 Date: 2026-08-06  
-Status: Phase 4 planning  
+Status: Phase 4 planning — **superseded for implementation detail by Phase 4B docs** ([`PHASE4B_PLAN.md`](PHASE4B_PLAN.md), [`SAVED_SEARCH_CRITERIA_SPEC.md`](SAVED_SEARCH_CRITERIA_SPEC.md), [`IN_APP_NOTIFICATION_DESIGN.md`](IN_APP_NOTIFICATION_DESIGN.md), [`ALERT_MATCHING_ENGINE.md`](ALERT_MATCHING_ENGINE.md)). Kept as historical parent overview.  
 Parent: [`PHASE4_PLAN.md`](PHASE4_PLAN.md)
 
 ## Purpose

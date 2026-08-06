@@ -20,9 +20,11 @@ Parent plan: [`PHASE4_PLAN.md`](PHASE4_PLAN.md) · ADR-030
 
 Phase 2 `favourites` table **unchanged**. Hearts remain separate from shortlists (ADR-030). Merge uses `onConflictDoNothing` so existing favourites are never deleted. First login ensures empty default shortlist **“My shortlist”** without copying favourites into it.
 
-## Deferred to Phase 4B / 4C
+## Deferred
 
-Saved searches, browsing history, notifications/alerts, comparison share links, production email/SMS/WhatsApp, collaboration.
+- **Phase 4B** (planning done — ADR-030b): saved searches, browsing history, in-app alerts — [`PHASE4B_PLAN.md`](PHASE4B_PLAN.md)
+- **Phase 4C:** comparison share links
+- Production email/SMS/WhatsApp, collaboration, leads, privacy workers
 
 ## Key paths
 

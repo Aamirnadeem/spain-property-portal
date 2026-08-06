@@ -147,21 +147,22 @@ Spain
 
 ### 3.4 Buyer activity
 
-| Entity                     | Purpose                               |
-| -------------------------- | ------------------------------------- |
-| `favourites`               | User favourites                       |
-| `shortlists`               | Named shortlists                      |
-| `shortlist_items`          | Items in shortlists                   |
-| `shortlist_collaborators`  | View/comment collaborators            |
-| `property_notes`           | Personal notes, labels, scores        |
-| `comparison_sets`          | Comparison sessions                   |
-| `comparison_items`         | Properties in a comparison            |
-| `saved_searches`           | Persisted `PropertySearchCriteria`    |
-| `search_runs`              | Executed search analytics/history     |
-| `recently_viewed`          | Recent property views                 |
-| `user_preference_profiles` | Weighted preference profiles          |
-| `alerts`                   | Alert subscriptions on saved searches |
-| `alert_deliveries`         | Delivery attempts and status          |
+| Entity                                                       | Purpose                                                                        |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------ |
+| `favourites`                                                 | User favourites                                                                |
+| `shortlists`                                                 | Named shortlists                                                               |
+| `shortlist_items`                                            | Items in shortlists                                                            |
+| `shortlist_collaborators`                                    | View/comment collaborators                                                     |
+| `property_notes`                                             | Personal notes, labels, scores                                                 |
+| `comparison_sets`                                            | Comparison sessions                                                            |
+| `comparison_items`                                           | Properties in a comparison                                                     |
+| `saved_searches`                                             | Persisted versioned `PropertySearchCriteria` (`phase4b.v1`) — **4B planned**   |
+| `search_runs`                                                | Optional executed search analytics (not required for 4B MVP)                   |
+| `browsing_history`                                           | Recent property views (replaces draft name `recently_viewed`) — **4B planned** |
+| `user_preference_profiles`                                   | Weighted preference profiles — **4A implemented**                              |
+| `saved_search_evaluation_runs` / `saved_search_last_matches` | Alert evaluation — **4B planned**                                              |
+| `in_app_notifications` / `notification_deliveries`           | In-app alerts — **4B planned**                                                 |
+| `alerts` / `alert_subscriptions`                             | Prefer columns on `saved_searches` in 4B; legacy name deprecated               |
 
 Purchase stages (on notes/items or dedicated field): researching, viewing requested, viewed, offer considered, rejected (extendable).
 
@@ -312,21 +313,21 @@ Do not hotlink by default. Do not invent or AI-generate property photos as listi
 
 Migrations are ordered and additive. Never edit production schema manually.
 
-| Step | Migration focus                                                                                                                            | Phase                                                                                        |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
-| M00  | Extensions: `uuid-ossp` or `pgcrypto`, `postgis`, `unaccent`, `pg_trgm`, `vector`                                                          | 1                                                                                            |
-| M01  | Identity: users, profiles, auth_identities, guest_sessions, security_events                                                                | 1                                                                                            |
-| M02  | AuthZ: organizations, members, verifications, roles, permissions, consents, notification_preferences, privacy_requests                     | 1                                                                                            |
-| M03  | Channel identity stubs: `user_channel_identities`                                                                                          | 1                                                                                            |
-| M04  | Geography hierarchy + geo_aliases + places                                                                                                 | 1–2                                                                                          |
-| M05  | Amenities, transport_stops, environmental_layers (schema; data later)                                                                      | 2–6                                                                                          |
-| M06  | Inventory core: physical_properties, addresses, locations, listings, types, features, source_claims, derived_attributes, provenance        | 2                                                                                            |
-| M07  | Histories: listing_status_history, listing_price_history, verification_events                                                              | 2                                                                                            |
-| M08  | Media: media_assets, media_rights, listing_media                                                                                           | 2                                                                                            |
-| M09  | Off-plan: developments, development_units, offplan_milestones, property_documents, document_verifications                                  | 2 / 6                                                                                        |
-| M10  | Buyer workspace: favourites (done P2); shortlists, items, notes, comparisons, shares, saved_searches, recently_viewed, preference profiles | **4** (plan: [`PHASE4_DATABASE_CHANGES.md`](PHASE4_DATABASE_CHANGES.md); was mis-labelled 3) |
-| M11  | Alerts: alert_subscriptions, in_app_notifications (P4); email deliveries / collaborators later                                             | **4** foundation / 4.1+ / 6                                                                  |
-| M12  | Leads: leads, links, viewing_requests, assignments, status history                                                                         | **4.1+** (deferred from Phase 4 scope lock)                                                  |
+| Step | Migration focus                                                                                                                      | Phase                                                                                                                            |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| M00  | Extensions: `uuid-ossp` or `pgcrypto`, `postgis`, `unaccent`, `pg_trgm`, `vector`                                                    | 1                                                                                                                                |
+| M01  | Identity: users, profiles, auth_identities, guest_sessions, security_events                                                          | 1                                                                                                                                |
+| M02  | AuthZ: organizations, members, verifications, roles, permissions, consents, notification_preferences, privacy_requests               | 1                                                                                                                                |
+| M03  | Channel identity stubs: `user_channel_identities`                                                                                    | 1                                                                                                                                |
+| M04  | Geography hierarchy + geo_aliases + places                                                                                           | 1–2                                                                                                                              |
+| M05  | Amenities, transport_stops, environmental_layers (schema; data later)                                                                | 2–6                                                                                                                              |
+| M06  | Inventory core: physical_properties, addresses, locations, listings, types, features, source_claims, derived_attributes, provenance  | 2                                                                                                                                |
+| M07  | Histories: listing_status_history, listing_price_history, verification_events                                                        | 2                                                                                                                                |
+| M08  | Media: media_assets, media_rights, listing_media                                                                                     | 2                                                                                                                                |
+| M09  | Off-plan: developments, development_units, offplan_milestones, property_documents, document_verifications                            | 2 / 6                                                                                                                            |
+| M10  | Buyer workspace: favourites (P2); shortlists/notes/comparisons/prefs (P4A); shares (P4C); `saved_searches`, `browsing_history` (P4B) | **4** ([`PHASE4_DATABASE_CHANGES.md`](PHASE4_DATABASE_CHANGES.md), [`PHASE4B_DATABASE_CHANGES.md`](PHASE4B_DATABASE_CHANGES.md)) |
+| M11  | Alerts: evaluation runs, last matches, `in_app_notifications`, `notification_deliveries` (P4B); email deliveries later               | **4B** foundation / 4.1+ channels                                                                                                |
+| M12  | Leads: leads, links, viewing_requests, assignments, status history                                                                   | **4.1+** (deferred from Phase 4 scope lock)                                                                                      |
 
 | M13 | Conversations: conversations, participants, messages, attachments, property links, channel_threads, handoffs, summaries | 5–6 |
 | M14 | AI: ai_runs, ai_tool_calls, ai_feedback, evaluation tables | 5 |

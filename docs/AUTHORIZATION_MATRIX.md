@@ -1,10 +1,10 @@
-# Authorization matrix — Phase 3.1 (+ Phase 4 planned)
+# Authorization matrix — Phase 3.1 (+ Phase 4)
 
 Date: 2026-08-06  
-Status: Phase 3.1 **Implemented**; Phase 4A buyer routes **Implemented**; Phase 4B/4C **Planned**  
-Related: [`PHASE3_1_AUTH_PLAN.md`](PHASE3_1_AUTH_PLAN.md), [`PHASE4A_IMPLEMENTATION.md`](PHASE4A_IMPLEMENTATION.md)
+Status: Phase 3.1 **Implemented**; Phase 4A buyer routes **Implemented**; Phase 4B **Planned** (ADR-030b); Phase 4C shares **Planned**  
+Related: [`PHASE3_1_AUTH_PLAN.md`](PHASE3_1_AUTH_PLAN.md), [`PHASE4A_IMPLEMENTATION.md`](PHASE4A_IMPLEMENTATION.md), [`PHASE4B_PLAN.md`](PHASE4B_PLAN.md)
 
-Legend: **Y** = allow · **N** = deny · **—** = not applicable · **S** = session required · **P** = planned Phase 4
+Legend: **Y** = allow · **N** = deny · **—** = not applicable · **S** = session required · **P** = planned Phase 4B/4C
 
 Role keys: `anon`, `buyer` (authenticated, no org/platform role), `org_viewer`, `org_agent` (editor), `org_admin`/`org_owner` (agency admin), `listing_reviewer`, `platform_admin`.
 
@@ -23,18 +23,31 @@ Role keys: `anon`, `buyer` (authenticated, no org/platform role), `org_viewer`, 
 
 ### Phase 4A buyer workspace APIs (implemented)
 
-| Route                                             | anon | buyer | org_* | Notes                       |
-| ------------------------------------------------- | ---- | ----- | ----- | --------------------------- |
-| `GET/POST/PATCH/DELETE /api/v1/me/shortlists`     | N    | Y (S) | N     | Owner only                  |
-| `POST/DELETE /api/v1/me/shortlists/{id}/items`    | N    | Y (S) | N     |                             |
-| `PUT /api/v1/me/shortlists/{id}/note`             | N    | Y (S) | N     |                             |
-| `GET/PUT/DELETE /api/v1/me/notes/properties/{id}` | N    | Y (S) | N     |                             |
-| `POST /api/v1/me/comparisons` / `preview`         | N    | Y (S) | N     |                             |
-| `GET/PUT /api/v1/me/preference-profiles`          | N    | Y (S) | N     |                             |
-| `POST /api/v1/me/workspace/merge`                 | N    | Y (S) | N     |                             |
-| `GET/PUT /api/v1/guest/workspace`                 | Y    | Y     | Y     | Cookie-scoped guest session |
+| Route                                             | anon | buyer | org_* | Notes                              |
+| ------------------------------------------------- | ---- | ----- | ----- | ---------------------------------- |
+| `GET/POST/PATCH/DELETE /api/v1/me/shortlists`     | N    | Y (S) | N     | Owner only                         |
+| `POST/DELETE /api/v1/me/shortlists/{id}/items`    | N    | Y (S) | N     |                                    |
+| `PUT /api/v1/me/shortlists/{id}/note`             | N    | Y (S) | N     |                                    |
+| `GET/PUT/DELETE /api/v1/me/notes/properties/{id}` | N    | Y (S) | N     |                                    |
+| `POST /api/v1/me/comparisons` / `preview`         | N    | Y (S) | N     |                                    |
+| `GET/PUT /api/v1/me/preference-profiles`          | N    | Y (S) | N     |                                    |
+| `POST /api/v1/me/workspace/merge`                 | N    | Y (S) | N     | Extends in 4B for searches/history |
+| `GET/PUT /api/v1/guest/workspace`                 | Y    | Y     | Y     | Cookie-scoped guest session        |
 
-Phase 4B/4C (saved searches, history, notifications, shares): still **P**lanned.
+### Phase 4B buyer APIs (planned — ADR-030b)
+
+| Route                                                            | anon | buyer       | org_* | Notes                                  |
+| ---------------------------------------------------------------- | ---- | ----------- | ----- | -------------------------------------- |
+| `GET/POST/PATCH/DELETE /api/v1/me/saved-searches`                | N    | Y (S) **P** | N     | Owner only; criteria never to agencies |
+| `POST /api/v1/me/saved-searches/{id}/run`                        | N    | Y (S) **P** | N     | Manual evaluation                      |
+| `PATCH /api/v1/me/saved-searches/{id}/alerts`                    | N    | Y (S) **P** | N     | Opt-in alerts                          |
+| `GET/DELETE /api/v1/me/history`                                  | N    | Y (S) **P** | N     | Browsing history                       |
+| `POST /api/v1/me/history/views`                                  | N    | Y (S) **P** | N     | Rate-limited                           |
+| `DELETE /api/v1/me/history/{listingId}`                          | N    | Y (S) **P** | N     | Clear one                              |
+| `GET /api/v1/me/notifications`                                   | N    | Y (S) **P** | N     | In-app only                            |
+| `POST /api/v1/me/notifications/{id}/read` / `read-all` / dismiss | N    | Y (S) **P** | N     |                                        |
+
+Phase 4C (comparison shares): still **P**lanned separately.
 
 ---
 

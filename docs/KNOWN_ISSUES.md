@@ -1,6 +1,6 @@
 # Known issues
 
-Date: 2026-08-06 (Phase 2 + Phase 3 + Phase 3.1 + Phase 4A)
+Date: 2026-08-06 (Phase 2 + Phase 3 + Phase 3.1 + Phase 4A + Phase 4B planning)
 
 ## Phase 2
 
@@ -35,5 +35,11 @@ Date: 2026-08-06 (Phase 2 + Phase 3 + Phase 3.1 + Phase 4A)
 
 21. **Energy / condition / outdoor / accessibility / investment** comparison criteria remain unavailable or always-missing until real inventory fields exist — UI shows unavailable; scoring excludes them.
 22. **Guest comparison** uses client-side `scoreComparisonSet` for anonymous users; authenticated users use `/api/v1/me/comparisons/preview`. Notes are never included for guests.
-23. Phase 4B/4C (saved searches, history, alerts, share links) not started.
+23. ~~Phase 4B/4C not started~~ — **Narrowed:** Phase **4B planning complete** (ADR-030b: saved searches, browsing history, in-app alerts) — see [`PHASE4B_PLAN.md`](PHASE4B_PLAN.md). Implementation not started. Phase **4C** = comparison share links only (not started).
 24. ~~**Phase 4A buyer journey fails on a cold Playwright run**~~ — **Resolved**: on a genuinely cold run (`apps/web/.next` deleted) `expect(getByTestId('property-detail'))` failed inside the default 5s budget because `next dev` still had to compile two chained routes after the click — `/[locale]/properties/[listingId]` (measured 3776 ms) and the `/api/v1/properties/[listingId]` call its client component awaits (4119 ms), ~7.9s in total versus ~0.6s warm. Playwright's `webServer.url` gate only proved `/api/health` had compiled, so nothing guaranteed application readiness. Fixed with an `app-ready` setup project (`apps/web/e2e/app-ready.setup.ts`) that polls `/api/health`, polls `/api/v1/properties?limit=1` until a seeded listing is queryable (proving migrations + seed + property API), and warms every route the journeys visit; the journey now waits for the property-detail response to complete before asserting; and server-startup (120s), readiness (180s) and per-assertion (15s, measured from warm behaviour) budgets are separated. No sleeps, no weakened assertions, retries still `0` everywhere so a first-run failure can never be masked. Verified with 5 consecutive clean cold runs plus 2 warm runs (7/7 pass) and a cold full suite (16 passed) — details and residual limitations in `docs/PHASE4A_ACCEPTANCE_REVIEW.md`.
+
+## Phase 4B residual (planning)
+
+25. **Guest merge still drops `savedSearchCriteria` / `recentViewListingIds` at DB persist** — domain computes them; `mergeGuestWorkspaceIntoUser` does not write searches/history yet (4B implementation gap).
+26. **`PropertySearchCriteria` lacks bathrooms / type / status / off-plan / structured geo** until 4B extends `@spain/search` per D8 / [`SAVED_SEARCH_CRITERIA_SPEC.md`](SAVED_SEARCH_CRITERIA_SPEC.md).
+27. Inline alert evaluation on large imports may add request latency — accepted under ADR-027; durable queue deferred.
